@@ -35,9 +35,7 @@ jobs:
           const vm = require('vm');
 
           const html = fs.readFileSync('index.html', 'utf8');
-          const scripts = [...html.matchAll(/<script(?:\\s[^>]*)?>([\\s\\S]*?)<\\/script>/gi)]
-            .map((m) => m[1])
-            .filter((code) => code.trim());
+          const scripts = html.split('<script>').slice(1).map((part) => part.split('</script>')[0]).filter((code) => code.trim());
 
           if (!scripts.length) {
             throw new Error('No JavaScript blocks found in client.');
