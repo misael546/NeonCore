@@ -1,0 +1,45 @@
+name: Neon Core menu smoke test
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+jobs:
+  smoke:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Install Playwright
+        run: |
+          npm init -y
+          npm install --no-save @playwright/test
+          npx playwright install --with-deps chromium
+      - name: Wait for GitHub Pages current build
+        run: |
+          for i in $(seq 1 30); do
+            if curl -fsSL "https://misael546.github.io/NeonCore/?menuSmokeCI=$i" | grep -q '20261003-012-jugar-sesion-1-final'; then
+              echo "NeonCore final menu build is public"
+              exit 0
+            fi
+            sleep 5
+          done
+          echo "NeonCore final menu build was not detected"
+          exit 1
+      - name: Wait for Render current build
+        run: |
+          for i in $(seq 1 36); do
+            if curl -fsSL "https://neon-core-multiplayer.onrender.com/health?menuSmokeCI=$i" | grep -q '"version":"2"'; then
+              echo "Render server is live"
+              exit 0
+            fi
+            sleep 5
+          done
+          echo "Render server was not detected"
+          exit 1
+      - name: Run menu smoke test
+        run: npx playwright test .github/tests/neoncore-menu-smoke.spec.js --workers=1
