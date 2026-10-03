@@ -41,6 +41,7 @@ test('menu principal: JUGAR abre el cliente completo de Sala 1 v172', async ({ b
 
   await expect(page.locator('#moveJoy')).toBeVisible({ timeout: 30000 });
   await expect(page.locator('#fire')).toBeVisible({ timeout: 30000 });
+  await expect(page.locator('#kills')).toHaveCount(0);
   await expect(page.locator('#connectionOverlay')).toBeHidden({ timeout: 30000 });
 
   // La tabla de jugadores ya no muestra PTS: muestra kills de mobs y de jugadores.
