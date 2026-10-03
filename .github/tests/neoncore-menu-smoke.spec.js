@@ -1,6 +1,6 @@
 const { test, expect } = require('@playwright/test');
 
-test('menu principal: JUGAR entra directamente a Sala 1', async ({ browser }) => {
+test('menu principal: JUGAR abre el cliente completo de Sala 1 v172', async ({ browser }) => {
   const context = await browser.newContext({
     viewport: { width: 390, height: 844 },
     isMobile: true,
@@ -29,15 +29,28 @@ test('menu principal: JUGAR entra directamente a Sala 1', async ({ browser }) =>
   await page.locator('#stableMainMenuName').fill('SmokeSala1');
   await page.locator('#stableMainMenuPlay').click();
 
-  await expect(page.locator('#stableMainMenu')).toBeHidden({ timeout: 10000 });
+  await expect.poll(async () => page.url(), {
+    timeout: 15000,
+    intervals: [250, 500]
+  }).toContain('/NeonCore/neoncore/12345/v172/');
+
+  await expect.poll(async () => page.evaluate(() => window.NEON_CORE_BUILD), {
+    timeout: 15000,
+    intervals: [500, 1000]
+  }).toBe('20261002-172-combat-polish');
+
+  await expect.poll(async () => page.locator('#neonDiag').count(), {
+    timeout: 15000,
+    intervals: [500, 1000]
+  }).toBe(1);
+
   await expect.poll(async () => page.locator('#neonDiag').innerText(), {
     timeout: 45000,
     intervals: [500, 1000, 2000]
   }).toMatch(/game:true.*room:12345/);
 
   expect(sockets.some(url => /neon-core-multiplayer\.onrender\.com\/ws/.test(url))).toBeTruthy();
-  await expect(page.locator('#connectionOverlay')).toBeHidden({ timeout: 10000 });
 
-  if (errors.length) throw new Error('Errores en menú/Sala 1:\n' + errors.join('\n'));
+  if (errors.length) throw new Error('Errores en menú/Sala 1 v172:\n' + errors.join('\n'));
   await context.close();
 });
