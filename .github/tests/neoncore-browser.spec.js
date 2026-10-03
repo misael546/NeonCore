@@ -9,7 +9,7 @@ function parsePos(text) {
 }
 
 async function waitForLiveGame(page, room, debug) {
-  await page.goto(`https://misael546.github.io/JuegoWeb/neoncore/${room}/?ci=${Date.now()}`, {
+  await page.goto(`https://misael546.github.io/NeonCore/?room=${room}&ci=${Date.now()}`, {
     waitUntil: 'domcontentloaded',
     timeout: 45000
   });
@@ -123,7 +123,7 @@ for (const room of ROOMS) {
 
     await waitForLiveGame(page, room, {errors,wsEvents:[]});
 
-    await page.goto('https://misael546.github.io/JuegoWeb/neoncore/?rejoinci=' + Date.now(), {
+    await page.goto('https://misael546.github.io/NeonCore/sessions/?rejoinci=' + Date.now(), {
       waitUntil: 'domcontentloaded',
       timeout: 45000
     });
@@ -151,7 +151,7 @@ test('menu público táctil: abrir sala desde el selector', async ({ browser }) 
   });
   const page = await context.newPage();
 
-  await page.goto('https://misael546.github.io/JuegoWeb/neoncore/?menuCI=' + Date.now(), {
+  await page.goto('https://misael546.github.io/NeonCore/sessions/?menuCI=' + Date.now(), {
     waitUntil: 'domcontentloaded',
     timeout: 45000
   });
@@ -160,14 +160,12 @@ test('menu público táctil: abrir sala desde el selector', async ({ browser }) 
   await expect(page.locator('#quickPlay')).toHaveCount(0);
   await page.locator('#username').fill('PruebaMenu');
   await expect.poll(async () => page.locator('.room[data-room="12345"] .roomCount').innerText(), {timeout:20000, intervals:[500,1000]}).toMatch(/^\d+\/16 JUGADORES$/);
-  await page.locator('.room[data-room="12345"]').dispatchEvent('pointerup', {
-    pointerType: 'touch'
-  });
+  await page.locator('.room[data-room="12345"]').click();
 
   await expect.poll(async () => page.url(), {
     timeout: 15000,
     intervals: [250, 500]
-  }).toContain('/neoncore/12345/');
+  }).toContain('/NeonCore/?room=12345');
 
   await context.close();
 });
@@ -181,7 +179,7 @@ test('menu principal: nombre y entrada a sala', async ({ browser }) => {
   });
   const page = await context.newPage();
 
-  await page.goto('https://misael546.github.io/JuegoWeb/?mainCI=' + Date.now(), {
+  await page.goto('https://misael546.github.io/NeonCore/?mainCI=' + Date.now(), {
     waitUntil: 'domcontentloaded',
     timeout: 45000
   });
@@ -198,7 +196,7 @@ test('menu principal: nombre y entrada a sala', async ({ browser }) => {
   await expect.poll(async () => page.url(), {
     timeout: 15000,
     intervals: [250, 500]
-  }).toContain('/neoncore/12345/');
+  }).toContain('/NeonCore/?room=12345');
 
   await context.close();
 });
@@ -212,14 +210,14 @@ test('SHOP: arsenal, skins, códigos, rangos y buffs', async ({ page }) => {
   });
 
   await waitForLiveGame(page, '12345', {errors,wsEvents:[]});
-  await expect.poll(async () => page.evaluate(() => window.NEON_CORE_BUILD), {timeout:10000}).toBe('20261002-148');
+  await expect.poll(async () => page.evaluate(() => window.NEON_CORE_BUILD), {timeout:10000}).toBe('20261003-007-neoncore-main-sessions-split');
 
   const health = await page.request.get('https://neon-core-multiplayer.onrender.com/health?ci=' + Date.now());
   expect(health.ok()).toBeTruthy();
   const healthJson = await health.json();
-  expect(healthJson.version).toBe('20261002-148');
+  expect(healthJson.version).toBe('2');
   expect(healthJson.diagnostics.bossTarget).toBe(1);
-  expect(healthJson.diagnostics.eliteTarget).toBe(6);
+  expect(healthJson.diagnostics.eliteTarget).toBe(10);
 
   const startPos = parsePos(await page.locator('#neonDiag').innerText());
   const moveKeys = [];
@@ -306,7 +304,7 @@ test('mobile emulation: interfaz táctil y controles visibles', async ({ browser
     if (msg.type() === 'error') errors.push('CONSOLE: ' + msg.text());
   });
 
-  await page.goto('https://misael546.github.io/JuegoWeb/neoncore/12345/?mobileci=' + Date.now(), {
+  await page.goto('https://misael546.github.io/NeonCore/?room=12345&mobileci=' + Date.now(), {
     waitUntil: 'domcontentloaded',
     timeout: 45000
   });
