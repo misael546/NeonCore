@@ -9,7 +9,7 @@
 <script>
 (function(){
   try{
-    var v="20261003-008-neoncore-classic-menu";
+    var v="20261003-009-jugar-sesion-1";
     var k="neon_core_build";
     window.NEON_CORE_BUILD=v;
     var old=localStorage.getItem(k);
@@ -26,7 +26,7 @@
   }catch(e){}
 })();
 </script>
-<title>Neon Core · Build 2 · CLASSIC MAIN MENU</title>
+<title>Neon Core · Build 2 · MAIN MENU · SESIÓN 1</title>
 <style>
 *{box-sizing:border-box}html,body{margin:0;width:100%;height:100%;overflow:hidden;background:#050811;color:#fff;font-family:Arial,sans-serif;touch-action:none}
 #game{display:block;width:100vw;height:100vh}
@@ -238,7 +238,7 @@
 }
 html.pc-controls #chatFeed{width:min(420px,38vw)}
 </style><style id="neonMainMenuStyle">
-#nameBox{background:
+#nameBox{z-index:999!important;background:
  radial-gradient(circle at 50% 42%,rgba(15,54,78,.24),transparent 42%),
  linear-gradient(135deg,#02050b 0%,#07101d 48%,#02050b 100%);
  overflow:hidden}
@@ -344,8 +344,7 @@ html.pc-controls #chatFeed{width:min(420px,38vw)}
       <label class="menuLabel" for="username">NOMBRE DEL TANQUE</label>
       <input id="username" maxlength="20" autocomplete="nickname" autocapitalize="words" placeholder="Escribe tu nombre" required>
       <div id="nameMsg" class="menuMsg">Escribe tu nombre para continuar.</div>
-      <button id="publicRoomsBtn" class="menuPrimary" type="button" onclick="enterPublicRooms();return false;"><span>▶</span> JUGAR</button>
-      <button id="menuSessionsBtn" class="menuSecondary" type="button" onclick="enterPublicRooms();return false;">SESIONES MULTIJUGADOR</button>
+      <button id="publicRoomsBtn" class="menuPrimary" type="button" onclick="startGame('join','12345');return false;"><span>▶</span> JUGAR</button>
       <div class="menuFoot"><span>BUILD 2</span><span>•</span><span>MULTIPLAYER</span></div>
       <div id="privateRoomTools" style="display:none" aria-hidden="true">
         <div id="roomActions"><button type="button" id="createRoom">CREAR SALA PRIVADA</button><button type="button" id="joinRoom">UNIRME A PRIVADA</button></div>
@@ -2076,8 +2075,8 @@ function enterPublicRooms(){
   playerName=n;
   saveName(n);
   username.value=n;
-  nameMsg.textContent="Abriendo SESIONES…";
-  location.href="./sessions/?name="+encodeURIComponent(n);
+  nameMsg.textContent="Entrando a SESIÓN 1…";
+  startGame("join","12345");
 }
 publicRoomsBtn.addEventListener("click",enterPublicRooms);
 nameForm.addEventListener("submit",e=>{
