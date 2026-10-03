@@ -9,7 +9,7 @@
 <script>
 (function(){
   try{
-    var v="20261003-015-main-menu-direct-overlay";
+    var v="20261003-016-jugar-v172-sala-1";
     var k="neon_core_build";
     window.NEON_CORE_BUILD=v;
     var old=localStorage.getItem(k);
@@ -2560,10 +2560,8 @@ requestAnimationFrame(frame);
     saveName(n);
     username.value=n;
     nameMsg.textContent="";
-    gameActive=false;
     hideMenu();
-    connectMultiplayer("join","12345");
-    setConnectionStatus("CONECTANDO A SESIÓN 1","Entrando directamente a la partida…",true);
+    location.href="./neoncore/12345/v172/?name="+encodeURIComponent(n);
   }
   button.addEventListener("click",enter);
   input.addEventListener("keydown",e=>{if(e.key==="Enter"){e.preventDefault();enter();}});
