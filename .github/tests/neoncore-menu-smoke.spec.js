@@ -37,7 +37,7 @@ test('menu principal: JUGAR abre el cliente completo de Sala 1 v172', async ({ b
   await expect.poll(async () => page.evaluate(() => window.NEON_CORE_BUILD), {
     timeout: 15000,
     intervals: [500, 1000]
-  }).toBe('20261003-018-server-update-notice');
+  }).toBe('20261003-019-remove-hud-kills');
 
   await expect(page.locator('#moveJoy')).toBeVisible({ timeout: 30000 });
   await expect(page.locator('#fire')).toBeVisible({ timeout: 30000 });
