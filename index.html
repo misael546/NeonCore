@@ -2294,7 +2294,7 @@ function updateNeonDiag(){
     const wsState=multiplayerSocket&&multiplayerSocket.readyState===1?1:0;
     const input=Math.hypot(moveX,moveY);
     const d=document.getElementById("neonDiag");
-    if(d)d.textContent="DIAG game:"+String(!!gameActive)+" ws:"+wsState+" room:"+String(currentRoom||"")+" pos:"+Math.round(p.x)+","+Math.round(p.y)+" mobs:"+enemies.length+" walls:"+walls.length+" input:"+input.toFixed(2)+","+input.toFixed(2);
+    if(d)d.textContent="DIAG game:"+String(!!gameActive)+" ws:"+wsState+" room:"+String(currentRoom||"")+" pos:"+Math.round(p.x)+","+Math.round(p.y)+" mobs:"+enemies.length+" walls:"+walls.length+" input:"+Number(moveX||0).toFixed(2)+","+Number(moveY||0).toFixed(2);
   }catch{}
 }
 setInterval(updateNeonDiag,200);
