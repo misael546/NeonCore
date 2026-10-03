@@ -37,11 +37,18 @@ test('menu principal: JUGAR abre el cliente completo de Sala 1 v172', async ({ b
   await expect.poll(async () => page.evaluate(() => window.NEON_CORE_BUILD), {
     timeout: 15000,
     intervals: [500, 1000]
-  }).toBe('20261002-172-combat-polish');
+  }).toBe('20261003-017-player-kills-table');
 
   await expect(page.locator('#moveJoy')).toBeVisible({ timeout: 30000 });
   await expect(page.locator('#fire')).toBeVisible({ timeout: 30000 });
   await expect(page.locator('#connectionOverlay')).toBeHidden({ timeout: 30000 });
+
+  // La tabla de jugadores ya no muestra PTS: muestra kills de mobs y de jugadores.
+  await expect.poll(async () => page.locator('#playersList').innerText(), {
+    timeout: 15000,
+    intervals: [500, 1000]
+  }).toContain('👾');
+  await expect(page.locator('#playersList')).not.toContainText('pts');
 
   expect(sockets.some(url => /neon-core-multiplayer\.onrender\.com\/ws/.test(url))).toBeTruthy();
 
