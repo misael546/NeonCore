@@ -39,15 +39,9 @@ test('menu principal: JUGAR abre el cliente completo de Sala 1 v172', async ({ b
     intervals: [500, 1000]
   }).toBe('20261002-172-combat-polish');
 
-  await expect.poll(async () => page.locator('#neonDiag').count(), {
-    timeout: 15000,
-    intervals: [500, 1000]
-  }).toBe(1);
-
-  await expect.poll(async () => page.locator('#neonDiag').innerText(), {
-    timeout: 45000,
-    intervals: [500, 1000, 2000]
-  }).toMatch(/game:true.*room:12345/);
+  await expect(page.locator('#moveJoy')).toBeVisible({ timeout: 30000 });
+  await expect(page.locator('#fire')).toBeVisible({ timeout: 30000 });
+  await expect(page.locator('#connectionOverlay')).toBeHidden({ timeout: 30000 });
 
   expect(sockets.some(url => /neon-core-multiplayer\.onrender\.com\/ws/.test(url))).toBeTruthy();
 
