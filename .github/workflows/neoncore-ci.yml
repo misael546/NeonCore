@@ -34,7 +34,7 @@ jobs:
           const fs = require('fs');
           const vm = require('vm');
 
-          const html = fs.readFileSync('neoncore/12345/index.html', 'utf8');
+          const html = fs.readFileSync('index.html', 'utf8');
           const scripts = [...html.matchAll(/<script(?:\\s[^>]*)?>([\\s\\S]*?)<\\/script>/gi)]
             .map((m) => m[1])
             .filter((code) => code.trim());
