@@ -186,15 +186,20 @@ test('menu principal: NeonCore abre la página independiente de Sesiones', async
 
   await expect(page.locator('#username')).toBeVisible({timeout:15000});
   await page.locator('#username').fill('PruebaNeon');
-  await expect(page.locator('#publicRoomsBtn')).toContainText('IR A SESIONES');
+  await expect(page.locator('#publicRoomsBtn')).toContainText('JUGAR');
+  await expect(page.locator('#menuSessionsBtn')).toHaveCount(0);
+  await expect(page.locator('#chatToggle')).toBeHidden();
   await page.locator('#publicRoomsBtn').click();
 
   await expect.poll(async () => page.url(), {
     timeout: 15000,
     intervals: [250, 500]
-  }).toContain('/NeonCore/sessions/');
+  }).toContain('/NeonCore/?room=12345');
 
-  await expect(page.locator('#username')).toHaveValue('PruebaNeon');
+  await expect.poll(async () => page.locator('#neonDiag').innerText(), {
+    timeout: 45000,
+    intervals: [500, 1000, 2000]
+  }).toMatch(/game:true/);
   await context.close();
 });
 
