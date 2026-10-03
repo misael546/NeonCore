@@ -1830,6 +1830,8 @@ function handleShot(ws) {
       levelUpIfNeeded(shooter);
       void persistPlayer(shooter);
       sendStats(shooter);
+      // Sincroniza nivel, score y kills con la lista de jugadores después de cada baja PvE.
+      if (shooter.room) sendPlayerList(shooter.room);
 
       if (isBoss) {
         roomBossProjectiles.set(shooter.room, []);
