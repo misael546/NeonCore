@@ -9,7 +9,7 @@
 <script>
 (function(){
   try{
-    var v="20261003-013-menu-visible-sala-1";
+    var v="20261003-014-menu-container-sala-1";
     var k="neon_core_build";
     window.NEON_CORE_BUILD=v;
     var old=localStorage.getItem(k);
@@ -352,7 +352,7 @@ body.menu-open #neonFullscreenButton{display:none!important}
 <div id="playersPanel"><b>JUGADORES CONECTADOS · <span id="playersCount">0</span></b><div id="playersList"></div></div><div id="neonDiag" style="display:none" aria-hidden="true"></div>
 
 <div id="nameBox">
-  <form id="nameForm">
+  <div id="nameForm">
     <div id="nameCard">
       <div class="menuGlow"></div>
       <div class="menuEyebrow">NEON CORE // ONLINE</div>
@@ -369,7 +369,7 @@ body.menu-open #neonFullscreenButton{display:none!important}
         <input id="roomCodeInput" maxlength="4" autocomplete="off" placeholder="CÓDIGO DE SALA · EJ. N7K4">
       </div>
     </div>
-  </form>
+  </div>
 </div>
 
 <div id="death">
