@@ -21,6 +21,18 @@ test('menu principal: JUGAR entra directamente a Sala 1', async ({ browser }) =>
     timeout: 45000
   });
 
+  await page.waitForTimeout(1500);
+  console.log('MENU_DIAG', await page.evaluate(() => {
+    const b = document.getElementById('nameBox');
+    return {
+      href: location.href,
+      search: location.search,
+      htmlClass: document.documentElement.className,
+      bodyClass: document.body.className,
+      style: b ? b.getAttribute('style') : null,
+      display: b ? getComputedStyle(b).display : null
+    };
+  }));
   await expect(page.locator('#nameBox')).toBeVisible({ timeout: 15000 });
   await expect(page.locator('#username')).toBeVisible({ timeout: 15000 });
   await expect(page.locator('#publicRoomsBtn')).toContainText('JUGAR');
