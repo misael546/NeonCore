@@ -9,7 +9,7 @@
 <script>
 (function(){
   try{
-    var v="20261002-172-combat-polish";
+    var v="20261003-017-player-kills-table";
     var k="neon_core_build";
     window.NEON_CORE_BUILD=v;
     var old=localStorage.getItem(k);
@@ -694,7 +694,12 @@ function startRenderMonitor(){
 function renderPlayers(list){
   const panel=document.getElementById("playersPanel"),count=document.getElementById("playersCount"),box=document.getElementById("playersList");
   const players=Array.isArray(list)?[...list]:[];
-  players.sort((a,b)=>(Number(b.score)||0)-(Number(a.score)||0)||(Number(b.level)||1)-(Number(a.level)||1));
+  // La tabla ya no usa ni muestra PUNTOS. El orden depende del nivel y, como desempate, de kills.
+  players.sort((a,b)=>
+    (Number(b.level)||1)-(Number(a.level)||1)||
+    (Number(b.kills)||0)-(Number(a.kills)||0)||
+    (Number(b.pvpKills)||0)-(Number(a.pvpKills)||0)
+  );
   count.textContent=players.length;
   box.innerHTML="";
   for(const q of players){
@@ -703,7 +708,10 @@ function renderPlayers(list){
     const name=document.createElement("span");
     name.textContent=q.id===multiplayerId?(q.name||"Jugador")+" (TÚ)":(q.name||"Jugador");
     const state=document.createElement("small");
-    state.textContent=(q.alive===false?"DESTRUIDO":"Nv."+String(q.level||1))+" · "+String(q.score||0)+" pts";
+    const mobKills=Math.max(0,Number(q.kills)||0);
+    const playerKills=Math.max(0,Number(q.pvpKills)||0);
+    state.textContent=(q.alive===false?"DESTRUIDO":"Nv."+String(q.level||1))+
+      " · 👾 "+String(mobKills)+" · ⚔ "+String(playerKills);
     row.append(name,state);box.appendChild(row);
   }
   panel.style.display=currentRoom?"block":"none";
