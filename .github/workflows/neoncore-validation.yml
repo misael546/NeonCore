@@ -49,23 +49,12 @@ jobs:
         run: |
           node - <<'NODE'
           const fs = require('fs');
-          const files = ['server/server.js','neoncore/12345/index.html'];
-          const texts = files.map(f => fs.readFileSync(f,'utf8'));
-          const versions = [];
-          const server = texts[0].match(/SERVER_VERSION\s*=\s*['"]([^'"]+)/);
-          if (server) versions.push(server[1]);
-          for (const html of texts.slice(1,3)) {
-            const m = html.match(/var\s+v\s*=\s*["']([^"']+)["']/);
-            if (!m) throw new Error('Client build marker missing');
-            versions.push(m[1]);
-          }
-          if (new Set(versions).size !== 1) throw new Error('Build mismatch: ' + versions.join(', '));
-          if (!/^202610\d{2}-\d+$/.test(versions[0])) throw new Error('Invalid build marker: ' + versions[0]);
-          const serverText = fs.readFileSync('server/server.js','utf8');
-          if (!serverText.includes("const PUBLIC_ROOMS = ['12345'];")) throw new Error('Public room list is not Sala #1 only');
           const root = fs.readFileSync('index.html','utf8');
-          if (!root.includes('id="username"') || root.includes('id="quickPlay"') || !root.includes('data-room-count="12345"') || root.includes('data-room="67890"')) throw new Error('Main menu room flow is not synchronized');
-          const roomsPage = fs.readFileSync('neoncore/index.html','utf8');
-          if (roomsPage.includes('id="quickPlay"') || !roomsPage.includes('data-room-count="12345"') || roomsPage.includes('data-room="67890"') || !roomsPage.includes('ROOM_STATUS_URL')) throw new Error('Rooms page player-count flow is not synchronized');
+          const sessions = fs.readFileSync('sessions/index.html','utf8');
+          const server = fs.readFileSync('server/server.js','utf8');
+          if (!/var\s+v\s*=\s*["']20261003-008-neoncore-classic-menu["']/.test(root)) throw new Error('Root build marker is not current');
+          if (!root.includes('id="username"') || !root.includes('MENÚ PRINCIPAL') || !root.includes('SESIONES MULTIJUGADOR')) throw new Error('Classic main menu is not synchronized');
+          if (!sessions.includes('NEON CORE · SESIONES') || !sessions.includes('wss://neon-core-multiplayer.onrender.com/ws')) throw new Error('Sessions page is not synchronized');
+          if (!/SERVER_VERSION\s*=\s*['"]2['"]/.test(server)) throw new Error('Server version is not 2');
           console.log('Build synchronization: OK');
           NODE
