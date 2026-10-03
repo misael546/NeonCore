@@ -171,7 +171,7 @@ test('menu público táctil: abrir sala desde el selector', async ({ browser }) 
 });
 
 
-test('menu principal: nombre y entrada a sala', async ({ browser }) => {
+test('menu principal: NeonCore abre la página independiente de Sesiones', async ({ browser }) => {
   const context = await browser.newContext({
     viewport: { width: 390, height: 844 },
     isMobile: true,
@@ -185,19 +185,16 @@ test('menu principal: nombre y entrada a sala', async ({ browser }) => {
   });
 
   await expect(page.locator('#username')).toBeVisible({timeout:15000});
-  await expect(page.locator('.room[data-room="12345"]')).toHaveClass(/disabled/);
-
   await page.locator('#username').fill('PruebaNeon');
-  await expect(page.locator('.room[data-room="12345"]')).not.toHaveClass(/disabled/);
-  await expect(page.locator('#quickPlay')).toHaveCount(0);
-
-  await page.locator('.room[data-room="12345"]').click();
+  await expect(page.locator('#publicRoomsBtn')).toContainText('IR A SESIONES');
+  await page.locator('#publicRoomsBtn').click();
 
   await expect.poll(async () => page.url(), {
     timeout: 15000,
     intervals: [250, 500]
-  }).toContain('/NeonCore/?room=12345');
+  }).toContain('/NeonCore/sessions/');
 
+  await expect(page.locator('#username')).toHaveValue('PruebaNeon');
   await context.close();
 });
 
