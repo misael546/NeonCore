@@ -9,7 +9,7 @@
 <script>
 (function(){
   try{
-    var v="20261003-010-jugar-sesion-1-directo";
+    var v="20261003-011-jugar-sesion-1-verificado";
     var k="neon_core_build";
     window.NEON_CORE_BUILD=v;
     var old=localStorage.getItem(k);
@@ -346,7 +346,7 @@ body.menu-open #neonFullscreenButton{display:none!important}
 <div id="toastFeed" aria-live="polite"></div><div class="pcHint">PC: WASD / flechas para moverte · mouse para apuntar · clic izquierdo para disparar · ESPACIO también dispara</div><div id="chatFeed" aria-live="polite" aria-label="Mensajes del chat"></div><div id="chatBox" aria-label="Escribir en el chat" style="display:none"><div class="chatInputHead"><span>✦ MENSAJE NEON</span><button class="chatClose" id="chatCloseStatic" type="button" aria-label="Cerrar chat">×</button></div><form id="chatForm"><input id="chatInput" maxlength="120" autocomplete="off" placeholder="Escribe un mensaje…"><button id="chatSend" type="submit">ENVIAR</button></form><div id="chatHint">Enter para enviar · máximo 120 caracteres</div></div><div id="connectionOverlay" aria-live="polite"><div id="connectionCard"><div id="connectionSpinner"></div><b id="connectionTitle">CONECTANDO AL SERVIDOR</b><span id="connectionText">Despertando el servidor multiplayer…</span></div></div>
 
 
-<div id="playersPanel"><b>JUGADORES CONECTADOS · <span id="playersCount">0</span></b><div id="playersList"></div></div>
+<div id="playersPanel"><b>JUGADORES CONECTADOS · <span id="playersCount">0</span></b><div id="playersList"></div></div><div id="neonDiag" style="display:none" aria-hidden="true"></div>
 
 <div id="nameBox">
   <form id="nameForm">
@@ -2289,6 +2289,16 @@ document.addEventListener("pointerup",neonMobilePointerEnd,{passive:false});
 document.addEventListener("pointercancel",neonMobilePointerEnd,{passive:false});
 
 loadStats();
+function updateNeonDiag(){
+  try{
+    const wsState=multiplayerSocket&&multiplayerSocket.readyState===1?1:0;
+    const input=Math.hypot(moveX,moveY);
+    const d=document.getElementById("neonDiag");
+    if(d)d.textContent="DIAG game:"+String(!!gameActive)+" ws:"+wsState+" room:"+String(currentRoom||"")+" pos:"+Math.round(p.x)+","+Math.round(p.y)+" mobs:"+enemies.length+" walls:"+walls.length+" input:"+input.toFixed(2)+","+input.toFixed(2);
+  }catch{}
+}
+setInterval(updateNeonDiag,200);
+
 function frame(now){
   const dt=Math.min(.05,(now-last)/1000);
   last=now;
