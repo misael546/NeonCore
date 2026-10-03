@@ -9,7 +9,7 @@
 <script>
 (function(){
   try{
-    var v="20261003-011-jugar-sesion-1-verificado";
+    var v="20261003-012-jugar-sesion-1-final";
     var k="neon_core_build";
     window.NEON_CORE_BUILD=v;
     var old=localStorage.getItem(k);
@@ -2467,6 +2467,31 @@ requestAnimationFrame(frame);
   },80);
 
   console.info("[NEON CORE] Combat Polish 172 activo: rango visual, muzzle flash, alerta de boss y aviso de munición.");
+})();
+</script><script>
+(function(){
+  const q=new URLSearchParams(location.search);
+  const box=document.getElementById("nameBox");
+  const btn=document.getElementById("publicRoomsBtn");
+  const form=document.getElementById("nameForm");
+  if(!box||!btn)return;
+  if(!q.get("room")){
+    box.style.display="flex";
+    document.body.classList.add("menu-open");
+  }
+  try{btn.removeEventListener("click",enterPublicRooms);}catch{}
+  btn.onclick=function(e){
+    e.preventDefault();
+    e.stopPropagation();
+    enterPublicRooms();
+    return false;
+  };
+  if(form)form.onsubmit=function(e){
+    e.preventDefault();
+    e.stopPropagation();
+    enterPublicRooms();
+    return false;
+  };
 })();
 </script></body>
 </html>
