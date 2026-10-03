@@ -27,8 +27,7 @@ jobs:
           assert old_build in s, "Build 019 no encontrado"
           s = s.replace(old_build, new_build, 1)
 
-          old_check = '''        var m=html.match(/window\\.NEON_CORE_BUILD\\s*=\\s*"([^"]+)"/);
-          if(m && m[1]!==window.NEON_CORE_BUILD) location.reload();'''
+          old_check = '''          if(m && m[1]!==window.NEON_CORE_BUILD) location.reload();'''
           new_check = '''        var m=html.match(/window\\.NEON_CORE_BUILD\\s*=\\s*"([^"]+)"/);
           if(m && m[1]!==window.NEON_CORE_BUILD){
             window.__NEON_PENDING_BUILD_UPDATE=m[1];
