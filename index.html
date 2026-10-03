@@ -9,7 +9,7 @@
 <script>
 (function(){
   try{
-    var v="20261003-009-jugar-sesion-1";
+    var v="20261003-010-jugar-sesion-1-directo";
     var k="neon_core_build";
     window.NEON_CORE_BUILD=v;
     var old=localStorage.getItem(k);
@@ -265,6 +265,21 @@ html.pc-controls #chatFeed{width:min(420px,38vw)}
 #nameCard .menuPrimary{border:1px solid #39e7ff;background:linear-gradient(135deg,#0b526b,#15354d);color:#fff;box-shadow:0 0 22px #39e7ff1c,inset 0 0 18px #39e7ff12}
 #nameCard .menuPrimary span{margin-right:7px;color:#8ff5ff}
 #nameCard .menuPrimary:active,#nameCard .menuSecondary:active{transform:scale(.985)}
+body.menu-open #hud,
+body.menu-open #chatToggle,
+body.menu-open #chatFeed,
+body.menu-open #chatBox,
+body.menu-open #minimapWrap,
+body.menu-open #playersPanel,
+body.menu-open #controls,
+body.menu-open #controlConfigBtn,
+body.menu-open .pcHint,
+body.menu-open #audioToggle,
+body.menu-open #buildDisplay,
+body.menu-open #toastFeed,
+body.menu-open #ammoShop,
+body.menu-open #cosmeticShop,
+body.menu-open #neonFullscreenButton{display:none!important}
 #nameCard .menuSecondary{margin-top:8px;border:1px solid #2b405b;background:#0a1321;color:#a9b8cc;font-size:11px}
 #nameCard .menuSecondary:hover{border-color:#39e7ff66;color:#dffbff}
 .menuFoot{display:flex;justify-content:center;gap:10px;margin-top:18px;color:#53627b;font-size:9px;letter-spacing:1.5px}
@@ -344,7 +359,7 @@ html.pc-controls #chatFeed{width:min(420px,38vw)}
       <label class="menuLabel" for="username">NOMBRE DEL TANQUE</label>
       <input id="username" maxlength="20" autocomplete="nickname" autocapitalize="words" placeholder="Escribe tu nombre" required>
       <div id="nameMsg" class="menuMsg">Escribe tu nombre para continuar.</div>
-      <button id="publicRoomsBtn" class="menuPrimary" type="button" onclick="startGame('join','12345');return false;"><span>▶</span> JUGAR</button>
+      <button id="publicRoomsBtn" class="menuPrimary" type="button"><span>▶</span> JUGAR</button>
       <div class="menuFoot"><span>BUILD 2</span><span>•</span><span>MULTIPLAYER</span></div>
       <div id="privateRoomTools" style="display:none" aria-hidden="true">
         <div id="roomActions"><button type="button" id="createRoom">CREAR SALA PRIVADA</button><button type="button" id="joinRoom">UNIRME A PRIVADA</button></div>
@@ -2038,6 +2053,12 @@ const nameMsg=document.getElementById("nameMsg");
 const createRoomBtn=document.getElementById("createRoom");
 const joinRoomBtn=document.getElementById("joinRoom");
 const roomCodeInput=document.getElementById("roomCodeInput");
+const menuObserver=new MutationObserver(()=>{
+  const open=getComputedStyle(nameBox).display!=="none";
+  document.body.classList.toggle("menu-open",open);
+});
+menuObserver.observe(nameBox,{attributes:true,attributeFilter:["style"]});
+
 
 const restartBtn=document.getElementById("restart");
 let saveKey="";
