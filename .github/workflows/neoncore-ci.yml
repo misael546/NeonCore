@@ -50,7 +50,7 @@ jobs:
             }
           }
 
-          console.log(\`Validated ${scripts.length} client script block(s).\`);
+          console.log('Validated ' + scripts.length + ' client script block(s).');
           NODE
 
       - name: Validate JSON
