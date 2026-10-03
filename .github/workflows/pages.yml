@@ -62,7 +62,7 @@ jobs:
           root = Path("index.html").read_text(encoding="utf-8")
           legacy = Path("neoncore/index.html").read_text(encoding="utf-8")
 
-          assert '20261003-014-menu-container-sala-1' in root
+          assert '20261003-015-main-menu-direct-overlay' in root
           assert 'PUBLIC_ROOM_CODE' in root
           assert 'MENÚ PRINCIPAL · SALAS PÚBLICAS' not in root
           assert 'Sala #1' not in root
@@ -93,7 +93,7 @@ jobs:
           echo "[PAGES] Checking live URL: $url"
           for i in $(seq 1 12); do
             html="$(curl -fsSL --retry 2 --retry-delay 2 "$url" || true)"
-            if grep -Fq '20261003-014-menu-container-sala-1' <<<"$html" \
+            if grep -Fq '20261003-015-main-menu-direct-overlay' <<<"$html" \
                && grep -Eq 'PUBLIC_ROOM_CODE' <<<"$html" \
                && ! grep -Fq 'MENÚ PRINCIPAL · SALAS PÚBLICAS' <<<"$html" \
                && ! grep -Fq '20261003-167-darkscifi' <<<"$html"; then
