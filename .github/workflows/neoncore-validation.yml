@@ -53,7 +53,7 @@ jobs:
           const sessions = fs.readFileSync('sessions/index.html','utf8');
           const server = fs.readFileSync('server/server.js','utf8');
           if (!/var\s+v\s*=\s*["']20261003-009-jugar-sesion-1["']/.test(root)) throw new Error('Root build marker is not current');
-          if (!root.includes('id="username"') || !root.includes('MENÚ PRINCIPAL') || !root.includes('SESIONES MULTIJUGADOR')) throw new Error('Classic main menu is not synchronized');
+          if (!root.includes('id="username"') || !root.includes('MENÚ PRINCIPAL') || !root.includes('> JUGAR</button>') || root.includes('SESIONES MULTIJUGADOR')) throw new Error('Main menu is not synchronized for Session 1');
           if (!sessions.includes('Neon Core · Sesiones') || !sessions.includes('const WS=')) throw new Error('Sessions page is not synchronized');
           if (!/SERVER_VERSION\s*=\s*['"]2['"]/.test(server)) throw new Error('Server version is not 2');
           console.log('Build synchronization: OK');
