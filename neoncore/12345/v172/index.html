@@ -9,7 +9,7 @@
 <script>
 (function(){
   try{
-    var v="20261003-019-remove-hud-kills";
+    var v="20261003-020-update-prompt";
     var k="neon_core_build";
     window.NEON_CORE_BUILD=v;
     var old=localStorage.getItem(k);
@@ -20,7 +20,12 @@
         headers:{"Cache-Control":"no-cache"}
       }).then(function(r){return r.text();}).then(function(html){
         var m=html.match(/window\.NEON_CORE_BUILD\s*=\s*"([^"]+)"/);
-        if(m && m[1]!==window.NEON_CORE_BUILD) location.reload();
+        if(m && m[1]!==window.NEON_CORE_BUILD){
+  window.__NEON_PENDING_BUILD_UPDATE=m[1];
+  if(typeof window.showServerUpdateNotice==="function"){
+    window.showServerUpdateNotice("Hay una nueva versión de Neon Core. Pulsa ACTUALIZAR AHORA para cargarla.");
+  }
+}
       }).catch(function(){});
     },1500);
   }catch(e){}
@@ -691,6 +696,8 @@ function showServerUpdateNotice(message){
   if(tx)tx.textContent=message||"El servidor se actualizó.";
   wrap.style.display="flex";
 }
+window.showServerUpdateNotice=showServerUpdateNotice;
+if(window.__NEON_PENDING_BUILD_UPDATE) setTimeout(()=>showServerUpdateNotice("Hay una nueva versión de Neon Core. Pulsa ACTUALIZAR AHORA para cargarla."),0);
 async function checkRenderStatus(){
   try{
     const res=await fetch(RENDER_HEALTH_URL,{cache:"no-store"});
@@ -719,7 +726,7 @@ async function checkRenderStatus(){
 function startRenderMonitor(){
   if(renderStatusTimer)clearInterval(renderStatusTimer);
   checkRenderStatus();
-  renderStatusTimer=setInterval(checkRenderStatus,8000);
+  renderStatusTimer=setInterval(checkRenderStatus,2500);
 }
 function renderPlayers(list){
   const panel=document.getElementById("playersPanel"),count=document.getElementById("playersCount"),box=document.getElementById("playersList");
