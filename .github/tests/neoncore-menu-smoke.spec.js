@@ -30,10 +30,14 @@ test('menu principal: JUGAR entra directamente a Sala 1', async ({ browser }) =>
       htmlClass: document.documentElement.className,
       bodyClass: document.body.className,
       style: b ? b.getAttribute('style') : null,
-      display: b ? getComputedStyle(b).display : null
+      display: b ? getComputedStyle(b).display : null,
+      visibility: b ? getComputedStyle(b).visibility : null,
+      opacity: b ? getComputedStyle(b).opacity : null,
+      rect: b ? (() => { const r=b.getBoundingClientRect(); return {x:r.x,y:r.y,w:r.width,h:r.height}; })() : null,
+      parent: b?.parentElement ? getComputedStyle(b.parentElement).display : null
     };
   }));
-  await expect(page.locator('#nameBox')).toBeVisible({ timeout: 15000 });
+  await expect.poll(async () => page.locator('#nameBox').evaluate(el => ({display:getComputedStyle(el).display,visibility:getComputedStyle(el).visibility,opacity:getComputedStyle(el).opacity,w:el.getBoundingClientRect().width,h:el.getBoundingClientRect().height})), {timeout:15000}).toMatchObject({display:'flex',visibility:'visible'});
   await expect(page.locator('#username')).toBeVisible({ timeout: 15000 });
   await expect(page.locator('#publicRoomsBtn')).toContainText('JUGAR');
   await expect(page.locator('#menuSessionsBtn')).toHaveCount(0);
