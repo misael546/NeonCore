@@ -43,7 +43,7 @@ jobs:
 
           for (let i = 0; i < scripts.length; i++) {
             try {
-              new vm.Script(scripts[i], { filename: \`client-script-${i + 1}.js\` });
+              new vm.Script(scripts[i], { filename: 'client-script-' + (i + 1) + '.js' });
             } catch (error) {
               console.error(error);
               process.exit(1);
