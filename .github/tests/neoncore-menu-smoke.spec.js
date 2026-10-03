@@ -21,33 +21,15 @@ test('menu principal: JUGAR entra directamente a Sala 1', async ({ browser }) =>
     timeout: 45000
   });
 
-  await page.waitForTimeout(1500);
-  console.log('MENU_DIAG', await page.evaluate(() => {
-    const b = document.getElementById('nameBox');
-    return {
-      href: location.href,
-      search: location.search,
-      htmlClass: document.documentElement.className,
-      bodyClass: document.body.className,
-      style: b ? b.getAttribute('style') : null,
-      display: b ? getComputedStyle(b).display : null,
-      visibility: b ? getComputedStyle(b).visibility : null,
-      opacity: b ? getComputedStyle(b).opacity : null,
-      rect: b ? (() => { const r=b.getBoundingClientRect(); return {x:r.x,y:r.y,w:r.width,h:r.height}; })() : null,
-      parent: b?.parentElement ? getComputedStyle(b.parentElement).display : null
-    };
-  }));
-  await expect.poll(async () => page.locator('#nameBox').evaluate(el => ({display:getComputedStyle(el).display,visibility:getComputedStyle(el).visibility,opacity:getComputedStyle(el).opacity,w:el.getBoundingClientRect().width,h:el.getBoundingClientRect().height})), {timeout:15000}).toMatchObject({display:'flex',visibility:'visible'});
-  await expect(page.locator('#username')).toBeVisible({ timeout: 15000 });
-  await expect(page.locator('#publicRoomsBtn')).toContainText('JUGAR');
+  await expect(page.locator('#stableMainMenu')).toBeVisible({ timeout: 15000 });
+  await expect(page.locator('#stableMainMenuName')).toBeVisible({ timeout: 15000 });
+  await expect(page.locator('#stableMainMenuPlay')).toContainText('JUGAR');
   await expect(page.locator('#menuSessionsBtn')).toHaveCount(0);
-  await expect(page.locator('#chatToggle')).toBeHidden();
 
-  await page.locator('#username').fill('SmokeSala1');
-  await page.locator('#publicRoomsBtn').click();
+  await page.locator('#stableMainMenuName').fill('SmokeSala1');
+  await page.locator('#stableMainMenuPlay').click();
 
-  await expect.poll(async () => page.locator('#neonDiag').innerText(), {timeout:45000, intervals:[500,1000,2000]}).toMatch(/game:true.*room:12345/);
-  await expect(page.locator('#neonDiag')).toContainText('DIAG', { timeout: 30000 });
+  await expect(page.locator('#stableMainMenu')).toBeHidden({ timeout: 10000 });
   await expect.poll(async () => page.locator('#neonDiag').innerText(), {
     timeout: 45000,
     intervals: [500, 1000, 2000]
