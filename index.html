@@ -9,7 +9,7 @@
 <script>
 (function(){
   try{
-    var v="20261003-012-jugar-sesion-1-final";
+    var v="20261003-013-menu-visible-sala-1";
     var k="neon_core_build";
     window.NEON_CORE_BUILD=v;
     var old=localStorage.getItem(k);
@@ -238,6 +238,9 @@
 }
 html.pc-controls #chatFeed{width:min(420px,38vw)}
 </style><style id="neonMainMenuStyle">
+#nameForm{display:block!important;position:relative;width:min(560px,94vw);margin:0;padding:0}
+body.menu-open #nameForm{display:block!important;width:min(560px,94vw)}
+body.menu-open #nameBox{display:flex!important;visibility:visible!important;opacity:1!important;pointer-events:auto!important}
 #nameBox{z-index:999!important;background:
  radial-gradient(circle at 50% 42%,rgba(15,54,78,.24),transparent 42%),
  linear-gradient(135deg,#02050b 0%,#07101d 48%,#02050b 100%);
@@ -2476,8 +2479,13 @@ requestAnimationFrame(frame);
   const form=document.getElementById("nameForm");
   if(!box||!btn)return;
   if(!q.get("room")){
-    box.style.display="flex";
     document.body.classList.add("menu-open");
+    box.style.display="flex";
+    box.style.visibility="visible";
+    box.style.opacity="1";
+    box.style.pointerEvents="auto";
+    form.style.display="block";
+    form.style.width="min(560px,94vw)";
   }
   try{btn.removeEventListener("click",enterPublicRooms);}catch{}
   btn.onclick=function(e){
