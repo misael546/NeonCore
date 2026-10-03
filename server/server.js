@@ -12,6 +12,7 @@ const MAX_PLAYERS = 16;
 const SAFE_ZONE = { x: 3000, y: 2200, r: 300 };
 
 const SERVER_VERSION = '2';
+const SERVER_UPDATE_MESSAGE = 'Hay una actualización nueva de Neon Core. Actualiza la pestaña para continuar con la versión más reciente.';
 
 const AMMO_PACK_SIZE = 100;
 const AMMO_PACK_COST = 75;
@@ -2818,7 +2819,24 @@ setInterval(() => {
   }
 }, ENEMY_SYNC_MS);
 
-process.on('SIGTERM', async () => {
+function announceServerUpdate() {
+  const payload = {
+    type: 'server_update_notice',
+    serverVersion: SERVER_VERSION,
+    serverStartedAt: SERVER_STARTED_AT,
+    message: SERVER_UPDATE_MESSAGE
+  };
+  for (const p of clients.values()) {
+    send(p.ws, payload);
+  }
+}
+
+async function gracefulShutdown(signal) {
+  // Avisar antes de persistir/cerrar para que los jugadores conectados sepan
+  // que el reinicio corresponde a una actualización del servidor.
+  announceServerUpdate();
+  await new Promise((resolve) => setTimeout(resolve, 350));
+
   for (const p of clients.values()) {
     await persistPlayer(p);
   }
@@ -2826,16 +2844,14 @@ process.on('SIGTERM', async () => {
     await storage.closeStorage();
   } catch {}
   process.exit(0);
+}
+
+process.on('SIGTERM', () => {
+  void gracefulShutdown('SIGTERM');
 });
 
-process.on('SIGINT', async () => {
-  for (const p of clients.values()) {
-    await persistPlayer(p);
-  }
-  try {
-    await storage.closeStorage();
-  } catch {}
-  process.exit(0);
+process.on('SIGINT', () => {
+  void gracefulShutdown('SIGINT');
 });
 
 function runServerDiagnostics() {
