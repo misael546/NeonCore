@@ -9,7 +9,7 @@
 <script>
 (function(){
   try{
-    var v="20261003-007-neoncore-main-sessions-split";
+    var v="20261003-008-neoncore-classic-menu";
     var k="neon_core_build";
     window.NEON_CORE_BUILD=v;
     var old=localStorage.getItem(k);
@@ -26,7 +26,7 @@
   }catch(e){}
 })();
 </script>
-<title>Neon Core · Build 2 · MAIN MENU LIVE</title>
+<title>Neon Core · Build 2 · CLASSIC MAIN MENU</title>
 <style>
 *{box-sizing:border-box}html,body{margin:0;width:100%;height:100%;overflow:hidden;background:#050811;color:#fff;font-family:Arial,sans-serif;touch-action:none}
 #game{display:block;width:100vw;height:100vh}
@@ -237,6 +237,43 @@
  #chatBox{left:calc(8px + min(205px,61vw))!important;top:41px;width:min(290px,calc(100vw - 8px))}
 }
 html.pc-controls #chatFeed{width:min(420px,38vw)}
+</style><style id="neonMainMenuStyle">
+#nameBox{background:
+ radial-gradient(circle at 50% 42%,rgba(15,54,78,.24),transparent 42%),
+ linear-gradient(135deg,#02050b 0%,#07101d 48%,#02050b 100%);
+ overflow:hidden}
+#nameBox:before{content:"";position:absolute;inset:0;opacity:.25;
+ background-image:linear-gradient(rgba(57,231,255,.07) 1px,transparent 1px),linear-gradient(90deg,rgba(57,231,255,.07) 1px,transparent 1px);
+ background-size:42px 42px;transform:perspective(600px) rotateX(58deg) scale(1.7);transform-origin:center bottom}
+#nameCard{position:relative;overflow:hidden;width:min(560px,94vw);padding:30px 28px 22px;
+ background:linear-gradient(180deg,rgba(10,20,35,.97),rgba(4,10,19,.98));
+ border:1px solid #39e7ff55;border-radius:22px;box-shadow:0 25px 100px #000,0 0 45px #39e7ff12,inset 0 0 45px #39e7ff08}
+#nameCard:after{content:"";position:absolute;left:8%;right:8%;top:0;height:1px;background:linear-gradient(90deg,transparent,#39e7ff,transparent);box-shadow:0 0 18px #39e7ff}
+.menuGlow{position:absolute;width:220px;height:220px;right:-110px;top:-110px;border-radius:50%;background:#39e7ff18;filter:blur(18px);pointer-events:none}
+.menuEyebrow{text-align:center;color:#6d819d;font-size:10px;font-weight:900;letter-spacing:4px;margin-bottom:7px}
+#nameCard h1{margin:0;color:#e9fdff;text-align:center;font-size:42px;letter-spacing:7px;text-shadow:0 0 10px #39e7ff,0 0 32px #39e7ff55}
+#nameCard .menuSub{margin:8px 0 0;text-align:center;color:#8ea0b8;font-size:12px;letter-spacing:3px;font-weight:900}
+.menuDivider{display:flex;align-items:center;gap:10px;margin:18px 0 20px;color:#39e7ff}
+.menuDivider span{height:1px;flex:1;background:linear-gradient(90deg,transparent,#39e7ff66)}
+.menuDivider span:last-child{background:linear-gradient(90deg,#39e7ff66,transparent)}
+.menuDivider b{font-size:11px;text-shadow:0 0 10px #39e7ff}
+.menuLabel{display:block;color:#a9b8cc;font-size:10px;font-weight:900;letter-spacing:2px;margin:0 0 7px}
+#nameCard #username{height:50px;padding:0 15px;background:#060e1a;border:1px solid #2a405c;border-radius:10px;font-size:16px;box-shadow:inset 0 0 18px #0008}
+#nameCard #username:focus{border-color:#39e7ff;box-shadow:0 0 0 2px #39e7ff18,0 0 22px #39e7ff12,inset 0 0 18px #0008}
+#nameCard .menuMsg{min-height:18px;margin:9px 0 11px;text-align:center;color:#7f91aa;font-size:11px}
+#nameCard .menuPrimary,#nameCard .menuSecondary{width:100%;min-height:50px;border-radius:10px;font-weight:900;letter-spacing:1.5px;cursor:pointer;touch-action:manipulation}
+#nameCard .menuPrimary{border:1px solid #39e7ff;background:linear-gradient(135deg,#0b526b,#15354d);color:#fff;box-shadow:0 0 22px #39e7ff1c,inset 0 0 18px #39e7ff12}
+#nameCard .menuPrimary span{margin-right:7px;color:#8ff5ff}
+#nameCard .menuPrimary:active,#nameCard .menuSecondary:active{transform:scale(.985)}
+#nameCard .menuSecondary{margin-top:8px;border:1px solid #2b405b;background:#0a1321;color:#a9b8cc;font-size:11px}
+#nameCard .menuSecondary:hover{border-color:#39e7ff66;color:#dffbff}
+.menuFoot{display:flex;justify-content:center;gap:10px;margin-top:18px;color:#53627b;font-size:9px;letter-spacing:1.5px}
+@media(max-width:600px){
+ #nameCard{width:min(430px,94vw);padding:25px 18px 18px}
+ #nameCard h1{font-size:31px;letter-spacing:5px}
+ #nameCard .menuSub{font-size:10px}
+ #nameCard #username{height:48px}
+}
 </style></head>
 <body>
 <canvas id="game"></canvas><div id="buildDisplay">BUILD 2</div><button id="audioToggle" type="button" aria-label="Activar o silenciar audio">🔊</button>
@@ -299,15 +336,21 @@ html.pc-controls #chatFeed{width:min(420px,38vw)}
 <div id="nameBox">
   <form id="nameForm">
     <div id="nameCard">
+      <div class="menuGlow"></div>
+      <div class="menuEyebrow">NEON CORE // ONLINE</div>
       <h1>NEON CORE</h1>
-      <p>Escribe tu nombre y entra a las salas públicas.</p>
-      <input id="username" maxlength="20" autocomplete="off" placeholder="Nombre del tanque" required>
-      <button id="publicRoomsBtn" type="button" onclick="enterPublicRooms();return false;">IR A SESIONES</button>
+      <p class="menuSub">MENÚ PRINCIPAL</p>
+      <div class="menuDivider"><span></span><b>✦</b><span></span></div>
+      <label class="menuLabel" for="username">NOMBRE DEL TANQUE</label>
+      <input id="username" maxlength="20" autocomplete="nickname" autocapitalize="words" placeholder="Escribe tu nombre" required>
+      <div id="nameMsg" class="menuMsg">Escribe tu nombre para continuar.</div>
+      <button id="publicRoomsBtn" class="menuPrimary" type="button" onclick="enterPublicRooms();return false;"><span>▶</span> JUGAR</button>
+      <button id="menuSessionsBtn" class="menuSecondary" type="button" onclick="enterPublicRooms();return false;">SESIONES MULTIJUGADOR</button>
+      <div class="menuFoot"><span>BUILD 2</span><span>•</span><span>MULTIPLAYER</span></div>
       <div id="privateRoomTools" style="display:none" aria-hidden="true">
         <div id="roomActions"><button type="button" id="createRoom">CREAR SALA PRIVADA</button><button type="button" id="joinRoom">UNIRME A PRIVADA</button></div>
         <input id="roomCodeInput" maxlength="4" autocomplete="off" placeholder="CÓDIGO DE SALA · EJ. N7K4">
       </div>
-      <div id="nameMsg"></div>
     </div>
   </form>
 </div>
