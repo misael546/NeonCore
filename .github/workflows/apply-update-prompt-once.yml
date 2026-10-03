@@ -27,13 +27,13 @@ jobs:
           assert old_build in s, "Build 019 no encontrado"
           s = s.replace(old_build, new_build, 1)
 
-          old_check = '''          if(m && m[1]!==window.NEON_CORE_BUILD) location.reload();'''
-          new_check = '''          if(m && m[1]!==window.NEON_CORE_BUILD){
-            window.__NEON_PENDING_BUILD_UPDATE=m[1];
-            if(typeof window.showServerUpdateNotice==="function"){
-              window.showServerUpdateNotice("Hay una nueva versión de Neon Core. Pulsa ACTUALIZAR AHORA para cargarla.");
-            }
-          }'''
+          old_check = 'if(m && m[1]!==window.NEON_CORE_BUILD) location.reload();'
+          new_check = '''if(m && m[1]!==window.NEON_CORE_BUILD){
+          window.__NEON_PENDING_BUILD_UPDATE=m[1];
+          if(typeof window.showServerUpdateNotice==="function"){
+            window.showServerUpdateNotice("Hay una nueva versión de Neon Core. Pulsa ACTUALIZAR AHORA para cargarla.");
+          }
+        }'''
           assert old_check in s, "Comprobador de build no encontrado"
           s = s.replace(old_check, new_check, 1)
 
@@ -41,14 +41,10 @@ jobs:
           assert old_interval in s, "Intervalo del monitor no encontrado"
           s = s.replace(old_interval, 'setInterval(checkRenderStatus,2500);', 1)
 
-          old_hook = '''  wrap.style.display="flex";
-          }
-          async function checkRenderStatus(){'''
-          new_hook = '''  wrap.style.display="flex";
-          }
-          window.showServerUpdateNotice=showServerUpdateNotice;
-          if(window.__NEON_PENDING_BUILD_UPDATE) setTimeout(()=>showServerUpdateNotice("Hay una nueva versión de Neon Core. Pulsa ACTUALIZAR AHORA para cargarla."),0);
-          async function checkRenderStatus(){'''
+          old_hook = 'async function checkRenderStatus(){'
+          new_hook = '''window.showServerUpdateNotice=showServerUpdateNotice;
+        if(window.__NEON_PENDING_BUILD_UPDATE) setTimeout(()=>showServerUpdateNotice("Hay una nueva versión de Neon Core. Pulsa ACTUALIZAR AHORA para cargarla."),0);
+        async function checkRenderStatus(){'''
           assert old_hook in s, "Hook del aviso no encontrado"
           s = s.replace(old_hook, new_hook, 1)
 
