@@ -9,7 +9,7 @@
 <script>
 (function(){
   try{
-    var v="20261003-006-pages-live-main-menu";
+    var v="20261003-007-neoncore-main-sessions-split";
     var k="neon_core_build";
     window.NEON_CORE_BUILD=v;
     var old=localStorage.getItem(k);
@@ -302,7 +302,7 @@ html.pc-controls #chatFeed{width:min(420px,38vw)}
       <h1>NEON CORE</h1>
       <p>Escribe tu nombre y entra a las salas públicas.</p>
       <input id="username" maxlength="20" autocomplete="off" placeholder="Nombre del tanque" required>
-      <button id="publicRoomsBtn" type="button" onclick="enterPublicRooms();return false;">VOLVER A SALAS</button>
+      <button id="publicRoomsBtn" type="button" onclick="enterPublicRooms();return false;">IR A SESIONES</button>
       <div id="privateRoomTools" style="display:none" aria-hidden="true">
         <div id="roomActions"><button type="button" id="createRoom">CREAR SALA PRIVADA</button><button type="button" id="joinRoom">UNIRME A PRIVADA</button></div>
         <input id="roomCodeInput" maxlength="4" autocomplete="off" placeholder="CÓDIGO DE SALA · EJ. N7K4">
@@ -1195,7 +1195,7 @@ function returnToMenu(){
   p.x=3000;p.y=2200;p.hp=p.maxHp;p.alive=true;
   bullets.length=0;
   resetAllControls();
-  username.value=loadName();
+  username.value=(new URLSearchParams(location.search).get("name")||loadName()).slice(0,20);
   username.focus();
 }
 function applyServerRespawn(r){
@@ -2021,7 +2021,7 @@ function startGame(mode="quick",code=""){
   connectMultiplayer(mode,code);
 }
 
-const PUBLIC_ROOM_CODE="";
+const PUBLIC_ROOM_CODE=(new URLSearchParams(location.search).get("room")||"").toUpperCase().replace(/[^A-Z0-9]/g,"").slice(0,5);
 const publicRoomsBtn=document.getElementById("publicRoomsBtn");
 function enterPublicRooms(){
   const n=String(username.value||"").trim().slice(0,20);
@@ -2033,8 +2033,8 @@ function enterPublicRooms(){
   playerName=n;
   saveName(n);
   username.value=n;
-  nameMsg.textContent="Abriendo salas públicas…";
-  location.href=PUBLIC_ROOM_CODE?"../":"./";
+  nameMsg.textContent="Abriendo SESIONES…";
+  location.href="./sessions/?name="+encodeURIComponent(n);
 }
 publicRoomsBtn.addEventListener("click",enterPublicRooms);
 nameForm.addEventListener("submit",e=>{
