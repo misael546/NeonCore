@@ -46,7 +46,7 @@ test('menu principal: JUGAR entra directamente a Sala 1', async ({ browser }) =>
   await page.locator('#username').fill('SmokeSala1');
   await page.locator('#publicRoomsBtn').click();
 
-  await expect(page.locator('#nameBox')).toBeHidden({ timeout: 10000 });
+  await expect.poll(async () => page.locator('#neonDiag').innerText(), {timeout:45000, intervals:[500,1000,2000]}).toMatch(/game:true.*room:12345/);
   await expect(page.locator('#neonDiag')).toContainText('DIAG', { timeout: 30000 });
   await expect.poll(async () => page.locator('#neonDiag').innerText(), {
     timeout: 45000,
