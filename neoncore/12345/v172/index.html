@@ -9,7 +9,7 @@
 <script>
 (function(){
   try{
-    var v="20261003-018-server-update-notice";
+    var v="20261003-019-remove-hud-kills";
     var k="neon_core_build";
     window.NEON_CORE_BUILD=v;
     var old=localStorage.getItem(k);
@@ -240,7 +240,7 @@ html.pc-controls #chatFeed{width:min(420px,38vw)}
     <div class="hudTopLine"><span><b>NEON CORE</b>· <span id="level">Nv. 1</span> · ☠ <span id="pvpKills">0</span></span></div>
     <div class="bar hpBar"><i id="hpFill"></i><span class="barLabel">❤️ <span id="hp">100</span>/<span id="maxHp">100</span></span></div>
     <div class="bar xpbar"><i id="xpFill"></i><span class="barLabel">XP <span id="xp">0</span>/<span id="xpNeed">100</span></span></div><div class="combatStats"><div class="coreStat powerStat"><span class="statParticles">✦ · ˚ ✧</span><small>PODER</small><b id="powerValue">100</b></div><div class="coreStat defenseStat"><span class="statParticles">✦ ˚ · ✧</span><small>DEFENSA</small><b id="defenseValue">0</b></div></div>
-    <small>🎯 <span id="kills">0</span></small><div id="resourceHud"><span>🪙 <b id="gold">0</b></span><span>💎 <b id="diamonds">0</b></span><span>🔸 <b id="ammo">60</b>/<b id="maxAmmo">220</b></span></div>
+    <div id="resourceHud"><span>🪙 <b id="gold">0</b></span><span>💎 <b id="diamonds">0</b></span><span>🔸 <b id="ammo">60</b>/<b id="maxAmmo">220</b></span></div>
   <div id="weaponHud">ARMA: <b id="weaponName">BLASTER</b></div>
 </div>
 
@@ -1586,12 +1586,11 @@ function updateWeaponHud(){
 }
 
 function updateHud(){
-  const hpEl=document.getElementById("hp"),maxHpEl=document.getElementById("maxHp"),levelEl=document.getElementById("level"),pvpEl=document.getElementById("pvpKills"),killsEl=document.getElementById("kills");
+  const hpEl=document.getElementById("hp"),maxHpEl=document.getElementById("maxHp"),levelEl=document.getElementById("level"),pvpEl=document.getElementById("pvpKills");
   if(hpEl)hpEl.textContent=Math.ceil(p.hp);
   if(maxHpEl)maxHpEl.textContent=p.maxHp;
   if(levelEl)levelEl.textContent="Nv. "+p.level;
   if(pvpEl)pvpEl.textContent=p.pvpKills;
-  if(killsEl)killsEl.textContent=p.kills;
   updateResourceHud();
 }
 
