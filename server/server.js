@@ -2899,7 +2899,7 @@ function announceServerUpdate() {
   }
 }
 
-let serverUpdateHeartbeat = null;
+var serverUpdateHeartbeat = null;
 function startServerUpdateHeartbeat() {
   if (serverUpdateHeartbeat) clearInterval(serverUpdateHeartbeat);
   // Old clients may already be inside a room when a new build goes live.
