@@ -739,7 +739,7 @@ async function fetchJsonNoCache(url){
   try{
     const res=await fetch(url+(url.includes("?")?"&":"?")+"t="+Date.now(),{
       cache:"no-store",
-      headers:{"Cache-Control":"no-cache","Pragma":"no-cache"}
+      
     });
     if(!res.ok)return null;
     return await res.json();
@@ -750,7 +750,7 @@ async function fetchLatestClientSource(){
   try{
     const res=await fetch(CLIENT_SOURCE_URL+"?t="+Date.now(),{
       cache:"no-store",
-      headers:{"Cache-Control":"no-cache","Pragma":"no-cache"}
+      
     });
     if(!res.ok)return null;
     const html=await res.text();
@@ -766,7 +766,7 @@ async function fetchRenderHealth(){
   try{
     const res=await fetch(RENDER_HEALTH_URL+"?t="+Date.now(),{
       cache:"no-store",
-      headers:{"Cache-Control":"no-cache","Pragma":"no-cache"}
+      
     });
     if(!res.ok)return null;
     return await res.json();
