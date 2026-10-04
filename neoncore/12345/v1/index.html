@@ -9,7 +9,7 @@
 <script>
 (function(){
   try{
-    var v="BUILD-19",checking=false,updating=false,timer=null,base=new URL("../../../",location.href),manifestUrl=new URL("release.json",base);
+    var v="BUILD-20",checking=false,updating=false,timer=null,base=new URL("../../../",location.href),manifestUrl=new URL("release.json",base);
     window.NEON_CORE_BUILD=v;localStorage.setItem("neon_core_build",v);
     function notice(remote){
       if(updating)return;updating=true;
@@ -33,7 +33,7 @@
   }catch(e){}
 })();
 </script>
-<title>Neon Core · Build 19</title>
+<title>Neon Core · Build 20</title>
 <style>
 *{box-sizing:border-box}html,body{margin:0;width:100%;height:100%;overflow:hidden;background:#050811;color:#fff;font-family:Arial,sans-serif;touch-action:none}
 #game{display:block;width:100vw;height:100vh}
@@ -50,8 +50,11 @@
 #nameMsg{font-size:13px;color:#ff8b8b;min-height:18px;margin-top:8px}
 #controlConfigBtn{position:fixed;right:10px;bottom:10px;z-index:130;width:48px;height:48px;border:1px solid #33415d;background:#0b1020;color:#fff;border-radius:12px;font-size:22px;display:grid;place-items:center;box-shadow:0 4px 18px #000;pointer-events:auto;cursor:pointer}#utilityHead{display:flex;align-items:center;gap:10px;margin-bottom:10px}#utilityHead strong{flex:1;color:#dffbff;font-size:20px;letter-spacing:1.4px}#utilityHead small{color:#71819a;font-size:9px;letter-spacing:.7px}.utilityTabs{display:grid;grid-template-columns:1fr 1fr;gap:7px;margin-bottom:12px}.utilityTab{min-height:40px;margin:0;border:1px solid #33415d;border-radius:9px;background:#0d1727;color:#9ca9bd;font-weight:900}.utilityTab.active{border-color:#39e7ff;color:#dffbff;background:#123047;box-shadow:0 0 16px #39e7ff18}.utilityView{display:none}.utilityView.active{display:block}.statsHero{display:grid;grid-template-columns:1fr auto 1fr;align-items:center;gap:8px;padding:12px;margin-bottom:10px;border:1px solid #39e7ff55;border-radius:12px;background:linear-gradient(135deg,#081524,#0b1220);text-align:center}.statsHero span{color:#8ea0b8;font-size:10px;font-weight:900;letter-spacing:1px}.statsHero b{display:block;margin-top:3px;color:#fff;font-size:23px}.statsHero strong{color:#39e7ff;letter-spacing:1.8px;font-size:12px}.statsGrid{display:grid;grid-template-columns:1fr 1fr;gap:7px}.statBox{padding:9px;border:1px solid #26344e;border-radius:10px;background:#0a1422}.statBox small{display:block;color:#71819a;font-size:9px;font-weight:900;letter-spacing:1px}.statBox b{display:block;margin-top:3px;color:#dffbff;font-size:16px}.statBox span{display:block;margin-top:2px;color:#8ea0b8;font-size:9px}.statsXp{margin-top:9px;padding:10px;border:1px solid #26344e;border-radius:10px;background:#091320}.statsXpHead{display:flex;justify-content:space-between;gap:8px;color:#9ca9bd;font-size:10px;font-weight:900}.statsXpHead b{color:#dffbff}.statsXpTrack{height:8px;margin-top:7px;border-radius:8px;background:#182033;overflow:hidden}.statsXpTrack i{display:block;height:100%;width:0;background:linear-gradient(90deg,#a855f7,#39e7ff);transition:width .18s ease}#controlEditor{position:fixed;inset:0;background:#000b;display:none;align-items:center;justify-content:center;padding:20px;z-index:9999;pointer-events:auto;touch-action:auto}#controlCard{position:relative;z-index:10000;width:min(360px,100%);pointer-events:auto;background:#0b1020;border:1px solid #26344e;border-radius:16px;padding:18px;box-shadow:0 15px 60px #000}#controlCard h2{margin:0 0 6px;color:#39e7ff;font-size:20px}#controlCard p{margin:0 0 14px;color:#9ca9bd;font-size:12px;line-height:1.4}.controlRow{display:grid;grid-template-columns:1fr auto;align-items:center;gap:12px;margin:12px 0}.controlRow input{width:160px;position:relative;z-index:10001;pointer-events:auto;touch-action:pan-x}.controlActions{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:14px}.controlActions button{min-height:44px;position:relative;z-index:10001;pointer-events:auto;border:0;border-radius:10px;background:#183d58;color:#fff;font-weight:bold}.controlActions button:last-child{background:#26344e}#restart{display:none}
 #controls{position:fixed;inset:auto 0 0;display:flex;justify-content:space-between;align-items:flex-end;padding:16px;z-index:5;pointer-events:none}
-.joy{touch-action:none;user-select:none;-webkit-user-select:none;width:112px;height:112px;border:1px solid #41516d;background:#07101dcc;border-radius:50%;position:relative;pointer-events:auto}
-.stick{position:absolute;width:48px;height:48px;border-radius:50%;left:32px;top:32px;background:#39e7ff99;border:1px solid #8ff5ff}
+.joy{touch-action:none;user-select:none;-webkit-user-select:none;width:122px;height:122px;border:2px solid #41516d;background:radial-gradient(circle at 50% 50%,#0d1b2dcc,#07101de8 68%,#030812f0);border-radius:50%;position:relative;pointer-events:auto;box-shadow:0 0 0 5px #39e7ff0a,0 0 26px #000,0 0 22px #39e7ff18;will-change:transform}
+.joy:before{content:"";position:absolute;inset:12%;border:1px solid #39e7ff35;border-radius:50%;box-shadow:inset 0 0 18px #39e7ff0d}
+.joy:after{content:"";position:absolute;left:50%;top:50%;width:9px;height:9px;margin:-4.5px;border-radius:50%;background:#39e7ff45;box-shadow:0 0 16px #39e7ff66;pointer-events:none}
+.stick{position:absolute;width:48px;height:48px;border-radius:50%;left:37px;top:37px;background:radial-gradient(circle at 35% 28%,#dfffffbb,#39e7ff99 42%,#12627bcc 100%);border:2px solid #8ff5ff;box-shadow:0 0 18px #39e7ff55,inset 0 0 12px #fff4;will-change:transform}
+.joyLabel{position:absolute;left:0;right:0;bottom:8px;text-align:center;color:#9fefff8c;font:900 8px Arial,sans-serif;letter-spacing:1.5px;text-shadow:0 1px 3px #000;pointer-events:none}
 #fire{width:86px;height:86px;border-radius:50%;border:2px solid #ff8aa0;background:radial-gradient(circle at 35% 30%,#ff607f,#8e1737 62%,#3b0b1a);color:white;font-size:28px;font-weight:bold;pointer-events:auto;box-shadow:0 0 18px #ff365966,inset 0 0 12px #fff2;display:grid;place-items:center;position:relative;overflow:hidden}#fire:active{transform:scale(.94)}#fire .fireIcon{width:36px;height:36px;border:3px solid #fff;border-radius:50%;position:relative;display:block;box-shadow:0 0 8px #fff8}#fire .fireIcon:after{content:"";position:absolute;width:12px;height:12px;right:-7px;top:-7px;border-radius:50%;background:#fff}
 #toastFeed{position:fixed;left:50%;top:74px;transform:translateX(-50%);z-index:15;display:grid;gap:5px;width:min(360px,86vw);pointer-events:none}.toast{background:rgba(5,8,17,.9);border:1px solid #26344e;border-radius:9px;padding:7px 10px;text-align:center;color:#dffbff;font-size:11px;font-weight:bold;box-shadow:0 6px 20px #000;animation:toastIn .2s ease-out}@keyframes toastIn{from{opacity:0;transform:translateY(-5px)}to{opacity:1;transform:translateY(0)}}#chatFeed{position:fixed;left:10px;bottom:190px;width:min(390px,55vw);max-height:150px;display:flex;flex-direction:column;justify-content:flex-end;gap:5px;z-index:11;pointer-events:none;overflow:hidden;mask-image:linear-gradient(to bottom,transparent 0,#000 14%,#000 100%);-webkit-mask-image:linear-gradient(to bottom,transparent 0,#000 14%,#000 100%)}.chatLine{align-self:flex-start;max-width:100%;padding:5px 9px;border:1px solid #39e7ff55;border-radius:9px;background:linear-gradient(90deg,#061421ef,#0b1220d9);box-shadow:0 0 14px #39e7ff12,0 5px 15px #0008;backdrop-filter:blur(4px);font-size:12px;line-height:1.25;word-break:break-word;text-shadow:0 1px 3px #000;animation:chatIn .22s ease-out}.chatLine .chatName{color:#39e7ff;font-weight:900;letter-spacing:.4px;text-shadow:0 0 9px #39e7ff88}.chatLine .chatSeparator{color:#7f91aa;margin:0 3px}.chatLine .chatText{color:#fff}.chatLine.new{box-shadow:0 0 18px #39e7ff33,0 5px 16px #0008}@keyframes chatIn{from{opacity:0;transform:translateX(-8px) scale(.98)}to{opacity:1;transform:translateX(0) scale(1)}}#chatToggle{position:fixed;left:10px;bottom:145px;z-index:13;min-width:108px;height:44px;border:1px solid #39e7ff;background:linear-gradient(135deg,#06101c,#0b2030);color:#dffbff;border-radius:12px;font-weight:900;letter-spacing:1.3px;font-size:12px;pointer-events:auto;overflow:hidden;box-shadow:0 0 12px #39e7ff22,0 6px 22px #000,inset 0 0 14px #39e7ff0d;transition:transform .15s ease,box-shadow .15s ease,border-color .15s ease}#chatToggle:before{content:"";position:absolute;inset:-45%;background:conic-gradient(from 0deg,transparent,#39e7ff66,transparent 22%,#a855f766,transparent 44%);animation:chatSpin 3.8s linear infinite;opacity:.7}#chatToggle:after{content:"✦ · ✧ · • · ✦";position:absolute;left:-25%;right:-25%;top:4px;color:#9ff7ff66;font-size:8px;letter-spacing:5px;animation:chatParticles 2.7s linear infinite;pointer-events:none}#chatToggle:hover{border-color:#8ff5ff;box-shadow:0 0 20px #39e7ff44,0 7px 24px #000,inset 0 0 18px #39e7ff16}#chatToggle:active{transform:scale(.95)}#chatToggle .chatLabel,#chatToggle .chatIcon{position:relative;z-index:2;text-shadow:0 0 8px #39e7ff99}#chatToggle .chatIcon{font-size:15px;margin-right:5px}@keyframes chatSpin{to{transform:rotate(360deg)}}@keyframes chatParticles{from{transform:translateX(-12%);opacity:0}25%{opacity:1}75%{opacity:1}to{transform:translateX(12%);opacity:0}}#chatBox{position:fixed;left:10px;bottom:145px;width:min(350px,calc(100vw - 20px));z-index:14;background:linear-gradient(180deg,#081423f5,#050b15f5);border:1px solid #39e7ff88;border-radius:14px;padding:9px;backdrop-filter:blur(8px);pointer-events:auto;box-shadow:0 0 22px #39e7ff22,0 12px 34px #000}.chatInputHead{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:7px;color:#dffbff;font-size:11px;font-weight:900;letter-spacing:1px}.chatInputHead span{color:#39e7ff;text-shadow:0 0 8px #39e7ff88}.chatClose{width:28px;height:28px;border:1px solid #33415d;border-radius:8px;background:#0b1424;color:#fff;font-weight:900}#chatForm{display:flex;gap:6px}#chatInput{min-width:0;flex:1;padding:10px;border:1px solid #39e7ff55;background:#091321;color:#fff;border-radius:9px;outline:none;font-size:14px;box-shadow:inset 0 0 10px #39e7ff08}#chatInput:focus{border-color:#39e7ff;box-shadow:0 0 0 2px #39e7ff18,inset 0 0 12px #39e7ff0c}#chatSend{min-width:64px;border:1px solid #39e7ff;border-radius:9px;background:linear-gradient(135deg,#183d58,#1a5b74);color:#fff;font-weight:900;letter-spacing:.5px;box-shadow:0 0 12px #39e7ff22}#chatHint{font-size:9px;color:#74839a;margin-top:5px}@media(max-width:600px){#chatFeed{left:8px;bottom:186px;width:min(330px,72vw);max-height:132px}.chatLine{font-size:11px;padding:5px 8px}#chatToggle{bottom:138px;min-width:94px;height:42px}#chatBox{bottom:138px;width:min(320px,calc(100vw - 16px))}}#connectionOverlay{position:fixed;inset:0;background:#050811e8;display:none;align-items:center;justify-content:center;z-index:30;text-align:center;padding:20px}#connectionCard{width:min(340px,100%);background:#0b1020;border:1px solid #26344e;border-radius:16px;padding:24px;display:grid;gap:9px;box-shadow:0 15px 60px #000}#connectionTitle{color:#39e7ff;letter-spacing:1px}#connectionText{color:#9ca9bd;font-size:13px;line-height:1.4}#connectionSpinner{width:28px;height:28px;border:3px solid #26344e;border-top-color:#39e7ff;border-radius:50%;margin:0 auto 5px;animation:spin .8s linear infinite}@keyframes spin{to{transform:rotate(360deg)}}#death{position:fixed;inset:0;background:#000b;display:none;align-items:center;justify-content:center;z-index:10;text-align:center}
 #deathCard{background:#0b1020;border:1px solid #26344e;border-radius:16px;padding:22px;width:min(330px,90%)}
@@ -393,8 +396,8 @@ html.pc-controls #controlConfigBtn,html.touch-controls #controlConfigBtn{display
 <div id="dropConfirm" class="dropConfirm" aria-hidden="true"><div class="dropConfirmCard"><strong>DROPEAR?</strong><span id="dropConfirmText">¿Quieres soltar este stack de munición?</span><div><button id="dropConfirmNo" type="button">NO</button><button id="dropConfirmYes" type="button">SÍ, SOLTAR</button></div></div></div>
 <button id="pickupBtn" type="button" aria-label="Recoger objeto cercano" title="Recoger">✋</button>
 <div id="controls">
-  <div class="joy" id="moveJoy"><div class="stick"></div></div>
-  <div class="joy aimJoy" id="aimJoy" aria-label="Apuntar y disparar"><div class="stick"></div><span class="aimCross">✦</span></div>
+  <div class="joy" id="moveJoy" aria-label="Mover"><div class="stick"></div><span class="joyLabel">MOVER</span></div>
+  <div class="joy aimJoy" id="aimJoy" aria-label="Apuntar y disparar"><div class="stick"></div><span class="aimCross">✦</span><span class="joyLabel">APUNTAR</span></div>
 </div>
 
 <script>
@@ -420,7 +423,7 @@ let neonAudio={
   enabled:true,ready:false
 };
 const NEON_MUSIC_BASE="https://opengameart.org/sites/default/files/";
-const NEON_MUSIC_CREDIT="MUSIC · tricksntraps · OpenGameArt · CC0 · BUILD-19";
+const NEON_MUSIC_CREDIT="MUSIC · tricksntraps · OpenGameArt · CC0 · BUILD-20";
 const neonMusic={
   tracks:{
     menu:{file:"Currents.ogg",name:"NEON CORE"}, exploration:{file:"Currents.ogg",name:"NEON CORE"}, tension:{file:"Currents.ogg",name:"NEON CORE"}, combat:{file:"Currents.ogg",name:"NEON CORE"}, boss:{file:"Currents.ogg",name:"NEON CORE"}, bonus:{file:"Currents.ogg",name:"NEON CORE"}
@@ -909,7 +912,7 @@ function connectMultiplayer(roomMode="quick",roomCode=""){ const publicRoomAuto=
         const m=JSON.parse(e.data);
         if(m.type==="server_update_notice"){
           const target=String(m.clientBuild||m.serverVersion||"");
-          if(target&&target!=="BUILD-19"&&typeof window.__neonForceUpdate==="function")window.__neonForceUpdate(target);
+          if(target&&target!=="BUILD-20"&&typeof window.__neonForceUpdate==="function"){if(m.clientPath){window.__NEON_RELEASE_MANIFEST={clientPath:String(m.clientPath)}}window.__neonForceUpdate(target);}
           return;
         }
         if(m.type==="room_joined"){
@@ -2240,8 +2243,11 @@ function draw(){
 function setupJoystick(id){
   const el=document.getElementById(id),stick=el.querySelector(".stick");
   let active=false,pointerId=null;
+  const DEADZONE=.10;
   function reset(){
-    active=false;pointerId=null;
+    active=false;
+    if(window.__neonJoystickPointerId===pointerId)window.__neonJoystickPointerId=null;
+    pointerId=null;
     stick.style.transform="translate(0,0)";
     moveX=0;moveY=0;
   }
@@ -2252,17 +2258,28 @@ function setupJoystick(id){
     let x=Number(clientX)-cx,y=Number(clientY)-cy;
     const len=Math.hypot(x,y);
     if(len>max){x=x/len*max;y=y/len*max;}
-    moveX=clamp(x/max,-1,1);
-    moveY=clamp(y/max,-1,1);
+    let nx=clamp(x/max,-1,1),ny=clamp(y/max,-1,1);
+    const n=Math.hypot(nx,ny);
+    if(n<DEADZONE){nx=0;ny=0;}
+    else{
+      const scaled=(n-DEADZONE)/(1-DEADZONE);
+      const s=scaled/Math.max(n,.0001);
+      nx=clamp(nx*s,-1,1);ny=clamp(ny*s,-1,1);
+    }
+    moveX=nx;moveY=ny;
     stick.style.transform="translate("+x+"px,"+y+"px)";
   }
-  // PC y móvil usan Pointer Events. Cada dedo conserva su propio pointerId.
+  // Cada dedo conserva su pointerId. Pointer capture mantiene el joystick
+  // activo incluso si el dedo sale del círculo.
   el.addEventListener("pointerdown",e=>{
     if(e.pointerType==="mouse" && e.button!==0)return;
     if(e.pointerType!=="touch" && e.button!==0)return;
     if(active)return;
     e.preventDefault();
     active=true;pointerId=e.pointerId;
+    window.__neonJoystickPointerId=e.pointerId;
+    try{el.setPointerCapture(e.pointerId);}catch{}
+    try{if(e.pointerType==="touch"&&navigator.vibrate)navigator.vibrate(8);}catch{}
     apply(e.clientX,e.clientY);
   },{passive:false});
   el.addEventListener("pointermove",e=>{
@@ -2273,8 +2290,12 @@ function setupJoystick(id){
   const end=e=>{
     if(e.pointerId!==pointerId)return;
     e.preventDefault();
-    active=false;pointerId=null;
-    stick.style.transform="translate(0,0)";moveX=0;moveY=0;
+    try{el.releasePointerCapture(e.pointerId);}catch{}
+    active=false;
+    if(window.__neonJoystickPointerId===e.pointerId)window.__neonJoystickPointerId=null;
+    pointerId=null;
+    stick.style.transform="translate(0,0)";
+    moveX=0;moveY=0;
   };
   el.addEventListener("pointerup",end,{passive:false});
   el.addEventListener("pointercancel",end,{passive:false});
@@ -2285,7 +2306,7 @@ function setupJoystick(id){
 }
 const resetMoveJoystick=setupJoystick("moveJoy");
 window.__neonJoystickPointerId=null;
-const controlDefaults={joySize:112,fireSize:86,joyX:8,joyY:8,fireX:8,fireY:8};
+const controlDefaults={joySize:122,fireSize:86,joyX:8,joyY:8,fireX:8,fireY:8};
 let controlConfig={...controlDefaults};
 try{const saved=JSON.parse(localStorage.getItem("neon_core_controls")||"null");if(saved)controlConfig={...controlDefaults,...saved};}catch{}
 function applyControlConfig(){
