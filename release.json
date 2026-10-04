@@ -1,8 +1,8 @@
 {
   "game": "Neon Core",
-  "releaseId": "20261003-042-global-stable-installer",
-  "clientBuild": "20261003-042-global-stable-installer",
-  "serverBuild": "20261003-042-global-stable-installer",
+  "releaseId": "20261003-043-global-force-updater-v2",
+  "clientBuild": "20261003-043-global-force-updater-v2",
+  "serverBuild": "20261003-043-global-force-updater-v2",
   "databaseSchema": 1,
   "clientPath": "neoncore/12345/v172/index.html"
 }
