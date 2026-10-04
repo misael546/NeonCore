@@ -2807,9 +2807,12 @@ setInterval(() => {
             if (foundTarget) {
               send(foundTarget.ws, {
                 type: 'pve_dead',
+                x: target.x,
+                y: target.y,
                 lostScore,
-                hp: 0,
+                hp: target.hp,
                 maxHp: maxHpForLevel(target.level),
+                ammo: target.ammo,
                 xp: target.xp,
                 gold: target.gold,
                 damage: target.damage,
