@@ -1,7 +1,7 @@
 {
   "game": "Neon Core",
-  "releaseId": "20261003-038-mobile-load-fix",
-  "clientBuild": "20261003-038-mobile-load-fix",
-  "serverBuild": "20261003-038-mobile-load-fix",
+  "releaseId": "20261003-039-reliable-mobile-auto-update",
+  "clientBuild": "20261003-039-reliable-mobile-auto-update",
+  "serverBuild": "20261003-039-reliable-mobile-auto-update",
   "databaseSchema": 1
 }
