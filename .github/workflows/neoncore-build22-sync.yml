@@ -1,0 +1,160 @@
+name: Neon Core BUILD-22 sync
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  sync:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Apply BUILD-22 combat cadence
+        shell: bash
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          import json
+
+          BUILD = "BUILD-22"
+          FIRE_RATE = 650
+          FIRST_SHOT_DELAY = 180
+
+          # Release manifest
+          rp = Path("release.json")
+          release = json.loads(rp.read_text(encoding="utf-8"))
+          release["game"] = "Neon Core"
+          release["releaseId"] = BUILD
+          release["clientBuild"] = BUILD
+          release["serverBuild"] = BUILD
+          release["databaseSchema"] = int(release.get("databaseSchema", 1) or 1)
+          release["clientPath"] = "neoncore/12345/v1/index.html"
+          rp.write_text(json.dumps(release, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+
+          # Server: authoritative global fire cadence.
+          sp = Path("server/server.js")
+          s = sp.read_text(encoding="utf-8")
+          s = s.replace("BUILD-21", BUILD).replace("Build 21", "Build 22").replace("BUILD 21", "BUILD 22")
+          old = "const WEAPON_FIRE_RATE = 420;"
+          if old not in s:
+              raise SystemExit("server: missing WEAPON_FIRE_RATE = 420")
+          s = s.replace(old, f"const WEAPON_FIRE_RATE = {FIRE_RATE};", 1)
+          count = s.count("fireRate: 420")
+          if count < 1:
+              raise SystemExit("server: missing weapon fireRate fields")
+          s = s.replace("fireRate: 420", f"fireRate: {FIRE_RATE}")
+          sp.write_text(s, encoding="utf-8")
+
+          # Client: same cadence on every control scheme plus universal trigger delay.
+          cp = Path("neoncore/12345/v1/index.html")
+          c = cp.read_text(encoding="utf-8")
+          c = c.replace("BUILD-21", BUILD).replace("Build 21", "Build 22").replace("BUILD 21", "BUILD 22")
+
+          ccount = c.count("fireRate:420")
+          if ccount < 1:
+              raise SystemExit("client: missing fireRate:420 weapon fields")
+          c = c.replace("fireRate:420", f"fireRate:{FIRE_RATE}")
+          pcount = c.count("p.fireRate=420")
+          if pcount < 1:
+              raise SystemExit("client: missing p.fireRate=420")
+          c = c.replace("p.fireRate=420", f"p.fireRate={FIRE_RATE}")
+
+          default_old = 'fireRate:420,lastShot:0'
+          default_new = f'fireRate:{FIRE_RATE},lastShot:0'
+          if default_old not in c:
+              raise SystemExit("client: missing player fireRate default")
+          c = c.replace(default_old, default_new, 1)
+
+          if "function setFireHeld(held)" not in c:
+              needle = 'const pointer={x:W/2,y:H/2,down:false}; let moveX=0,moveY=0;'
+              inject = needle + '''
+const FIRST_SHOT_DELAY=180;
+let fireHoldStartedAt=0,fireTriggerActive=false;
+function setFireHeld(held){
+  const next=!!held;
+  if(next&&!pointer.down){
+    fireTriggerActive=true;
+    fireHoldStartedAt=performance.now();
+  }
+  if(!next){
+    fireTriggerActive=false;
+    fireHoldStartedAt=0;
+  }
+  pointer.down=next;
+}'''
+              if needle not in c:
+                  raise SystemExit("client: pointer anchor not found")
+              c = c.replace(needle, inject, 1)
+
+          # Route every fire press/release through the same trigger-state helper.
+          c = c.replace("pointer.down=true;", "setFireHeld(true);")
+          c = c.replace("pointer.down=false;", "setFireHeld(false);")
+
+          fire_old = '''const now=performance.now();
+  if(now-p.lastShot<p.fireRate)return;
+  if(!multiplayerSocket || multiplayerSocket.readyState!==1)return;'''
+          fire_new = '''const now=performance.now();
+  if(fireTriggerActive && now-fireHoldStartedAt<FIRST_SHOT_DELAY)return;
+  if(now-p.lastShot<p.fireRate)return;
+  if(!multiplayerSocket || multiplayerSocket.readyState!==1)return;'''
+          if fire_old not in c:
+              raise SystemExit("client: fire cadence block not found")
+          c = c.replace(fire_old, fire_new, 1)
+
+          # Ensure runtime always uses the same global cadence after reconnects.
+          runtime_old = f"p.fireRate={420};"
+          runtime_new = f"p.fireRate={FIRE_RATE};"
+          if runtime_old in c:
+              c = c.replace(runtime_old, runtime_new)
+
+          cp.write_text(c, encoding="utf-8")
+
+          # Fix the stale validation workflow that was still checking ancient builds/routes.
+          vp = Path(".github/workflows/neoncore-validation.yml")
+          if vp.exists():
+              v = vp.read_text(encoding="utf-8")
+              v = v.replace("neoncore/12345/index.html", "neoncore/12345/v1/index.html")
+              v = v.replace("BUILD-20", BUILD).replace("BUILD-21", BUILD)
+              v = v.replace('if (!/var\\s+v\\s*=\\s*["\']20261003-016-jugar-v172-sala-1["\']/.test(root)) throw new Error(\'Root build marker is not current\');',
+                            'if (!root.includes(BUILD)) throw new Error(\'Root build marker is not current\');')
+              v = v.replace("if (!/SERVER_VERSION\\s*=\\s*['\"]2['\"]/.test(server)) throw new Error('Server version is not 2');",
+                            "if (!server.includes(BUILD)) throw new Error('Server build is not current');")
+              vp.write_text(v, encoding="utf-8")
+
+          print("[BUILD-22] release =", BUILD)
+          print("[BUILD-22] fireRate =", FIRE_RATE, "ms")
+          print("[BUILD-22] firstShotDelay =", FIRST_SHOT_DELAY, "ms")
+          print("[BUILD-22] server weapon fields =", count)
+          print("[BUILD-22] client weapon fields =", ccount)
+          PY
+
+      - name: Verify BUILD-22 files
+        shell: bash
+        run: |
+          test "$(python3 -c 'import json; print(json.load(open("release.json"))["clientBuild"])')" = "BUILD-22"
+          grep -q "const WEAPON_FIRE_RATE = 650" server/server.js
+          grep -q "fireRate: 650" server/server.js
+          grep -q "fireRate:650" neoncore/12345/v1/index.html
+          grep -q "FIRST_SHOT_DELAY=180" neoncore/12345/v1/index.html
+          grep -q "setFireHeld(true)" neoncore/12345/v1/index.html
+          grep -q "setFireHeld(false)" neoncore/12345/v1/index.html
+
+      - name: Commit BUILD-22
+        shell: bash
+        run: |
+          git config user.name "neon-core-sync[bot]"
+          git config user.email "neon-core-sync[bot]@users.noreply.github.com"
+          git add release.json server/server.js neoncore/12345/v1/index.html .github/workflows/neoncore-validation.yml
+          if git diff --cached --quiet; then
+            echo "No BUILD-22 synchronization changes needed."
+            exit 0
+          fi
+          git commit -m "BUILD-22: cadencia global y primer disparo controlado [skip ci]"
+          git push
