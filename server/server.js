@@ -493,6 +493,18 @@ function respawnAfterDeath(p) {
   applyCombatStats(p);
 }
 
+function markPlayerDead(p) {
+  if (!p?.room) return false;
+  p.alive = false;
+  p.frozen = true;
+  p.hp = 0;
+  p.lastShot = 0;
+  applyDeathPenalty(p);
+  p.hp = 0;
+  void persistPlayer(p);
+  return true;
+}
+
 function levelUpIfNeeded(p) {
   let changed = false;
 
@@ -1760,25 +1772,8 @@ function handleShot(ws) {
     });
 
     if (target.hp <= 0) {
-      target.alive = false;
-
       const lostScore = target.score || 0;
-
-      applyDeathPenalty(target);
-      const deathState = {
-        x: spawnPosition(shooter.room).x,
-        y: spawnPosition(shooter.room).y,
-        hp: target.hp,
-        maxHp: maxHpForLevel(target.level),
-        xp: target.xp,
-        gold: target.gold,
-        damage: target.damage,
-        defense: target.defense,
-        level: target.level
-      };
-      respawnAfterDeath(target);
-      deathState.x = target.x;
-      deathState.y = target.y;
+      markPlayerDead(target);
 
       shooter.kills = (shooter.kills || 0) + 1;
       shooter.pvpKills = (shooter.pvpKills || 0) + 1;
@@ -1795,7 +1790,9 @@ function handleShot(ws) {
         type: 'pvp_dead',
         killer: shooter.name,
         lostScore,
-        respawn: deathState
+        hp: 0,
+        maxHp: maxHpForLevel(target.level),
+        level: target.level
       });
 
       sendStats(target);
@@ -2571,30 +2568,27 @@ setInterval(() => {
             }
 
             if (pl.hp <= 0 && pl.alive && !pl.frozen) {
-              pl.alive = false;
               const lostScore = pl.score || 0;
-              applyDeathPenalty(pl);
-              respawnAfterDeath(pl);
-              void persistPlayer(pl);
+              markPlayerDead(pl);
               const foundTarget = findPlayer(pl.id, room);
 
               if (foundTarget) {
                 send(foundTarget.ws, {
                   type: 'pve_dead',
                   lostScore,
-                  respawn: {
-                    x: pl.x,
-                    y: pl.y,
-                    hp: pl.hp,
-                    maxHp: maxHpForLevel(pl.level),
-                    xp: pl.xp,
-                    gold: pl.gold,
-                    damage: pl.damage,
-                    defense: pl.defense,
-                    level: pl.level
-                  }
+                  hp: 0,
+                  maxHp: maxHpForLevel(pl.level),
+                  xp: pl.xp,
+                  gold: pl.gold,
+                  damage: pl.damage,
+                  defense: pl.defense,
+                  level: pl.level
                 });
                 sendStats(pl);
+                broadcastRoom(roomCodeOrCodePlaceholder, {
+                  type: 'player_update',
+                  player: publicPlayer(pl)
+                }, foundTarget.ws);
               }
             }
           }
@@ -2698,28 +2692,21 @@ setInterval(() => {
         }
 
         if (pl.hp <= 0 && pl.alive && !pl.frozen) {
-          pl.alive = false;
           const lostScore = pl.score || 0;
-          applyDeathPenalty(pl);
-          respawnAfterDeath(pl);
-          void persistPlayer(pl);
+          markPlayerDead(pl);
 
           const foundTarget = findPlayer(pl.id, room);
           if (foundTarget) {
             send(foundTarget.ws, {
               type: 'pve_dead',
               lostScore,
-              respawn: {
-                x: pl.x,
-                y: pl.y,
-                hp: pl.hp,
-                maxHp: maxHpForLevel(pl.level),
-                xp: pl.xp,
-                gold: pl.gold,
-                damage: pl.damage,
-                defense: pl.defense,
-                level: pl.level
-              }
+              hp: 0,
+              maxHp: maxHpForLevel(pl.level),
+              xp: pl.xp,
+              gold: pl.gold,
+              damage: pl.damage,
+              defense: pl.defense,
+              level: pl.level
             });
             sendStats(pl);
           }
@@ -2781,28 +2768,21 @@ setInterval(() => {
           }
 
           if (target.hp <= 0 && target.alive && !target.frozen) {
-            target.alive = false;
             const lostScore = target.score || 0;
-            applyDeathPenalty(target);
-            respawnAfterDeath(target);
-            void persistPlayer(target);
+            markPlayerDead(target);
 
             const foundTarget = findPlayer(target.id, room);
             if (foundTarget) {
               send(foundTarget.ws, {
                 type: 'pve_dead',
                 lostScore,
-                respawn: {
-                  x: target.x,
-                  y: target.y,
-                  hp: target.hp,
-                  maxHp: maxHpForLevel(target.level),
-                  xp: target.xp,
-                  gold: target.gold,
-                  damage: target.damage,
-                  defense: target.defense,
-                  level: target.level
-                }
+                hp: 0,
+                maxHp: maxHpForLevel(target.level),
+                xp: target.xp,
+                gold: target.gold,
+                damage: target.damage,
+                defense: target.defense,
+                level: target.level
               });
               sendStats(target);
             }
