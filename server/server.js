@@ -1968,6 +1968,28 @@ function createPlayer(ws) {
 const httpServer = http.createServer(async (req, res) => {
   const pathname = String(req.url || '').split('?')[0];
 
+  if (pathname === '/client') {
+    try {
+      const clientPath = path.join(__dirname, '..', 'neoncore', '12345', 'v172', 'index.html');
+      const html = fs.readFileSync(clientPath, 'utf8');
+      res.writeHead(200, {
+        'Content-Type': 'text/html; charset=utf-8',
+        'Cache-Control': 'no-store, no-cache, must-revalidate, proxy-revalidate',
+        'Pragma': 'no-cache',
+        'Expires': '0',
+        'Access-Control-Allow-Origin': '*'
+      });
+      return res.end(html);
+    } catch (error) {
+      res.writeHead(503, {
+        'Content-Type': 'text/plain; charset=utf-8',
+        'Cache-Control': 'no-store',
+        'Access-Control-Allow-Origin': '*'
+      });
+      return res.end('Neon Core client temporarily unavailable.');
+    }
+  }
+
   if (pathname === '/rooms') {
     res.writeHead(200, {
       'Content-Type': 'application/json; charset=utf-8',
