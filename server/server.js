@@ -38,7 +38,7 @@ const SERVER_UPDATE_MESSAGE = 'NUEVA ACTUALIZACIÓN DISPONIBLE. Neon Core se act
 
 const AMMO_PACK_SIZE = 100;
 const AMMO_PACK_COST = 75;
-const MAX_AMMO = 700;
+const MAX_AMMO = 220;
 
 const SHOP_NPC = { x: 3250, y: 2200, r: 24 };
 const SHOP_INTERACTION_RADIUS = 48;
@@ -362,8 +362,9 @@ async function loadSavedPlayer(saveKey, playerName = '') {
   return null;
 }
 
-function maxAmmoForWeapon(weaponId) {
-  return Number(WEAPONS[weaponId]?.maxAmmo) || 0;
+function maxAmmoForWeapon() {
+  // La munición pertenece al jugador, no al arma equipada.
+  return MAX_AMMO;
 }
 
 function normalizeOwnedWeapons(value, fallbackWeapon = '') {
@@ -411,9 +412,8 @@ function applyCombatStats(p) {
   ));
   p.speed = speedForLevel(p.level);
 
-  const maxAmmo = maxAmmoForWeapon(p.weapon);
-  p.ammo = maxAmmo > 0 ? clamp(Number(p.ammo) || 0, 0, maxAmmo) : 0;
-  if (maxAmmo > 0 && p.ammo <= 0) p.ammo = Math.min(60, maxAmmo);
+  const maxAmmo = maxAmmoForWeapon();
+  p.ammo = clamp(Number(p.ammo) || 0, 0, maxAmmo);
 }
 
 function addDamageXp(p, amount) {
@@ -511,9 +511,8 @@ function markPlayerDead(p) {
 
   applyDeathPenalty(p);
 
-  // Al reaparecer se entregan exactamente 60 balas si tiene un arma equipada.
-  const maxAmmo = maxAmmoForWeapon(p.weapon);
-  p.ammo = maxAmmo > 0 ? Math.min(60, maxAmmo) : 0;
+  // Al reaparecer conserva exactamente la munición que ya tenía.
+  p.ammo = clamp(Number(p.ammo) || 0, 0, MAX_AMMO);
   p.hp = maxHpForLevel(p.level);
   p.alive = true;
   p.frozen = false;
@@ -1171,8 +1170,8 @@ function shopBuy(ws, requestedWeapon) {
       damage: p.damage,
       defense: p.defense,
       fireRate: p.fireRate,
-      maxAmmo: 0,
-      ammo: 0,
+      maxAmmo: MAX_AMMO,
+      ammo: p.ammo,
       gold: p.gold || 0
     });
     sendStats(p);
@@ -1858,7 +1857,7 @@ function createPlayer(ws) {
     equippedWeaponSkin: '',
     ownedWeaponSkins: [],
     redeemedCodes: [],
-    ammo: 60,
+    ammo: 0,
     weapon: 'blaster',
     color: '#39e7ff',
     room: '',
@@ -2060,7 +2059,6 @@ wss.on('connection', async (ws) => {
           p.gold = Math.max(0, Number(saved.gold) || 0);
           p.diamonds = Math.max(0, Number(saved.diamonds) || 0);
           p.ammo = clamp(Number(saved.ammo) || 0, 0, MAX_AMMO);
-          if (p.ammo <= 0) p.ammo = 60;
           p.bankedGold = Math.max(0, Number(saved.bankedGold) || 0);
           p.bankedDiamonds = Math.max(0, Number(saved.bankedDiamonds) || 0);
           p.ownedSkins = cosmetics.normalizeOwnedSkins(saved.ownedSkins);
@@ -2336,7 +2334,7 @@ wss.on('connection', async (ws) => {
           p.weapon = WEAPONS[checkpoint.weapon] ? checkpoint.weapon : 'blaster';
         } else {
           p.hp = maxHpForLevel(p.level);
-          p.ammo = Math.max(30, clamp(Number(p.ammo) || 0, 0, MAX_AMMO));
+          p.ammo = clamp(Number(p.ammo) || 0, 0, MAX_AMMO);
         }
 
         p.lastShot = 0;
