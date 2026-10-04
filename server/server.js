@@ -1,4 +1,4 @@
-/* BUILD-15 · HUD limpia y configuraciones generales */
+/* BUILD-16 · HUD limpia y configuraciones generales */
 'use strict';
 
 const http = require('http');
@@ -39,7 +39,12 @@ const SERVER_UPDATE_MESSAGE = 'NUEVA ACTUALIZACIÓN DISPONIBLE. Neon Core se act
 
 const AMMO_PACK_SIZE = 100;
 const AMMO_PACK_COST = 75;
-const MAX_AMMO = 220;
+const INVENTORY_SLOTS = 16;
+const INVENTORY_STACK_MAX = 500;
+const MAX_AMMO = INVENTORY_SLOTS * INVENTORY_STACK_MAX;
+const PICKUP_RADIUS = 85;
+const DROP_LIFETIME_MS = 10 * 60 * 1000;
+const PROJECTILE_SPEED = 1200;
 
 const PISTOLERO_MAX_LEVEL = 1000;
 const PISTOLERO_XP_PER_HIT = 10;
@@ -50,16 +55,16 @@ const SHOP_INTERACTION_RADIUS = 48;
 const BANK_ENABLED = false;
 
 const WEAPONS = {
-  blaster: { name: 'BLASTER · NEONSTORM', cost: 0, power: 100, fireRate: 280, maxAmmo: 220, range: 760 },
-  pulse: { name: 'PULSE · PRISMA', cost: 500, power: 200, fireRate: 190, maxAmmo: 260, range: 820 },
-  cannon: { name: 'CANNON · SOLARIS', cost: 1500, power: 400, fireRate: 520, maxAmmo: 320, range: 880 },
-  railgun: { name: 'RAILGUN · ECLIPSE', cost: 6500, power: 743, fireRate: 700, maxAmmo: 380, range: 960 },
-  nova: { name: 'NOVA · SUPERNOVA', cost: 22000, power: 1486, fireRate: 1000, maxAmmo: 450, range: 1040 },
-  plasma: { name: 'PLASMA · INFERNO', cost: 60000, power: 2286, fireRate: 550, maxAmmo: 500, range: 1120 },
-  vortex: { name: 'VORTEX · SHARD', cost: 150000, power: 3286, fireRate: 950, maxAmmo: 550, range: 1200 },
-  quasar: { name: 'QUASAR · RAY', cost: 400000, power: 4429, fireRate: 1050, maxAmmo: 600, range: 1280 },
-  singularity: { name: 'SINGULARITY · CORE', cost: 900000, power: 6000, fireRate: 1400, maxAmmo: 650, range: 1360 },
-  omega: { name: 'OMEGA · ASCENSION', cost: 2000000, power: 8000, fireRate: 900, maxAmmo: 700, range: 1440 }
+  blaster: { name: 'BLASTER · NEONSTORM', cost: 0, power: 100, fireRate: 280, maxAmmo:8000, range: 760 },
+  pulse: { name: 'PULSE · PRISMA', cost: 500, power: 200, fireRate: 190, maxAmmo:8000, range: 820 },
+  cannon: { name: 'CANNON · SOLARIS', cost: 1500, power: 400, fireRate: 520, maxAmmo:8000, range: 880 },
+  railgun: { name: 'RAILGUN · ECLIPSE', cost: 6500, power: 743, fireRate: 700, maxAmmo:8000, range: 960 },
+  nova: { name: 'NOVA · SUPERNOVA', cost: 22000, power: 1486, fireRate: 1000, maxAmmo:8000, range: 1040 },
+  plasma: { name: 'PLASMA · INFERNO', cost: 60000, power: 2286, fireRate: 550, maxAmmo:8000, range: 1120 },
+  vortex: { name: 'VORTEX · SHARD', cost: 150000, power: 3286, fireRate: 950, maxAmmo:8000, range: 1200 },
+  quasar: { name: 'QUASAR · RAY', cost: 400000, power: 4429, fireRate: 1050, maxAmmo:8000, range: 1280 },
+  singularity: { name: 'SINGULARITY · CORE', cost: 900000, power: 6000, fireRate: 1400, maxAmmo:8000, range: 1360 },
+  omega: { name: 'OMEGA · ASCENSION', cost: 2000000, power: 8000, fireRate: 900, maxAmmo:8000, range: 1440 }
 };
 
 function damageForPower(power) {
@@ -110,6 +115,7 @@ const roomEnemyRespawns = new Map();
 const roomBossProjectiles = new Map();
 const roomWalls = new Map();
 const roomWallRespawns = new Map();
+const roomDrops = new Map();
 
 const PUBLIC_ROOMS = ['12345'];
 
@@ -119,6 +125,7 @@ roomEnemyRespawns.set('OPEN', []);
 roomBossProjectiles.set('OPEN', []);
 roomWalls.set('OPEN', null);
 roomWallRespawns.set('OPEN', []);
+roomDrops.set('OPEN', []);
 
 for (const code of PUBLIC_ROOMS) {
   rooms.set(code, new Set());
@@ -127,6 +134,7 @@ for (const code of PUBLIC_ROOMS) {
   roomBossProjectiles.set(code, []);
   roomWalls.set(code, null);
   roomWallRespawns.set(code, []);
+  roomDrops.set(code, []);
 }
 
 const CODE_CHARS = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
@@ -310,8 +318,9 @@ function sendStats(p) {
     killsToLevel: nextKills,
     gold: p.gold || 0,
     diamonds: p.diamonds || 0,
-    ammo: clamp(Number(p.ammo) || 0, 0, maxAmmo),
-    maxAmmo,
+    ammo: inventoryTotal(p,"ammo"),
+    maxAmmo: MAX_AMMO,
+    inventory: inventoryPayload(p),
     weapon: p.weapon,
     ownedWeapons: normalizeOwnedWeapons(p.ownedWeapons, p.weapon || ''),
     shopNpc: SHOP_NPC,
@@ -339,7 +348,7 @@ function capturePlayerData(p) {
     pvpKills: p.pvpKills,
     gold: p.gold || 0,
     diamonds: p.diamonds || 0,
-    ammo: clamp(Number(p.ammo) || 0, 0, MAX_AMMO),
+    inventory: inventoryPayload(p),
     pistoleroLevel: pistoleroLevelFromXp(p.pistoleroXp),
     pistoleroXp: Math.max(0, Number(p.pistoleroXp) || 0),
     weapon: WEAPONS[p.weapon] ? p.weapon : null,
@@ -411,6 +420,19 @@ async function loadSavedPlayer(saveKey, playerName = '') {
   return null;
 }
 
+function emptyInventory(){return Array.from({length:INVENTORY_SLOTS},()=>null);}
+function normalizeInventory(value){const out=emptyInventory(),src=Array.isArray(value)?value:[];for(let i=0;i<src.length&&i<INVENTORY_SLOTS;i++){const raw=src[i];if(!raw)continue;const itemId=String(raw.itemId||raw.id||'');let remaining=Math.max(0,Math.floor(Number(raw.qty)||0));if(itemId!=='ammo'||remaining<=0)continue;for(let j=0;j<INVENTORY_SLOTS&&remaining>0;j++){const slot=out[j];if(slot&&slot.itemId===itemId&&slot.qty<INVENTORY_STACK_MAX){const take=Math.min(remaining,INVENTORY_STACK_MAX-slot.qty);slot.qty+=take;remaining-=take;}}for(let j=0;j<INVENTORY_SLOTS&&remaining>0;j++){if(!out[j]){const take=Math.min(remaining,INVENTORY_STACK_MAX);out[j]={itemId,qty:take};remaining-=take;}}}return out;}
+function inventoryTotal(p,itemId='ammo'){const inv=normalizeInventory(p?.inventory);if(p)p.inventory=inv;let total=0;for(const slot of inv)if(slot&&slot.itemId===itemId)total+=Math.max(0,Number(slot.qty)||0);return total;}
+function syncAmmoFromInventory(p){if(!p)return 0;p.inventory=normalizeInventory(p.inventory);p.ammo=inventoryTotal(p,'ammo');return p.ammo;}
+function addInventoryItem(p,itemId,qty){if(!p)return Math.max(0,Math.floor(Number(qty)||0));p.inventory=normalizeInventory(p.inventory);let remaining=Math.max(0,Math.floor(Number(qty)||0));if(itemId!=='ammo'||remaining<=0)return remaining;for(let i=0;i<p.inventory.length&&remaining>0;i++){const slot=p.inventory[i];if(slot&&slot.itemId===itemId&&slot.qty<INVENTORY_STACK_MAX){const take=Math.min(remaining,INVENTORY_STACK_MAX-slot.qty);slot.qty+=take;remaining-=take;}}for(let i=0;i<p.inventory.length&&remaining>0;i++){if(!p.inventory[i]){const take=Math.min(remaining,INVENTORY_STACK_MAX);p.inventory[i]={itemId,qty:take};remaining-=take;}}syncAmmoFromInventory(p);return remaining;}
+function removeInventoryAmount(p,itemId,qty){if(!p)return 0;p.inventory=normalizeInventory(p.inventory);let remaining=Math.max(0,Math.floor(Number(qty)||0)),removed=0;for(let i=0;i<p.inventory.length&&remaining>0;i++){const slot=p.inventory[i];if(!slot||slot.itemId!==itemId)continue;const take=Math.min(remaining,slot.qty);slot.qty-=take;removed+=take;remaining-=take;if(slot.qty<=0)p.inventory[i]=null;}syncAmmoFromInventory(p);return removed;}
+function inventoryPayload(p){syncAmmoFromInventory(p);return p.inventory.map(slot=>slot?{itemId:slot.itemId,qty:slot.qty}:null);}
+function sendInventoryState(p,message=''){if(!p?.ws)return;send(p.ws,{type:'inventory_state',message,inventory:inventoryPayload(p),ammo:inventoryTotal(p,'ammo'),maxAmmo:MAX_AMMO,slots:INVENTORY_SLOTS,stackMax:INVENTORY_STACK_MAX});}
+function dropItem(roomCode,p,itemId,qty,x,y){const list=roomDrops.get(roomCode)||[];const drop={id:'d_'+Math.random().toString(36).slice(2,10),itemId:String(itemId||''),name:itemId==='ammo'?'MUNICIÓN':'OBJETO',qty:Math.max(1,Math.floor(Number(qty)||0)),x:clamp(Number(x)||0,35,WORLD.w-35),y:clamp(Number(y)||0,35,WORLD.h-35),createdAt:Date.now()};list.push(drop);roomDrops.set(roomCode,list);return drop;}
+function sendDropState(roomCode){broadcastRoom(roomCode,{type:'drop_state',drops:(roomDrops.get(roomCode)||[]).map(d=>({...d}))});}
+function cleanupDrops(roomCode){const now=Date.now(),list=roomDrops.get(roomCode)||[],next=list.filter(d=>now-(Number(d.createdAt)||now)<DROP_LIFETIME_MS);if(next.length!==list.length){roomDrops.set(roomCode,next);sendDropState(roomCode);}}
+function dropInventoryItem(ws,slotIndex){const p=clients.get(ws);if(!p||!p.room||!p.alive)return;const idx=Math.floor(Number(slotIndex));if(!Number.isInteger(idx)||idx<0||idx>=INVENTORY_SLOTS)return;p.inventory=normalizeInventory(p.inventory);const slot=p.inventory[idx];if(!slot||slot.itemId!=='ammo'||slot.qty<=0)return sendInventoryState(p,'Ese espacio está vacío.');const qty=slot.qty;p.inventory[idx]=null;syncAmmoFromInventory(p);dropItem(p.room,p,'ammo',qty,p.x,p.y);void persistPlayer(p);sendInventoryState(p,'Soltaste '+qty+' balas en el suelo.');sendDropState(p.room);}
+function pickupNearby(ws){const p=clients.get(ws);if(!p||!p.room||!p.alive)return;cleanupDrops(p.room);const list=roomDrops.get(p.room)||[];let bestIndex=-1,bestDistance=Infinity;for(let i=0;i<list.length;i++){const d=list[i],distance=Math.hypot(p.x-d.x,p.y-d.y);if(distance<=PICKUP_RADIUS&&distance<bestDistance){bestDistance=distance;bestIndex=i;}}if(bestIndex<0)return sendInventoryState(p,'No hay objetos cerca.');const drop=list[bestIndex],before=inventoryTotal(p,drop.itemId),leftover=addInventoryItem(p,drop.itemId,drop.qty),added=inventoryTotal(p,drop.itemId)-before;if(added<=0)return sendInventoryState(p,'La mochila está llena.');drop.qty=leftover;if(drop.qty<=0)list.splice(bestIndex,1);roomDrops.set(p.room,list);void persistPlayer(p);sendInventoryState(p,'Recogiste '+added+' '+drop.name+'.');sendDropState(p.room);}
 function maxAmmoForWeapon() {
   // La munición pertenece al jugador, no al arma equipada.
   return MAX_AMMO;
@@ -465,7 +487,7 @@ function applyCombatStats(p) {
   p.speed = speedForLevel(p.level);
 
   const maxAmmo = maxAmmoForWeapon();
-  p.ammo = clamp(Number(p.ammo) || 0, 0, maxAmmo);
+  syncAmmoFromInventory(p);
 }
 
 function addDamageXp(p, amount) {
@@ -1037,6 +1059,7 @@ async function leaveRoom(ws) {
       roomBossProjectiles.delete(code);
       roomWalls.delete(code);
       roomWallRespawns.delete(code);
+      roomDrops.delete(code);
     } else {
       broadcastRoom(code, {
         type: 'player_leave',
@@ -1113,11 +1136,14 @@ async function joinRoom(ws, requestedCode, create = false) {
     players: publicPlayers(room),
     enemies: ensureRoomEnemies(code),
     walls: ensureRoomWalls(code),
+    drops: (roomDrops.get(code)||[]).map(d=>({...d})),
     safeZone: SAFE_ZONE,
     spawnProtectionMs: 5000
   });
 
   sendStats(p);
+  sendInventoryState(p);
+  sendDropState(p.room);
 
   broadcastRoom(
     code,
@@ -1467,53 +1493,7 @@ async function withdrawBank(ws) {
   });
 }
 
-function buyAmmo(ws) {
-  const p = clients.get(ws);
-  if (!p) return;
-
-  if (!p.room) {
-    send(ws, { type: 'shop_result', ok: false, message: 'No estás dentro de una sala.' });
-    return;
-  }
-  if (!p.alive) {
-    send(ws, { type: 'shop_result', ok: false, message: 'No puedes comprar estando destruido.' });
-    return;
-  }
-  if (Math.hypot(p.x - SHOP_NPC.x, p.y - SHOP_NPC.y) > SHOP_INTERACTION_RADIUS) {
-    send(ws, { type: 'shop_result', ok: false, message: 'Párate sobre el SHOP.' });
-    return;
-  }
-
-  const maxAmmo = maxAmmoForWeapon(p.weapon);
-  const ammo = clamp(Number(p.ammo) || 0, 0, maxAmmo);
-  const gold = Math.max(0, Number(p.gold) || 0);
-
-  if (ammo >= maxAmmo) {
-    send(ws, { type: 'shop_result', ok: false, message: 'Munición al máximo para este arsenal.' });
-    return;
-  }
-  if (gold < AMMO_PACK_COST) {
-    send(ws, { type: 'shop_result', ok: false, message: 'Necesitas ' + AMMO_PACK_COST + ' de oro.' });
-    return;
-  }
-
-  const purchased = Math.min(AMMO_PACK_SIZE, maxAmmo - ammo);
-  p.gold = gold - AMMO_PACK_COST;
-  p.ammo = ammo + purchased;
-
-  void persistPlayer(p);
-  send(ws, {
-    type: 'shop_result',
-    ok: true,
-    message: 'Compraste ' + purchased + ' balas.',
-    gold: p.gold,
-    ammo: p.ammo,
-    maxAmmo
-  });
-  sendStats(p);
-}
-
-function handleShot(ws) {
+function buyAmmo(ws){const p=clients.get(ws);if(!p)return;if(!p.room)return send(ws,{type:'shop_result',ok:false,message:'No estás dentro de una sala.'});if(!p.alive)return send(ws,{type:'shop_result',ok:false,message:'No puedes comprar estando destruido.'});if(Math.hypot(p.x-SHOP_NPC.x,p.y-SHOP_NPC.y)>SHOP_INTERACTION_RADIUS)return send(ws,{type:'shop_result',ok:false,message:'Párate sobre el SHOP.'});const ammo=inventoryTotal(p,'ammo'),gold=Math.max(0,Number(p.gold)||0);if(ammo>=MAX_AMMO)return send(ws,{type:'shop_result',ok:false,message:'La mochila está llena de munición.'});if(gold<AMMO_PACK_COST)return send(ws,{type:'shop_result',ok:false,message:'Necesitas '+AMMO_PACK_COST+' de oro.'});const before=ammo;addInventoryItem(p,'ammo',AMMO_PACK_SIZE);const purchased=inventoryTotal(p,'ammo')-before;if(purchased<=0)return send(ws,{type:'shop_result',ok:false,message:'No hay espacio para más munición.'});p.gold=gold-AMMO_PACK_COST;void persistPlayer(p);send(ws,{type:'shop_result',ok:true,message:'Compraste '+purchased+' balas y fueron guardadas en tu mochila.',gold:p.gold,ammo:inventoryTotal(p,'ammo'),maxAmmo:MAX_AMMO});sendInventoryState(p,'Munición guardada en la mochila.');sendStats(p);}function handleShot(ws) {
   const shooter = clients.get(ws);
   if (!shooter || !shooter.room || !shooter.alive) return;
   if (inSafeZone(shooter.x, shooter.y, 24)) return send(ws, { type: 'shot_result', ok: false, reason: 'safe_zone', ammo: shooter.ammo || 0 });
@@ -1562,13 +1542,13 @@ function handleShot(ws) {
   const blockedByWall=!!(nearestWall&&nearestWallDistance<=best);
   const hitKind=blockedByWall?'wall':targetPlayer?'player':targetEnemy?'enemy':'range';
   const hitTarget=targetPlayer?.p?.id||targetEnemy?.id||'';
-  const travelSpeed=900;
-  const travelMs=Math.max(45,Math.round((impactDistance/travelSpeed)*1000));
+  const travelSpeed=PROJECTILE_SPEED;
+  const travelMs=Math.max(70,Math.round((impactDistance/travelSpeed)*1000));
 
-  shooter.ammo=Math.max(0,(shooter.ammo||0)-1);
+  removeInventoryAmount(shooter,"ammo",1);
   send(ws,{type:'shot_result',ok:true,ammo:shooter.ammo,maxAmmo:maxAmmoForWeapon(shooter.weapon),x:shotX,y:shotY,angle:shotAngle,damage,range:maxRange,travelDistance:impactDistance,impactX,impactY,hitKind,hitTarget,travelMs});
   sendStats(shooter);
-  broadcastRoom(shooter.room,{type:'player_shot',shotId:'s_'+Math.random().toString(36).slice(2,10),id:shooter.id,x:shotX,y:shotY,angle:shotAngle,weapon:shooter.weapon,range:maxRange,travelDistance:impactDistance,impactX,impactY,hitKind,hitTarget,travelMs});
+  broadcastRoom(shooter.room,{type:'player_shot',shotId:'s_'+Math.random().toString(36).slice(2,10),id:shooter.id,power:shooter.power,damage,projectileSpeed:PROJECTILE_SPEED,x:shotX,y:shotY,angle:shotAngle,weapon:shooter.weapon,range:maxRange,travelDistance:impactDistance,impactX,impactY,hitKind,hitTarget,travelMs});
 
   // La bala YA NO hace daño al instante. Viaja durante travelMs y el objetivo
   // puede apartarse antes del impacto.
@@ -1840,6 +1820,7 @@ function createPlayer(ws) {
     equippedWeaponSkin: '',
     ownedWeaponSkins: [],
     redeemedCodes: [],
+    inventory: emptyInventory(),
     ammo: 0,
     pistoleroXp: 0,
     pistoleroLevel: 1,
@@ -2044,7 +2025,7 @@ wss.on('connection', async (ws) => {
           p.pvpKills = Number(saved.pvpKills) || 0;
           p.gold = Math.max(0, Number(saved.gold) || 0);
           p.diamonds = Math.max(0, Number(saved.diamonds) || 0);
-          p.ammo = clamp(Number(saved.ammo) || 0, 0, MAX_AMMO);
+          if(Array.isArray(saved.inventory)){p.inventory=normalizeInventory(saved.inventory);}else{p.inventory=emptyInventory();addInventoryItem(p,'ammo',Math.max(0,Number(saved.ammo)||0));}syncAmmoFromInventory(p);
           p.pistoleroXp = Math.max(0, Number(saved.pistoleroXp) || 0);
           p.pistoleroLevel = pistoleroLevelFromXp(p.pistoleroXp);
           p.bankedGold = Math.max(0, Number(saved.bankedGold) || 0);
@@ -2233,6 +2214,19 @@ wss.on('connection', async (ws) => {
         return;
       }
 
+      if (msg.type === 'open_inventory') {
+        if (!p.frozen) sendInventoryState(p);
+        return;
+      }
+      if (msg.type === 'drop_inventory_item') {
+        if (!p.frozen) dropInventoryItem(ws, msg.slotIndex);
+        return;
+      }
+      if (msg.type === 'pickup_nearby') {
+        if (!p.frozen) pickupNearby(ws);
+        return;
+      }
+
       if (msg.type === 'fire') {
         if (!p.frozen) handleShot(ws);
         return;
@@ -2334,7 +2328,7 @@ wss.on('connection', async (ws) => {
           p.pvpKills = Number(checkpoint.pvpKills) || 0;
           p.gold = Math.max(0, Number(checkpoint.gold) || 0);
           p.diamonds = Math.max(0, Number(checkpoint.diamonds) || 0);
-          p.ammo = clamp(Number(checkpoint.ammo) || 0, 0, MAX_AMMO);
+          syncAmmoFromInventory(p);
           p.weapon = WEAPONS[checkpoint.weapon] ? checkpoint.weapon : 'blaster';
         } else {
           p.hp = maxHpForLevel(p.level);
@@ -2405,6 +2399,7 @@ const storageReady = storage.initStorage(RELEASE_ID, DATABASE_SCHEMA_VERSION).ca
 storage.ready = storageReady;
 
 setInterval(() => {
+  for (const code of roomDrops.keys()) cleanupDrops(code);
   const now = Date.now();
   const dt = TICK_MS / 1000;
 

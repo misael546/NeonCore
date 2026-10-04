@@ -1,8 +1,8 @@
 {
   "game": "Neon Core",
-  "releaseId": "BUILD-15",
-  "clientBuild": "BUILD-15",
-  "serverBuild": "BUILD-15",
+  "releaseId": "BUILD-16",
+  "clientBuild": "BUILD-16",
+  "serverBuild": "BUILD-16",
   "databaseSchema": 1,
   "clientPath": "neoncore/12345/v1/index.html"
 }
