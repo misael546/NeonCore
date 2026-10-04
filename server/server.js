@@ -450,34 +450,23 @@ function applyMasteryDeathLoss(p) {
 }
 
 function applyDeathPenalty(p) {
-  // La muerte conserva ataque/defensa y solo baja progreso.
-  // Se pierde 10% del XP necesario para el nivel actual.
-  // Si el XP no alcanza, se pierde exactamente 1 nivel (sin bajar de nivel 1).
-  let level = clamp(Number(p.level) || 1, 1, 1000);
-  let xp = Math.max(0, Number(p.xp) || 0);
-  const xpLoss = Math.max(1, Math.floor(xpToNextLevel(level) * DEATH_XP_LOSS));
-
-  xp -= xpLoss;
-
-  if (xp < 0) {
-    level = Math.max(1, level - 1);
-    xp = 0;
-  }
+  // La muerte ya NO quita XP ni niveles.
+  // Se mantienen nivel/XP y solo se aplican las penalizaciones económicas
+  // y de combate configuradas para la muerte.
+  const level = clamp(Number(p.level) || 1, 1, 1000);
+  const maxHp = maxHpForLevel(level);
 
   p.level = level;
-  p.xp = xp;
+  p.xp = Math.max(0, Number(p.xp) || 0);
 
-  applyMasteryDeathLoss(p);
-
-  const maxHp = maxHpForLevel(level);
-  p.hp = Math.max(1, Math.floor(maxHp * (1 - DEATH_HP_LOSS)));
+  const maxHpAfterPenalty = Math.max(1, Math.floor(maxHp * (1 - DEATH_HP_LOSS)));
+  p.hp = maxHpAfterPenalty;
   p.gold = Math.max(0, Math.floor((Number(p.gold) || 0) * (1 - DEATH_GOLD_LOSS)));
 
   // Nunca acumular penalizaciones de ataque/defensa por morir.
   p.damagePenalty = 0;
   p.defensePenalty = 0;
-  applyCombatStats(p);
-}
+  applyCombatStats(p);}
 
 function respawnAfterDeath(p) {
   if (!p?.room) return;
@@ -495,12 +484,24 @@ function respawnAfterDeath(p) {
 
 function markPlayerDead(p) {
   if (!p?.room) return false;
+
+  const spawn = spawnPosition(p.room);
+
+  // La muerte es server-authoritative: el jugador queda en spawn, pero sigue
+  // muerto e inmóvil hasta pulsar RENACER EN ZONA SEGURA.
+  p.x = spawn.x;
+  p.y = spawn.y;
+  p.angle = 0;
   p.alive = false;
   p.frozen = true;
   p.hp = 0;
   p.lastShot = 0;
+  p.lastStateAt = Date.now();
+  p.stateViolations = 0;
+
   applyDeathPenalty(p);
   p.hp = 0;
+
   void persistPlayer(p);
   return true;
 }
