@@ -1,7 +1,7 @@
 {
   "game": "Neon Core",
-  "releaseId": "20261003-027-remove-legacy-build",
-  "clientBuild": "20261003-027-remove-legacy-build",
-  "serverBuild": "20261003-027-remove-legacy-build",
+  "releaseId": "20261003-028-update-monitor-fix",
+  "clientBuild": "20261003-028-update-monitor-fix",
+  "serverBuild": "20261003-028-update-monitor-fix",
   "databaseSchema": 1
 }
