@@ -1,7 +1,7 @@
 {
   "game": "Neon Core",
-  "releaseId": "20261003-030-live-update-loader",
-  "clientBuild": "20261003-030-live-update-loader",
-  "serverBuild": "20261003-030-live-update-loader",
+  "releaseId": "20261003-031-real-player-death",
+  "clientBuild": "20261003-031-real-player-death",
+  "serverBuild": "20261003-031-real-player-death",
   "databaseSchema": 1
 }
