@@ -1789,6 +1789,8 @@ function handleShot(ws) {
 
       send(targetPlayer.ws, {
         type: 'pvp_dead',
+        x: target.x,
+        y: target.y,
         killer: shooter.name,
         lostScore,
         hp: 0,
@@ -2576,6 +2578,8 @@ setInterval(() => {
               if (foundTarget) {
                 send(foundTarget.ws, {
                   type: 'pve_dead',
+                  x: pl.x,
+                  y: pl.y,
                   lostScore,
                   hp: 0,
                   maxHp: maxHpForLevel(pl.level),
@@ -2701,6 +2705,8 @@ setInterval(() => {
           if (foundTarget) {
             send(foundTarget.ws, {
               type: 'pve_dead',
+              x: target.x,
+              y: target.y,
               lostScore,
               hp: 0,
               maxHp: maxHpForLevel(pl.level),
