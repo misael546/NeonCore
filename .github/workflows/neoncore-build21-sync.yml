@@ -1,0 +1,81 @@
+name: Neon Core BUILD sync
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  sync:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Apply current release to client files
+        shell: bash
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          import json
+
+          release_path = Path("release.json")
+          release = json.loads(release_path.read_text(encoding="utf-8"))
+          build = str(release.get("clientBuild") or release.get("releaseId") or "BUILD-21")
+
+          # The official game entry remains the real game page. Pages publishes
+          # the patched source from the repository, so old clients can migrate
+          # to the same stable path without an intermediate wrapper.
+          release["clientPath"] = "neoncore/12345/v1/index.html"
+          release["releaseId"] = build
+          release["clientBuild"] = build
+          release["serverBuild"] = build
+          release_path.write_text(json.dumps(release, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+
+          targets = [
+              Path("index.html"),
+              Path("sessions/index.html"),
+              Path("neoncore/12345/v1/index.html"),
+          ]
+
+          for path in targets:
+              text = path.read_text(encoding="utf-8")
+              text = text.replace('var v="BUILD-20"', f'var v="{build}"')
+              text = text.replace("BUILD-20", build)
+              text = text.replace("Build 20", build.replace("BUILD-", "Build "))
+              text = text.replace("BUILD 20", build.replace("BUILD-", "BUILD "))
+              if path.name == "index.html" and "neoncore/12345/v1" in path.as_posix():
+                  text = text.replace(
+                      'if(controlMode!=="mouse"&&!aimJoyActive)p.angle=Math.atan2(moveVelocity.y,moveVelocity.x);',
+                      '// BUILD-21: el joystick izquierdo solo mueve; el derecho controla la mira.'
+                  )
+                  text = text.replace(
+                      '@media(min-width:800px){.aimJoy{display:none!important}}',
+                      'html.pc-controls .aimJoy{display:none!important}html.touch-controls .aimJoy{display:block!important}'
+                  )
+              path.write_text(text, encoding="utf-8")
+              print("[SYNC]", path, build)
+
+          # Remove the temporary wrapper once the official game HTML is patched.
+          wrapper = Path("neoncore/12345/v1/build21.html")
+          if wrapper.exists():
+              wrapper.unlink()
+              print("[SYNC] removed temporary build21 wrapper")
+          PY
+
+      - name: Commit BUILD-21 synchronization
+        shell: bash
+        run: |
+          git config user.name "neon-core-sync[bot]"
+          git config user.email "neon-core-sync[bot]@users.noreply.github.com"
+          git add index.html sessions/index.html neoncore/12345/v1/index.html release.json neoncore/12345/v1/build21.html
+          if git diff --cached --quiet; then
+            echo "No synchronization changes needed."
+            exit 0
+          fi
+          git commit -m "BUILD-21: sincronizar cliente y controles móviles [skip ci]"
+          git push
