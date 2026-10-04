@@ -9,7 +9,7 @@
 <script>
 (function(){
   try{
-    var v="BUILD-16",checking=false,updating=false,timer=null,base=new URL("../../../",location.href),manifestUrl=new URL("release.json",base);
+    var v="BUILD-17",checking=false,updating=false,timer=null,base=new URL("../../../",location.href),manifestUrl=new URL("release.json",base);
     window.NEON_CORE_BUILD=v;localStorage.setItem("neon_core_build",v);
     function notice(remote){
       if(updating)return;updating=true;
@@ -33,7 +33,7 @@
   }catch(e){}
 })();
 </script>
-<title>Neon Core · Build 16</title>
+<title>Neon Core · Build 17</title>
 <style>
 *{box-sizing:border-box}html,body{margin:0;width:100%;height:100%;overflow:hidden;background:#050811;color:#fff;font-family:Arial,sans-serif;touch-action:none}
 #game{display:block;width:100vw;height:100vh}
@@ -272,9 +272,16 @@ html.pc-controls #controlConfigBtn,html.touch-controls #controlConfigBtn{display
 <style id="neonInventoryV16">
 .utilityTabs{grid-template-columns:repeat(3,1fr)}
 .inventoryHero{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:12px;margin-bottom:10px;border:1px solid #39e7ff55;border-radius:12px;background:linear-gradient(135deg,#081524,#0b1220)}.inventoryHero strong{display:block;color:#39e7ff;letter-spacing:1px;font-size:14px}.inventoryHero small{display:block;color:#8ea0b0;margin-top:3px;font-size:9px}.inventoryHero>b{color:#fff;font-size:11px;white-space:nowrap}.inventoryGrid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:7px}.inventorySlot{position:relative;min-width:0;min-height:78px;border:1px solid #26344e;border-radius:10px;background:linear-gradient(180deg,#0d192b,#09111d);color:#fff;padding:7px;text-align:left}.inventorySlot.empty{opacity:.5}.inventorySlot.hasItem{border-color:#39e7ff88;box-shadow:inset 0 0 14px #39e7ff0c}.inventorySlot .slotNum{position:absolute;left:6px;top:5px;color:#5e708b;font-size:8px;font-weight:900}.inventorySlot .slotIcon{display:grid;place-items:center;margin:10px auto 2px;font-size:22px}.inventorySlot .slotName{display:block;text-align:center;color:#9ddfff;font-size:8px;font-weight:900}.inventorySlot .slotQty{display:block;text-align:center;color:#fff;font-size:15px;font-weight:900;margin-top:2px}.inventorySlot:active{transform:scale(.97)}.inventoryHint{display:block;margin-top:9px;color:#71819a;font-size:9px;line-height:1.4;text-align:center}#pickupBtn{position:fixed;right:16px;bottom:94px;z-index:96;width:54px;height:54px;border:1px solid #6ff3b0;border-radius:14px;background:linear-gradient(135deg,#0d2b24,#153e35);color:#dfffee;font-size:25px;display:grid;place-items:center;box-shadow:0 0 20px #6ff3b022,0 8px 24px #000;pointer-events:auto;cursor:pointer}#pickupBtn:disabled{opacity:.28;filter:grayscale(.65);cursor:not-allowed}.dropConfirm{position:fixed;inset:0;display:none;align-items:center;justify-content:center;padding:18px;background:#000b;z-index:10050;touch-action:auto}.dropConfirmCard{width:min(320px,92vw);padding:20px;background:#0b1020;border:1px solid #39e7ff88;border-radius:16px;box-shadow:0 20px 70px #000;text-align:center}.dropConfirmCard strong{display:block;color:#39e7ff;font-size:20px;letter-spacing:2px}.dropConfirmCard span{display:block;margin:9px 0 14px;color:#c8d3e5;font-size:12px;line-height:1.4}.dropConfirmCard>div{display:grid;grid-template-columns:1fr 1fr;gap:8px}.dropConfirmCard button{min-height:42px;margin:0;border:0;border-radius:9px;background:#26344e;color:#fff;font-weight:900}.dropConfirmCard button:last-child{background:#1d5f4e}@media(max-width:600px){.inventoryGrid{gap:6px}.inventorySlot{min-height:72px;padding:6px}.inventorySlot .slotIcon{font-size:20px}.inventorySlot .slotQty{font-size:14px}#pickupBtn{right:14px;bottom:104px;width:50px;height:50px}}@media(min-width:800px){#pickupBtn{right:72px;bottom:16px}}
-</style></style></head>
+</style></style><style id="neonAimV17">
+.aimJoy{position:fixed;right:8%;bottom:8%;z-index:6;border-color:#ff8aa0;background:#07101dcc;display:none}
+.aimJoy .stick{background:#ff607f99;border-color:#ffc0cc}
+.aimCross{position:absolute;inset:0;display:grid;place-items:center;color:#ffdbe1;font-size:18px;pointer-events:none;text-shadow:0 0 9px #ff607f}
+#pickupBtn{display:none;right:18px;bottom:142px}
+@media(max-width:799px){.aimJoy{display:block}#pickupBtn{right:18px;bottom:142px;width:50px;height:50px}}
+@media(min-width:800px){.aimJoy{display:none!important}}
+</style></head>
 <body>
-<canvas id="game"></canvas><div id="buildDisplay">BUILD 16</div><button id="audioToggle" type="button" aria-label="Activar o silenciar audio">🔊</button>
+<canvas id="game"></canvas><div id="buildDisplay">BUILD 17</div><button id="audioToggle" type="button" aria-label="Activar o silenciar audio">🔊</button>
 
 <div id="hud">
   <div class="panel" id="bars">
@@ -364,7 +371,7 @@ html.pc-controls #controlConfigBtn,html.touch-controls #controlConfigBtn{display
 <div class="utilityTabs"><button class="utilityTab active" data-utility-tab="controls" type="button">CONTROLES</button><button class="utilityTab" data-utility-tab="stats" type="button">STATS</button><button class="utilityTab" data-utility-tab="inventory" type="button">🎒 MOCHILA</button></div>
 <section id="controlView" class="utilityView active"><p>Configuración universal. Los cambios quedan guardados en este dispositivo.</p>
 <div class="controlRow"><label>Arriba</label><button class="bindKey" data-bind="up" type="button">W</button></div><div class="controlRow"><label>Izquierda</label><button class="bindKey" data-bind="left" type="button">A</button></div><div class="controlRow"><label>Abajo</label><button class="bindKey" data-bind="down" type="button">S</button></div><div class="controlRow"><label>Derecha</label><button class="bindKey" data-bind="right" type="button">D</button></div><div class="controlRow"><label>Disparo teclado</label><button class="bindKey" data-bind="fire" type="button">ESPACIO</button></div><div id="bindMsg" style="min-height:18px;margin:-2px 0 8px;color:#39e7ff;font-size:11px;text-align:center"></div>
-<div class="controlRow"><label for="joySize">Joystick</label><input id="joySize" type="range" min="80" max="170" value="112"></div><div class="controlRow"><label for="fireSize">Disparo</label><input id="fireSize" type="range" min="60" max="130" value="86"></div><div class="controlRow"><label for="joyX">Joystick X</label><input id="joyX" type="range" min="0" max="100" value="8"></div><div class="controlRow"><label for="joyY">Joystick Y</label><input id="joyY" type="range" min="0" max="100" value="8"></div><div class="controlRow"><label for="fireX">Disparo X</label><input id="fireX" type="range" min="0" max="100" value="8"></div><div class="controlRow"><label for="fireY">Disparo Y</label><input id="fireY" type="range" min="0" max="100" value="8"></div>
+<div class="controlRow"><label for="joySize">Joystick</label><input id="joySize" type="range" min="80" max="170" value="112"></div><div class="controlRow"><label for="fireSize">Apuntar / disparar</label><input id="fireSize" type="range" min="60" max="130" value="86"></div><div class="controlRow"><label for="joyX">Joystick X</label><input id="joyX" type="range" min="0" max="100" value="8"></div><div class="controlRow"><label for="joyY">Joystick Y</label><input id="joyY" type="range" min="0" max="100" value="8"></div><div class="controlRow"><label for="fireX">Disparo X</label><input id="fireX" type="range" min="0" max="100" value="8"></div><div class="controlRow"><label for="fireY">Disparo Y</label><input id="fireY" type="range" min="0" max="100" value="8"></div>
 <div class="controlActions"><button id="controlReset" type="button">Restablecer</button><button id="controlDone" type="button">Listo</button></div></section>
 <section id="statsView" class="utilityView">
 <div class="statsHero"><span>LV<b id="statsPlayerLevel">1</b></span><strong>PROGRESIÓN</strong><span>PISTOLERO LV<b id="statsPistoleroLevel">1</b></span></div>
@@ -387,7 +394,7 @@ html.pc-controls #controlConfigBtn,html.touch-controls #controlConfigBtn{display
 <button id="pickupBtn" type="button" aria-label="Recoger objeto cercano" title="Recoger">✋</button>
 <div id="controls">
   <div class="joy" id="moveJoy"><div class="stick"></div></div>
-  <button id="fire" aria-label="Disparar"><span class="fireIcon"></span></button>
+  <div class="joy aimJoy" id="aimJoy" aria-label="Apuntar y disparar"><div class="stick"></div><span class="aimCross">✦</span></div>
 </div>
 
 <script>
@@ -413,7 +420,7 @@ let neonAudio={
   enabled:true,ready:false
 };
 const NEON_MUSIC_BASE="https://opengameart.org/sites/default/files/";
-const NEON_MUSIC_CREDIT="MUSIC · tricksntraps · OpenGameArt · CC0 · BUILD-16";
+const NEON_MUSIC_CREDIT="MUSIC · tricksntraps · OpenGameArt · CC0 · BUILD-17";
 const neonMusic={
   tracks:{
     menu:{file:"Currents.ogg",name:"NEON CORE"}, exploration:{file:"Currents.ogg",name:"NEON CORE"}, tension:{file:"Currents.ogg",name:"NEON CORE"}, combat:{file:"Currents.ogg",name:"NEON CORE"}, boss:{file:"Currents.ogg",name:"NEON CORE"}, bonus:{file:"Currents.ogg",name:"NEON CORE"}
@@ -694,7 +701,7 @@ function drawNeonProjectiles(){
   }
 }
 const world={w:6000,h:4400};
-const p={x:3000,y:2200,r:16,angle:0,hp:150,maxHp:150,xp:0,level:1,score:0,kills:0,pvpKills:0,power:100,damage:35,defense:0,speed:205,fireRate:320,lastShot:0,alive:true,gold:0,diamonds:0,ammo:0,maxAmmo:8000,weapon:"blaster",equippedSkin:"core_default"};
+const p={x:3000,y:2200,r:16,angle:0,hp:150,maxHp:150,xp:0,level:1,score:0,kills:0,pvpKills:0,power:100,damage:35,defense:0,speed:205,fireRate:420,lastShot:0,alive:true,gold:0,diamonds:0,ammo:0,maxAmmo:8000,weapon:"blaster",equippedSkin:"core_default"};
 const shopNpc={x:3250,y:2200,r:24};
 const weaponNames={
   blaster:"BLASTER · NEONSTORM",
@@ -709,16 +716,16 @@ const weaponNames={
   omega:"OMEGA · ASCENSION"
 };
 const weaponStats={
-  blaster:{name:"BLASTER · NEONSTORM",power:100,fireRate:280,maxAmmo:8000,cost:0,range:760},
-  pulse:{name:"PULSE · PRISMA",power:200,fireRate:190,maxAmmo:8000,cost:500,range:820},
-  cannon:{name:"CANNON · SOLARIS",power:400,fireRate:520,maxAmmo:8000,cost:1500,range:880},
-  railgun:{name:"RAILGUN · ECLIPSE",power:743,fireRate:700,maxAmmo:8000,cost:6500,range:960},
-  nova:{name:"NOVA · SUPERNOVA",power:1486,fireRate:1000,maxAmmo:8000,cost:22000,range:1040},
-  plasma:{name:"PLASMA · INFERNO",power:2286,fireRate:550,maxAmmo:8000,cost:60000,range:1120},
-  vortex:{name:"VORTEX · SHARD",power:3286,fireRate:950,maxAmmo:8000,cost:150000,range:1200},
-  quasar:{name:"QUASAR · RAY",power:4429,fireRate:1050,maxAmmo:8000,cost:400000,range:1280},
-  singularity:{name:"SINGULARITY · CORE",power:6000,fireRate:1400,maxAmmo:8000,cost:900000,range:1360},
-  omega:{name:"OMEGA · ASCENSION",power:8000,fireRate:900,maxAmmo:8000,cost:2000000,range:1440}
+  blaster:{name:"BLASTER · NEONSTORM",power:100,fireRate:420,maxAmmo:8000,cost:0,range:1000},
+  pulse:{name:"PULSE · PRISMA",power:200,fireRate:420,maxAmmo:8000,cost:500,range:1000},
+  cannon:{name:"CANNON · SOLARIS",power:400,fireRate:420,maxAmmo:8000,cost:1500,range:1000},
+  railgun:{name:"RAILGUN · ECLIPSE",power:743,fireRate:420,maxAmmo:8000,cost:6500,range:1000},
+  nova:{name:"NOVA · SUPERNOVA",power:1486,fireRate:420,maxAmmo:8000,cost:22000,range:1000},
+  plasma:{name:"PLASMA · INFERNO",power:2286,fireRate:420,maxAmmo:8000,cost:60000,range:1000},
+  vortex:{name:"VORTEX · SHARD",power:3286,fireRate:420,maxAmmo:8000,cost:150000,range:1000},
+  quasar:{name:"QUASAR · RAY",power:4429,fireRate:420,maxAmmo:8000,cost:400000,range:1000},
+  singularity:{name:"SINGULARITY · CORE",power:6000,fireRate:420,maxAmmo:8000,cost:900000,range:1000},
+  omega:{name:"OMEGA · ASCENSION",power:8000,fireRate:420,maxAmmo:8000,cost:2000000,range:1000}
 };let shopOpen=false,shopSection="arsenal";
 const SHOP_INTERACTION_RADIUS_CLIENT=48;
 const BASE_SKINS=[
@@ -773,6 +780,7 @@ let pcBindings={...pcBindDefaults};
 try{const savedPc=JSON.parse(localStorage.getItem("neon_core_pc_bindings")||"null");if(savedPc)pcBindings={...pcBindDefaults,...savedPc};}catch{}
 function savePcBindings(){try{localStorage.setItem("neon_core_pc_bindings",JSON.stringify(pcBindings));}catch{}}
 let controlMode="touch";
+let aimJoyActive=false,aimPointerId=null,aimX=0,aimY=0;
 function updateControlMode(){
   const ua=String(navigator.userAgent||"");
   const mobileUA=/Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(ua);
@@ -896,7 +904,7 @@ function connectMultiplayer(roomMode="quick",roomCode=""){ const publicRoomAuto=
         const m=JSON.parse(e.data);
         if(m.type==="server_update_notice"){
           const target=String(m.clientBuild||m.serverVersion||"");
-          if(target&&target!=="BUILD-16"&&typeof window.__neonForceUpdate==="function")window.__neonForceUpdate(target);
+          if(target&&target!=="BUILD-17"&&typeof window.__neonForceUpdate==="function")window.__neonForceUpdate(target);
           return;
         }
         if(m.type==="room_joined"){
@@ -1131,7 +1139,7 @@ function connectMultiplayer(roomMode="quick",roomCode=""){ const publicRoomAuto=
           if(Number.isFinite(m.defenseXp))serverDefenseXp=Math.max(0,Number(m.defenseXp));
           if(Number.isFinite(m.defenseXpIntoLevel))serverDefenseXpIntoLevel=Math.max(0,Number(m.defenseXpIntoLevel));
           if(Number.isFinite(m.defenseXpNeed))serverDefenseXpNeed=Math.max(1,Number(m.defenseXpNeed));
-          if(Number.isFinite(m.fireRate))p.fireRate=m.fireRate;
+          if(Number.isFinite(m.fireRate))p.fireRate=420;
           if(Number.isFinite(m.speed))p.speed=m.speed;
           if(Number.isFinite(m.maxHp))p.maxHp=m.maxHp;
           if(Object.prototype.hasOwnProperty.call(m,"weapon"))p.weapon=m.weapon;
@@ -1187,7 +1195,7 @@ function connectMultiplayer(roomMode="quick",roomCode=""){ const publicRoomAuto=
             const bulletSpeed=1200;
             const ix=Number.isFinite(Number(m.impactX))?Number(m.impactX):sx0+Math.cos(angle)*travelDistance;
             const iy=Number.isFinite(Number(m.impactY))?Number(m.impactY):sy0+Math.sin(angle)*travelDistance;
-            bullets.push({x:sx0,y:sy0,startX:sx0,startY:sy0,vx:Math.cos(angle)*bulletSpeed,vy:Math.sin(angle)*bulletSpeed,life:travelDistance/bulletSpeed+0.08,damage:Number(m.damage)||p.damage,range:0,maxRange:travelDistance,impactX:ix,impactY:iy});
+            bullets.push({x:sx0,y:sy0,startX:sx0,startY:sy0,vx:Math.cos(angle)*bulletSpeed,vy:Math.sin(angle)*bulletSpeed,life:travelDistance/bulletSpeed+0.08,damage:Number(m.damage)||p.damage,range:1000,maxRange:travelDistance,impactX:ix,impactY:iy});
             weaponShotSound(p.weapon);
             if(m.hitKind && m.hitKind!=="range"){
               const impactColor=m.hitKind==="player"?"#ff5474":m.hitKind==="enemy"?"#ff9f43":"#8da2c1";
@@ -1433,6 +1441,7 @@ function movePlayerWithCollision(dx,dy){
 function update(dt){
   if(!gameActive)return;
   if(!Number.isFinite(p.speed) || p.speed<=0) p.speed=205;
+  p.fireRate=420;
   if(multiplayerReady && multiplayerSocket && multiplayerSocket.readyState===1){
     multiplayerReady=false;
     setConnectionStatus("","",false);
@@ -1468,7 +1477,7 @@ function update(dt){
   const visualMoving=actualSpeed>7;
   if(visualMoving){
     if(!movementTelemetry.inputSince)movementTelemetry.inputSince=performance.now();
-    if(controlMode!=="mouse")p.angle=Math.atan2(moveVelocity.y,moveVelocity.x);
+    if(controlMode!=="mouse"&&!aimJoyActive)p.angle=Math.atan2(moveVelocity.y,moveVelocity.x);
   }else{
     movementTelemetry.inputSince=0;
   }
@@ -1572,7 +1581,16 @@ function drawSkinEffects(skin,r){
   ctx.restore();
 }
 function drawArmorOverlay(armorId,r,walkPhase=0,walkBlend=0){const id=String(armorId||"");if(!id)return;const t=performance.now()/1000,s=Math.sin(walkPhase)*r*.08*walkBlend,pal={pixel_cyan:["#39e7ff","#dfffff","#0b3348"],rust_core:["#d97835","#ffcf96","#5f2b15"],toxic_orb:["#74ff62","#d9ffd0","#1f6f2c"],plasma_violet:["#b67cff","#f1dcff","#4b227c"],aurora:["#82ffd7","#ecffff","#2c6f69"],nebula_prism:["#6f7bff","#fff","#442f8a"],eclipse_gold:["#ffd76a","#fff2a8","#5f4714"],celestial:["#5fa4ff","#e5f5ff","#263b95"],angel_seraph:["#fff1b8","#fff9df","#b48b2f"],demon_infernal:["#9b2430","#ffd1ba","#4f0b14"],eternal_void:["#9d53c8","#f0d1ff","#25122f"],gm_core:["#ffd76a","#fff","#493a0f"]}[id]||["#39e7ff","#dfffff","#0b3348"];ctx.save();ctx.fillStyle=pal[2];ctx.strokeStyle=pal[0];ctx.lineWidth=Math.max(1.5,r*.075);ctx.beginPath();ctx.roundRect(-r*.68,-r*.36+s,r*1.36,r*.82,r*.18);ctx.fill();ctx.stroke();ctx.fillStyle=pal[1];ctx.globalAlpha=.9;ctx.beginPath();ctx.ellipse(r*.08,-r*.02+s,r*.28,r*.17,0,0,Math.PI*2);ctx.fill();ctx.globalAlpha=1;for(const side of [-1,1]){ctx.fillStyle=pal[2];ctx.strokeStyle=pal[0];ctx.beginPath();ctx.ellipse(side*r*.73,s*.4,r*.25,r*.3,0,0,Math.PI*2);ctx.fill();ctx.stroke();ctx.fillStyle=pal[1];ctx.beginPath();ctx.arc(side*r*.99,r*.28+side*s*.5,r*.13,0,Math.PI*2);ctx.fill();}ctx.fillStyle=pal[0];ctx.globalAlpha=.75;ctx.fillRect(-r*.58,r*.42+s,r*1.16,r*.1);ctx.globalAlpha=1;if(id==="pixel_cyan"){ctx.lineWidth=2;ctx.strokeStyle=pal[1];for(let i=-1;i<=1;i++)ctx.strokeRect(i*r*.3-r*.1,-r*.1+s,r*.2,r*.34);}else if(id==="rust_core"){ctx.strokeStyle="#ffad63";ctx.lineWidth=2;ctx.beginPath();ctx.moveTo(-r*.58,-r*.3+s);ctx.lineTo(-r*.22,r*.36+s);ctx.moveTo(r*.16,-r*.28+s);ctx.lineTo(r*.58,r*.36+s);ctx.stroke();}else if(id==="toxic_orb"){ctx.strokeStyle="#c8ffad";ctx.lineWidth=2;ctx.beginPath();ctx.arc(0,0,r*.55,0,Math.PI*2);ctx.stroke();}else if(id==="plasma_violet"){ctx.strokeStyle="#eed5ff";ctx.lineWidth=2.4;ctx.beginPath();ctx.arc(0,-r*.03+s,r*.6,-2.7,.55);ctx.stroke();}else if(id==="aurora"){ctx.strokeStyle="#d9ffff";ctx.lineWidth=2;ctx.beginPath();ctx.arc(0,0,r*.6,-2.8,.5);ctx.stroke();ctx.strokeStyle="#caa2ff";ctx.beginPath();ctx.arc(0,0,r*.48,.7,2.85);ctx.stroke();}else if(id==="nebula_prism"){ctx.strokeStyle="#fff";ctx.lineWidth=2;ctx.beginPath();ctx.arc(0,0,r*.62,0,Math.PI*2);ctx.stroke();}else if(id==="eclipse_gold"){ctx.strokeStyle="#ffd76a";ctx.lineWidth=3;ctx.beginPath();ctx.arc(0,0,r*.65,0,Math.PI*2);ctx.stroke();}else if(id==="celestial"){ctx.strokeStyle="#b9ddff";ctx.lineWidth=2;ctx.beginPath();ctx.arc(0,0,r*.64,-t*.5,t*.6+4.2);ctx.stroke();}else if(id==="angel_seraph"){ctx.strokeStyle="#fff4bf";ctx.lineWidth=3;ctx.beginPath();ctx.arc(0,-r*.55,r*.44,-Math.PI*.95,-Math.PI*.05);ctx.stroke();for(const side of [-1,1]){ctx.strokeStyle="#fff7dc";ctx.lineWidth=3;ctx.beginPath();ctx.moveTo(side*r*.42,0);ctx.bezierCurveTo(side*r*1.05,-r*.62,side*r*1.38,-r*.55,side*r,r*.38);ctx.stroke();}}else if(id==="demon_infernal"){for(const side of [-1,1]){ctx.strokeStyle="#ff694e";ctx.lineWidth=3;ctx.beginPath();ctx.moveTo(side*r*.42,0);ctx.bezierCurveTo(side*r*1.08,-r*.66,side*r*1.38,-r*.45,side*r*1.03,r*.36);ctx.stroke();ctx.fillStyle="#ffcf83";ctx.beginPath();ctx.moveTo(side*r*.38,-r*.38);ctx.lineTo(side*r*.58,-r*.95);ctx.lineTo(side*r*.74,-r*.42);ctx.closePath();ctx.fill();}}else if(id==="eternal_void"){ctx.strokeStyle="#e879ff";ctx.lineWidth=2.5;ctx.beginPath();ctx.arc(0,0,r*.68,t,t+4.5);ctx.stroke();ctx.strokeStyle="#39e7ff";ctx.lineWidth=2;ctx.beginPath();ctx.arc(0,0,r*.54,-t*.8,-t*.8+3.5);ctx.stroke();}else if(id==="gm_core"){ctx.strokeStyle="#ffe27a";ctx.lineWidth=3;ctx.beginPath();ctx.arc(0,0,r*.72,t*.2,t*.2+5.3);ctx.stroke();}ctx.restore();}
-function drawWeaponModel(id,r,v,shoot,angle){const recoil=shoot*5;ctx.save();ctx.rotate(Number(angle)||0);ctx.translate(-recoil,0);ctx.globalCompositeOperation="lighter";ctx.shadowBlur=12;ctx.shadowColor=v.glow;const d="#071019";const grip=(x,w,h)=>{ctx.fillStyle=d;ctx.strokeStyle=v.glow;ctx.lineWidth=1.2;ctx.beginPath();ctx.roundRect(x,v.thick*.4,w,h,h*.18);ctx.fill();ctx.stroke();};const barrel=(x,l,t)=>{ctx.fillStyle=d;ctx.fillRect(x,-t/2,l,t);ctx.fillStyle=v.base;ctx.fillRect(x+2,-Math.max(1,t*.24),Math.max(2,l-4),Math.max(2,t*.5));};if(id==="blaster"){ctx.fillStyle=d;ctx.beginPath();ctx.roundRect(r,-7,15,11,3);ctx.fill();grip(r+5,7,11);barrel(r+13,14,5);}else if(id==="pulse"){ctx.fillStyle=d;ctx.beginPath();ctx.roundRect(r,-8,17,13,4);ctx.fill();grip(r+6,7,12);barrel(r+15,16,6);ctx.fillStyle=v.glow;ctx.fillRect(r+4,-5,9,2);ctx.fillRect(r+6,1,8,2);}else if(id==="cannon"){ctx.fillStyle=d;ctx.beginPath();ctx.roundRect(r,-10,19,17,4);ctx.fill();grip(r+5,8,14);barrel(r+18,18,11);}else if(id==="railgun"){ctx.fillStyle=d;ctx.beginPath();ctx.roundRect(r,-8,24,13,4);ctx.fill();grip(r+7,8,13);barrel(r+19,33,5);ctx.fillStyle=v.accent;ctx.fillRect(r+12,-13,8,4);}else if(id==="nova"){ctx.fillStyle=d;ctx.beginPath();ctx.roundRect(r,-8,16,13,4);ctx.fill();grip(r+5,8,12);barrel(r+14,20,5);ctx.save();ctx.translate(0,7);barrel(r+14,20,5);ctx.restore();}else if(id==="plasma"){ctx.fillStyle=d;ctx.beginPath();ctx.roundRect(r,-8,23,14,4);ctx.fill();grip(r+8,8,12);barrel(r+21,23,7);}else if(id==="vortex"){ctx.fillStyle=d;ctx.beginPath();ctx.roundRect(r,-9,22,15,5);ctx.fill();grip(r+7,8,13);barrel(r+21,19,8);ctx.strokeStyle=v.base;ctx.lineWidth=3;ctx.beginPath();ctx.arc(r+13,-2,8,0,Math.PI*1.65);ctx.stroke();}else if(id==="quasar"){ctx.fillStyle=d;ctx.beginPath();ctx.roundRect(r,-7,24,11,4);ctx.fill();grip(r+8,7,13);barrel(r+20,38,4);ctx.fillStyle=v.accent;ctx.fillRect(r+14,-13,8,5);}else if(id==="singularity"){ctx.fillStyle=d;ctx.beginPath();ctx.roundRect(r,-12,25,19,5);ctx.fill();grip(r+8,10,15);barrel(r+24,16,13);ctx.strokeStyle=v.base;ctx.lineWidth=3;ctx.beginPath();ctx.arc(r+15,-2,7,0,Math.PI*2);ctx.stroke();}else if(id==="omega"){ctx.fillStyle=d;ctx.beginPath();ctx.roundRect(r,-10,29,16,4);ctx.fill();grip(r+9,9,14);barrel(r+28,28,6);ctx.strokeStyle=v.base;ctx.lineWidth=2.2;ctx.beginPath();ctx.moveTo(r+2,-7);ctx.lineTo(r+11,-13);ctx.lineTo(r+22,-8);ctx.stroke();}else{barrel(r,18,v.thick+1);grip(r+4,7,11);}if(shoot){ctx.fillStyle="#fff8cf";ctx.globalAlpha=.9;ctx.beginPath();ctx.arc(r+(id==="omega"?58:37),0,4+shoot*6,0,Math.PI*2);ctx.fill();}ctx.globalAlpha=1;ctx.shadowBlur=0;ctx.restore();}
+function drawWeaponModel(id,r,v,shoot,angle){
+  const recoil=shoot*5,a=Number(angle)||0,leftAim=Math.cos(a)<0;
+  ctx.save();
+  if(leftAim){ctx.scale(-1,1);ctx.rotate(a+Math.PI);}else{ctx.rotate(a);}
+  ctx.translate(-recoil,0);
+  ctx.globalCompositeOperation="lighter";ctx.shadowBlur=12;ctx.shadowColor=v.glow;
+  const d="#071019";
+  const grip=(x,w,h)=>{ctx.fillStyle=d;ctx.strokeStyle=v.glow;ctx.lineWidth=1.2;ctx.beginPath();ctx.roundRect(x,v.thick*.4,w,h,h*.18);ctx.fill();ctx.stroke();};
+  const barrel=(x,l,t)=>{ctx.fillStyle=d;ctx.fillRect(x,-t/2,l,t);ctx.fillStyle=v.base;ctx.fillRect(x+2,-Math.max(1,t*.24),Math.max(2,l-4),Math.max(2,t*.5));};
+if(id==="blaster"){ctx.fillStyle=d;ctx.beginPath();ctx.roundRect(r,-7,15,11,3);ctx.fill();grip(r+5,7,11);barrel(r+13,14,5);}else if(id==="pulse"){ctx.fillStyle=d;ctx.beginPath();ctx.roundRect(r,-8,17,13,4);ctx.fill();grip(r+6,7,12);barrel(r+15,16,6);ctx.fillStyle=v.glow;ctx.fillRect(r+4,-5,9,2);ctx.fillRect(r+6,1,8,2);}else if(id==="cannon"){ctx.fillStyle=d;ctx.beginPath();ctx.roundRect(r,-10,19,17,4);ctx.fill();grip(r+5,8,14);barrel(r+18,18,11);}else if(id==="railgun"){ctx.fillStyle=d;ctx.beginPath();ctx.roundRect(r,-8,24,13,4);ctx.fill();grip(r+7,8,13);barrel(r+19,33,5);ctx.fillStyle=v.accent;ctx.fillRect(r+12,-13,8,4);}else if(id==="nova"){ctx.fillStyle=d;ctx.beginPath();ctx.roundRect(r,-8,16,13,4);ctx.fill();grip(r+5,8,12);barrel(r+14,20,5);ctx.save();ctx.translate(0,7);barrel(r+14,20,5);ctx.restore();}else if(id==="plasma"){ctx.fillStyle=d;ctx.beginPath();ctx.roundRect(r,-8,23,14,4);ctx.fill();grip(r+8,8,12);barrel(r+21,23,7);}else if(id==="vortex"){ctx.fillStyle=d;ctx.beginPath();ctx.roundRect(r,-9,22,15,5);ctx.fill();grip(r+7,8,13);barrel(r+21,19,8);ctx.strokeStyle=v.base;ctx.lineWidth=3;ctx.beginPath();ctx.arc(r+13,-2,8,0,Math.PI*1.65);ctx.stroke();}else if(id==="quasar"){ctx.fillStyle=d;ctx.beginPath();ctx.roundRect(r,-7,24,11,4);ctx.fill();grip(r+8,7,13);barrel(r+20,38,4);ctx.fillStyle=v.accent;ctx.fillRect(r+14,-13,8,5);}else if(id==="singularity"){ctx.fillStyle=d;ctx.beginPath();ctx.roundRect(r,-12,25,19,5);ctx.fill();grip(r+8,10,15);barrel(r+24,16,13);ctx.strokeStyle=v.base;ctx.lineWidth=3;ctx.beginPath();ctx.arc(r+15,-2,7,0,Math.PI*2);ctx.stroke();}else if(id==="omega"){ctx.fillStyle=d;ctx.beginPath();ctx.roundRect(r,-10,29,16,4);ctx.fill();grip(r+9,9,14);barrel(r+28,28,6);ctx.strokeStyle=v.base;ctx.lineWidth=2.2;ctx.beginPath();ctx.moveTo(r+2,-7);ctx.lineTo(r+11,-13);ctx.lineTo(r+22,-8);ctx.stroke();}else{barrel(r,18,v.thick+1);grip(r+4,7,11);}if(shoot){ctx.fillStyle="#fff8cf";ctx.globalAlpha=.9;ctx.beginPath();ctx.arc(r+(id==="omega"?58:37),0,4+shoot*6,0,Math.PI*2);ctx.fill();}ctx.globalAlpha=1;ctx.shadowBlur=0;ctx.restore();}
 function drawTank(x,y,angle,color="#39e7ff",r=24,weapon="",skinId="",armorId="",anim={}){
   const t=performance.now()/1000;
   const walkBlend=clamp(Number(anim?.walkBlend)||0,0,1);
@@ -1893,7 +1911,25 @@ let pendingDropSlot=-1;
 function openDropConfirm(slotIndex,qty){pendingDropSlot=slotIndex;const box=document.getElementById("dropConfirm"),el=document.getElementById("dropConfirmText");if(el)el.textContent="Vas a soltar "+qty+" balas al suelo. ¿Continuar?";if(box){box.style.display="flex";box.setAttribute("aria-hidden","false");}}
 function closeDropConfirm(){pendingDropSlot=-1;const box=document.getElementById("dropConfirm");if(box){box.style.display="none";box.setAttribute("aria-hidden","true");}}
 function sendInventoryCommand(type,slotIndex=-1){if(!multiplayerSocket||multiplayerSocket.readyState!==1){showToast("Servidor no conectado.");return;}const msg={type};if(slotIndex>=0)msg.slotIndex=slotIndex;multiplayerSocket.send(JSON.stringify(msg));}
-function updatePickupButton(){const b=document.getElementById("pickupBtn");if(!b)return;let nearest=null,best=Infinity;for(const d of drops||[]){const dx=p.x-Number(d.x),dy=p.y-Number(d.y);if(!Number.isFinite(dx)||!Number.isFinite(dy))continue;const dist=Math.hypot(dx,dy);if(dist<best){best=dist;nearest=d;}}const ready=!!nearest&&best<=85&&p.alive&&gameActive;b.disabled=!ready;b.title=ready?"Recoger "+String(nearest.qty||1)+" "+String(nearest.name||"objeto"):"No hay objetos cerca";b.setAttribute("aria-label",ready?"Recoger "+String(nearest.name||"objeto"):"No hay objetos cerca");}
+function updatePickupButton(){
+  const b=document.getElementById("pickupBtn");if(!b)return;
+  let nearest=null,best=Infinity;
+  for(const d of drops||[]){
+    const dx=p.x-Number(d.x),dy=p.y-Number(d.y);
+    if(!Number.isFinite(dx)||!Number.isFinite(dy))continue;
+    const dist=Math.hypot(dx,dy);
+    if(dist<best){best=dist;nearest=d;}
+  }
+  const ready=!!nearest&&best<=85&&p.alive&&gameActive;
+  b.style.display=ready?"grid":"none";
+  b.disabled=false;
+  if(ready){
+    b.title="Recoger "+String(nearest.qty||1)+" "+String(nearest.name||"objeto");
+    b.setAttribute("aria-label","Recoger "+String(nearest.name||"objeto"));
+  }else{
+    b.title="";b.setAttribute("aria-label","No hay objetos cerca");
+  }
+}
 function drawDrops(){const t=performance.now()/1000;for(const d of drops||[]){const x=sx(Number(d.x)||0),y=sy(Number(d.y)||0);ctx.save();ctx.globalCompositeOperation="lighter";ctx.globalAlpha=.16;ctx.fillStyle="#6ff3b0";ctx.beginPath();ctx.arc(x,y,28+Math.sin(t*3)*3,0,Math.PI*2);ctx.fill();ctx.globalAlpha=.95;ctx.fillStyle="#0b1820";ctx.strokeStyle="#6ff3b0";ctx.lineWidth=2;ctx.beginPath();ctx.arc(x,y,17,0,Math.PI*2);ctx.fill();ctx.stroke();ctx.globalAlpha=1;ctx.fillStyle="#ffd76a";ctx.font="bold 16px Arial";ctx.textAlign="center";ctx.textBaseline="middle";ctx.fillText("🔸",x,y);ctx.fillStyle="#fff";ctx.font="bold 9px Arial";ctx.fillText(String(d.qty||0),x,y+28);ctx.restore();}}
 function updateResourceHud(){
   updateWeaponHud();
@@ -2240,13 +2276,15 @@ const controlDefaults={joySize:112,fireSize:86,joyX:8,joyY:8,fireX:8,fireY:8};
 let controlConfig={...controlDefaults};
 try{const saved=JSON.parse(localStorage.getItem("neon_core_controls")||"null");if(saved)controlConfig={...controlDefaults,...saved};}catch{}
 function applyControlConfig(){
-  const joy=document.getElementById("moveJoy"),fireEl=document.getElementById("fire");
+  const joy=document.getElementById("moveJoy"),aim=document.getElementById("aimJoy");
   const clampPct=v=>Math.max(0,Math.min(100,Number(v)||0));
   joy.style.width=controlConfig.joySize+"px";joy.style.height=controlConfig.joySize+"px";
   joy.style.left=clampPct(controlConfig.joyX)+"%";joy.style.bottom=clampPct(controlConfig.joyY)+"%";joy.style.transform="translateX(-"+clampPct(controlConfig.joyX)+"%)";
-  fireEl.style.width=controlConfig.fireSize+"px";fireEl.style.height=controlConfig.fireSize+"px";
-  fireEl.style.position="fixed";fireEl.style.right=clampPct(controlConfig.fireX)+"%";fireEl.style.bottom=clampPct(controlConfig.fireY)+"%";fireEl.style.transform="translateX("+clampPct(controlConfig.fireX)+"%)";
+  aim.style.width=controlConfig.fireSize+"px";aim.style.height=controlConfig.fireSize+"px";
+  aim.style.right=clampPct(controlConfig.fireX)+"%";aim.style.bottom=clampPct(controlConfig.fireY)+"%";
+  aim.style.transform="translateX("+clampPct(controlConfig.fireX)+"%)";
   const stick=joy.querySelector(".stick");if(stick){stick.style.left=((controlConfig.joySize-48)/2)+"px";stick.style.top=((controlConfig.joySize-48)/2)+"px";}
+  const aimStick=aim.querySelector(".stick");if(aimStick){aimStick.style.left=((controlConfig.fireSize-48)/2)+"px";aimStick.style.top=((controlConfig.fireSize-48)/2)+"px";}
 }
 function saveControlConfig(){try{localStorage.setItem("neon_core_controls",JSON.stringify(controlConfig));}catch{}applyControlConfig();}
 const controlEditor=document.getElementById("controlEditor"),controlConfigBtn=document.getElementById("controlConfigBtn");
@@ -2275,6 +2313,7 @@ document.getElementById("controlReset").addEventListener("click",()=>{controlCon
 
 function resetAllControls(){
   resetMoveJoystick();
+  if(typeof resetAimJoystick==="function")resetAimJoystick();
   window.__neonJoystickPointerId=null;
   if(typeof mobileFirePointers!=="undefined")mobileFirePointers.clear();
   pointer.down=false;
@@ -2486,72 +2525,67 @@ addEventListener("pointerup",e=>{if(e.pointerType==="mouse")pointer.down=false;}
 
 function sendShopCommand(type,weapon){if(!multiplayerSocket||multiplayerSocket.readyState!==1)return;const msg={type};if(weapon)msg.weapon=weapon;multiplayerSocket.send(JSON.stringify(msg));}const buyAmmoBtn=document.getElementById("buyAmmoBtn");buyAmmoBtn.addEventListener("click",e=>{e.preventDefault();e.stopPropagation();sendShopCommand("buy_ammo");});document.querySelectorAll(".shopItem").forEach(btn=>btn.addEventListener("click",e=>{e.preventDefault();e.stopPropagation();sendShopCommand("buy_weapon",btn.dataset.weapon);}));
 
-const fireButton=document.getElementById("fire");
-const mobileFirePointers=new Set();
-
-fireButton.addEventListener("pointerdown",e=>{
-  if(e.pointerType==="touch")return;
-  e.preventDefault();
-  pointer.down=true;
-  fire();
-},{passive:false});
-fireButton.addEventListener("pointerup",e=>{
-  if(e.pointerType==="touch")return;
-  e.preventDefault();
-  pointer.down=false;
-},{passive:false});
-fireButton.addEventListener("pointercancel",e=>{
-  if(e.pointerType==="touch")return;
-  e.preventDefault();
-  pointer.down=false;
-},{passive:false});
-
-// Multitouch móvil centralizado: el joystick y ATACAR tienen pointerId independientes.
-document.addEventListener("pointerdown",e=>{
-  if(controlMode!=="touch"||e.pointerType!=="touch")return;
-  const t={clientX:e.clientX,clientY:e.clientY};
-  const fireRect=fireButton.getBoundingClientRect();
-  if(t.clientX>=fireRect.left&&t.clientX<=fireRect.right&&t.clientY>=fireRect.top&&t.clientY<=fireRect.bottom){
-    e.preventDefault();
-    mobileFirePointers.add(e.pointerId);
+const aimJoy=document.getElementById("aimJoy");
+function resetAimJoystick(){
+  aimJoyActive=false;aimPointerId=null;aimX=0;aimY=0;pointer.down=false;
+  const stick=aimJoy?.querySelector(".stick");if(stick)stick.style.transform="translate(0,0)";
+}
+function updateAimFromPointer(clientX,clientY){
+  if(!aimJoy)return;
+  const r=aimJoy.getBoundingClientRect(),stick=aimJoy.querySelector(".stick");
+  const cx=r.left+r.width/2,cy=r.top+r.height/2;
+  const max=Math.max(1,(r.width-(stick?.offsetWidth||48))/2);
+  let x=Number(clientX)-cx,y=Number(clientY)-cy,len=Math.hypot(x,y);
+  if(len>max){x=x/len*max;y=y/len*max;}
+  aimX=clamp(x/max,-1,1);aimY=clamp(y/max,-1,1);
+  if(stick)stick.style.transform="translate("+x+"px,"+y+"px)";
+  if(Math.hypot(aimX,aimY)>.15){
+    aimJoyActive=true;
+    p.angle=Math.atan2(aimY,aimX);
     pointer.down=true;
     fire();
   }
-},{passive:false});
-
-document.addEventListener("pointermove",e=>{
+}
+aimJoy?.addEventListener("pointerdown",e=>{
   if(controlMode!=="touch"||e.pointerType!=="touch")return;
-  const joyEl=window.__neonJoystickElement;
-  const joyId=window.__neonJoystickPointerId;
-  if(joyId!==e.pointerId)return;
-  e.preventDefault();
-  if(window.__neonJoystickApply)window.__neonJoystickApply(e.clientX,e.clientY);
+  e.preventDefault();e.stopPropagation();
+  if(aimPointerId!==null)return;
+  aimPointerId=e.pointerId;aimJoyActive=true;
+  try{aimJoy.setPointerCapture(e.pointerId);}catch{}
+  updateAimFromPointer(e.clientX,e.clientY);
 },{passive:false});
+aimJoy?.addEventListener("pointermove",e=>{
+  if(controlMode!=="touch"||e.pointerType!=="touch"||e.pointerId!==aimPointerId)return;
+  e.preventDefault();updateAimFromPointer(e.clientX,e.clientY);
+},{passive:false});
+function endAim(e){
+  if(e.pointerId!==aimPointerId)return;
+  e.preventDefault();try{aimJoy.releasePointerCapture(e.pointerId);}catch{}
+  resetAimJoystick();
+}
+aimJoy?.addEventListener("pointerup",endAim,{passive:false});
+aimJoy?.addEventListener("pointercancel",endAim,{passive:false});
+aimJoy?.addEventListener("lostpointercapture",()=>resetAimJoystick(),{passive:false});
 
+// Left joystick continues to use the existing setupJoystick() implementation.
+// These document handlers only bridge its pointerId for multitouch.
 document.addEventListener("pointerdown",e=>{
   if(controlMode!=="touch"||e.pointerType!=="touch")return;
   const joyEl=window.__neonJoystickElement;
-  if(!joyEl||window.__neonJoystickPointerId!=null)return;
+  if(!joyEl||window.__neonJoystickPointerId!=null||aimPointerId===e.pointerId)return;
   const r=joyEl.getBoundingClientRect();
   if(e.clientX<r.left||e.clientX>r.right||e.clientY<r.top||e.clientY>r.bottom)return;
-  e.preventDefault();
-  window.__neonJoystickPointerId=e.pointerId;
+  e.preventDefault();window.__neonJoystickPointerId=e.pointerId;
   if(window.__neonJoystickApply)window.__neonJoystickApply(e.clientX,e.clientY);
 },{passive:false});
-
+document.addEventListener("pointermove",e=>{
+  if(controlMode!=="touch"||e.pointerType!=="touch"||window.__neonJoystickPointerId!==e.pointerId)return;
+  e.preventDefault();if(window.__neonJoystickApply)window.__neonJoystickApply(e.clientX,e.clientY);
+},{passive:false});
 function neonMobilePointerEnd(e){
   if(controlMode!=="touch"||e.pointerType!=="touch")return;
-  let changed=false;
-  if(window.__neonJoystickPointerId===e.pointerId){
-    window.__neonJoystickPointerId=null;
-    resetMoveJoystick();
-    changed=true;
-  }
-  if(mobileFirePointers.delete(e.pointerId)){
-    pointer.down=mobileFirePointers.size>0;
-    changed=true;
-  }
-  if(changed)e.preventDefault();
+  if(window.__neonJoystickPointerId===e.pointerId){window.__neonJoystickPointerId=null;resetMoveJoystick();}
+  if(aimPointerId===e.pointerId)resetAimJoystick();
 }
 document.addEventListener("pointerup",neonMobilePointerEnd,{passive:false});
 document.addEventListener("pointercancel",neonMobilePointerEnd,{passive:false});

@@ -1,4 +1,4 @@
-/* BUILD-16 · HUD limpia y configuraciones generales */
+/* BUILD-17 · HUD limpia y configuraciones generales */
 'use strict';
 
 const http = require('http');
@@ -45,6 +45,8 @@ const MAX_AMMO = INVENTORY_SLOTS * INVENTORY_STACK_MAX;
 const PICKUP_RADIUS = 85;
 const DROP_LIFETIME_MS = 10 * 60 * 1000;
 const PROJECTILE_SPEED = 1200;
+const WEAPON_FIRE_RATE = 420;
+const PROJECTILE_RANGE = 1000;
 
 const PISTOLERO_MAX_LEVEL = 1000;
 const PISTOLERO_XP_PER_HIT = 10;
@@ -55,16 +57,16 @@ const SHOP_INTERACTION_RADIUS = 48;
 const BANK_ENABLED = false;
 
 const WEAPONS = {
-  blaster: { name: 'BLASTER · NEONSTORM', cost: 0, power: 100, fireRate: 280, maxAmmo:8000, range: 760 },
-  pulse: { name: 'PULSE · PRISMA', cost: 500, power: 200, fireRate: 190, maxAmmo:8000, range: 820 },
-  cannon: { name: 'CANNON · SOLARIS', cost: 1500, power: 400, fireRate: 520, maxAmmo:8000, range: 880 },
-  railgun: { name: 'RAILGUN · ECLIPSE', cost: 6500, power: 743, fireRate: 700, maxAmmo:8000, range: 960 },
-  nova: { name: 'NOVA · SUPERNOVA', cost: 22000, power: 1486, fireRate: 1000, maxAmmo:8000, range: 1040 },
-  plasma: { name: 'PLASMA · INFERNO', cost: 60000, power: 2286, fireRate: 550, maxAmmo:8000, range: 1120 },
-  vortex: { name: 'VORTEX · SHARD', cost: 150000, power: 3286, fireRate: 950, maxAmmo:8000, range: 1200 },
-  quasar: { name: 'QUASAR · RAY', cost: 400000, power: 4429, fireRate: 1050, maxAmmo:8000, range: 1280 },
-  singularity: { name: 'SINGULARITY · CORE', cost: 900000, power: 6000, fireRate: 1400, maxAmmo:8000, range: 1360 },
-  omega: { name: 'OMEGA · ASCENSION', cost: 2000000, power: 8000, fireRate: 900, maxAmmo:8000, range: 1440 }
+  blaster: { name: 'BLASTER · NEONSTORM', cost: 0, power: 100, fireRate: 420, maxAmmo:8000, range: 1000 },
+  pulse: { name: 'PULSE · PRISMA', cost: 500, power: 200, fireRate: 420, maxAmmo:8000, range: 1000 },
+  cannon: { name: 'CANNON · SOLARIS', cost: 1500, power: 400, fireRate: 420, maxAmmo:8000, range: 1000 },
+  railgun: { name: 'RAILGUN · ECLIPSE', cost: 6500, power: 743, fireRate: 420, maxAmmo:8000, range: 1000 },
+  nova: { name: 'NOVA · SUPERNOVA', cost: 22000, power: 1486, fireRate: 420, maxAmmo:8000, range: 1000 },
+  plasma: { name: 'PLASMA · INFERNO', cost: 60000, power: 2286, fireRate: 420, maxAmmo:8000, range: 1000 },
+  vortex: { name: 'VORTEX · SHARD', cost: 150000, power: 3286, fireRate: 420, maxAmmo:8000, range: 1000 },
+  quasar: { name: 'QUASAR · RAY', cost: 400000, power: 4429, fireRate: 420, maxAmmo:8000, range: 1000 },
+  singularity: { name: 'SINGULARITY · CORE', cost: 900000, power: 6000, fireRate: 420, maxAmmo:8000, range: 1000 },
+  omega: { name: 'OMEGA · ASCENSION', cost: 2000000, power: 8000, fireRate: 420, maxAmmo:8000, range: 1000 }
 };
 
 function damageForPower(power) {
@@ -474,7 +476,7 @@ function applyCombatStats(p) {
     p.powerAttackBonus = weaponPowerAttackBonus(p.power);
     // ATAQUE real = PISTOLERO + bono de PODER del arma.
     p.damage = Math.max(1, pistoleroLevel + p.powerAttackBonus);
-    p.fireRate = Math.max(100, item.fireRate - Math.max(0, p.level - 1) * 3);
+    p.fireRate = WEAPON_FIRE_RATE;
   } else {
     p.weapon = null;
     p.power = 0;
@@ -1500,7 +1502,7 @@ function buyAmmo(ws){const p=clients.get(ws);if(!p)return;if(!p.room)return send
   if ((shooter.ammo || 0) <= 0) return send(ws, { type: 'ammo_empty' });
 
   const now = Date.now();
-  const cooldown = Math.max(100, Math.min(1000, Number(shooter.fireRate) || 350));
+  const cooldown = WEAPON_FIRE_RATE;
   if (now - shooter.lastShot < cooldown) return send(ws, { type: 'shot_result', ok: false, reason: 'cooldown', ammo: shooter.ammo || 0 });
   shooter.lastShot = now;
 
@@ -1511,7 +1513,7 @@ function buyAmmo(ws){const p=clients.get(ws);if(!p)return;if(!p.room)return send
   if (!weapon) return send(ws, { type: 'shot_result', ok: false, reason: 'no_weapon', ammo: 0, maxAmmo: 0 });
 
   const damage = clamp(Number(shooter.damage) || 1, 1, 1000);
-  const maxRange = Number(weapon.range) || 760;
+  const maxRange = PROJECTILE_RANGE;
   const shotX = Number(shooter.x) || 0, shotY = Number(shooter.y) || 0;
   const shotAngle = Number(shooter.angle) || 0;
   const dirX = Math.cos(shotAngle), dirY = Math.sin(shotAngle);
@@ -1801,7 +1803,7 @@ function createPlayer(ws) {
     defense: 0,
     damagePenalty: 0,
     defensePenalty: 0,
-    fireRate: 350,
+    fireRate: 420,
     score: 0,
     kills: 0,
     xp: 0,
