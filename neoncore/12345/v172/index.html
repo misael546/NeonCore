@@ -9,7 +9,7 @@
 <script>
 (function(){
   try{
-    var v="20261003-020-update-prompt";
+    var v="20261003-021-shop-freeze-fix";
     var k="neon_core_build";
     window.NEON_CORE_BUILD=v;
     var old=localStorage.getItem(k);
@@ -1894,7 +1894,6 @@ function draw(){
   document.getElementById("maxHp").textContent=p.maxHp;
   document.getElementById("level").textContent="Nv. "+p.level;
   document.getElementById("pvpKills").textContent=p.pvpKills;
-  document.getElementById("kills").textContent=p.kills;
   const need=Math.max(1,serverXpNeed);
   document.getElementById("xp").textContent=p.xp;
   document.getElementById("xpNeed").textContent=need;
