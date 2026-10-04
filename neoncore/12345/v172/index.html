@@ -9,7 +9,7 @@
 <script>
 (function(){
   try{
-    var v="20261003-043-global-force-updater-v2";
+    var v="20261003-044-global-self-healing-updater";
     window.NEON_CORE_BUILD=v;
     window.NEON_RELEASE_MONITOR="global-1";
     try{localStorage.setItem("neon_core_build",v);}catch(e){}
@@ -700,6 +700,7 @@ let websocketDatabaseRelease="";
 const GITHUB_RAW_ROOT="https://raw.githubusercontent.com/misael546/NeonCore/main/";
 const RELEASE_MANIFEST_URL=GITHUB_RAW_ROOT+"release.json";
 const CLIENT_SOURCE_URL=GITHUB_RAW_ROOT+"neoncore/12345/v172/index.html";
+const RENDER_CLIENT_URL=RENDER_HEALTH_URL.replace(/\/health$/,"/client");
 
 function showServerUpdateNotice(message){
   serverUpdateNoticeOpen=true;
@@ -747,19 +748,25 @@ async function fetchJsonNoCache(url){
 }
 
 async function fetchLatestClientSource(){
-  try{
-    const res=await fetch(CLIENT_SOURCE_URL+"?t="+Date.now(),{
-      cache:"no-store",
-      
-    });
-    if(!res.ok)return null;
-    const html=await res.text();
-    const m=html.match(/window\.NEON_CORE_BUILD\s*=\s*"([^"]+)"/);
-    return {
-      html,
-      release:m?String(m[1]):""
-    };
-  }catch{return null;}
+  const urls=[
+    RENDER_CLIENT_URL+"?t="+Date.now(),
+    CLIENT_SOURCE_URL+"?t="+Date.now()
+  ];
+  for(const url of urls){
+    try{
+      const res=await fetch(url,{
+        cache:"no-store",
+        mode:"cors",
+        headers:{"Cache-Control":"no-cache","Pragma":"no-cache"}
+      });
+      if(!res.ok)continue;
+      const html=await res.text();
+      const m=html.match(/window\.NEON_CORE_BUILD\s*=\s*"([^"]+)"/);
+      const release=m?String(m[1]):"";
+      if(html && release)return {html,release,source:url};
+    }catch{}
+  }
+  return null;
 }
 
 async function fetchRenderHealth(){
@@ -804,31 +811,18 @@ async function applyLatestClientSource(target){
   if(!target || target===String(window.NEON_CORE_BUILD||""))return false;
 
   const latest=await fetchLatestClientSource();
-  if(!latest || latest.release!==target || !latest.html){
-    // Segundo canal: fuerza una recarga de la misma página con un query único.
-    // Esto permite que GitHub Pages vuelva a pedir el HTML aunque tenga una
-    // copia anterior en caché.
-    try{
-      const fallback=new URL(location.href);
-      fallback.searchParams.set("neon_release",target);
-      fallback.searchParams.set("neon_force",String(Date.now()));
-      location.replace(fallback.toString());
-      return true;
-    }catch{}
-    return false;
-  }
+  if(!latest || latest.release!==target || !latest.html)return false;
 
-  try{
-    sessionStorage.setItem("neon_pending_release",target);
-  }catch{}
+  try{sessionStorage.setItem("neon_pending_release",target);}catch{}
 
   try{
     if(multiplayerSocket && multiplayerSocket.readyState===WebSocket.OPEN){
       multiplayerSocket.send(JSON.stringify({type:"save_on_exit"}));
-      multiplayerSocket.close(1000,"client_update");
+      try{multiplayerSocket.close(1000,"client_update");}catch{}
     }
   }catch{}
 
+  // El documento nuevo se instala directamente para evitar la caché de Pages.
   try{
     document.open();
     document.write(latest.html);
@@ -851,8 +845,10 @@ async function runGlobalReleaseCheck(){
     fetchJsonNoCache(RELEASE_MANIFEST_URL),
     fetchRenderHealth()
   ]);
+
   const state=readGlobalReleaseState(manifest,health);
   const localRelease=String(window.NEON_CORE_BUILD||"");
+  const target=String(state.manifestRelease||state.serverRelease||state.databaseRelease||"");
 
   if(!globalReleaseMonitorStarted){
     globalReleaseMonitorStarted=true;
@@ -861,17 +857,7 @@ async function runGlobalReleaseCheck(){
     window.__NEON_DATABASE_RELEASE=state.databaseRelease;
   }
 
-  const pageChanged=Boolean(state.manifestRelease && state.manifestRelease!==localRelease);
-  const serverChanged=Boolean(
-    state.serverRelease &&
-    renderServerVersion &&
-    (state.serverRelease!==renderServerVersion || state.startedAt!==renderServerStartedAt)
-  );
-  const databaseChanged=Boolean(
-    state.databaseRelease &&
-    window.__NEON_DATABASE_RELEASE &&
-    state.databaseRelease!==window.__NEON_DATABASE_RELEASE
-  );
+  const newerTarget=target && target!==localRelease;
   const componentsMismatch=Boolean(
     state.manifestRelease &&
     state.serverRelease &&
@@ -882,45 +868,29 @@ async function runGlobalReleaseCheck(){
     )
   );
 
-  const detected=pageChanged||serverChanged||databaseChanged||componentsMismatch;
-
-  if(detected && !globalUpdateInProgress){
+  if((newerTarget || componentsMismatch) && !globalUpdateInProgress){
     globalUpdateInProgress=true;
-    globalUpdateTargetRelease=chooseGlobalUpdateTarget(state,localRelease);
-    showServerUpdateNotice("ACTUALIZANDO SERVIDOR · Forzando sincronización global…");
+    globalUpdateTargetRelease=target || chooseGlobalUpdateTarget(state,localRelease);
+    showServerUpdateNotice("ACTUALIZANDO SERVIDOR · Sincronización automática…");
     await saveBeforeGlobalUpdate();
-
-    // Intento inmediato: no bloqueamos por GitHub Pages, Render o DB.
-    const target=globalUpdateTargetRelease;
-    if(target && target!==localRelease){
-      const applied=await applyLatestClientSource(target);
-      if(applied)return;
-    }
-    return;
   }
 
-
-
   if(globalUpdateInProgress){
-    const target=globalUpdateTargetRelease;
+    const updateTarget=String(globalUpdateTargetRelease||target||"");
     const tx=document.querySelector("#serverUpdateNotice .text");
 
-    // FORZADO GLOBAL: no esperamos a que Render/DB coincidan para poder
-    // actualizar el cliente. El manifest es la fuente de verdad del cliente.
-    if(target && target!==localRelease){
-      if(tx)tx.textContent="Cargando la actualización global "+target+"…";
-      const applied=await applyLatestClientSource(target);
+    if(updateTarget && updateTarget!==String(window.NEON_CORE_BUILD||"")){
+      if(tx)tx.textContent="Instalando automáticamente la versión "+updateTarget+"…";
+      const applied=await applyLatestClientSource(updateTarget);
       if(applied)return;
-      if(tx)tx.textContent="Actualización no disponible todavía. Reintentando automáticamente…";
+      if(tx)tx.textContent="Esperando el archivo nuevo. Reintentando automáticamente…";
       return;
     }
 
-    // Si ya estamos en el target, cerramos el estado de actualización.
     globalUpdateInProgress=false;
     globalUpdateTargetRelease="";
     const notice=document.getElementById("serverUpdateNotice");
     if(notice)notice.style.display="none";
-    if(tx)tx.textContent="";
   }
 
   if(health){
