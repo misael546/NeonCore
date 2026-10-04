@@ -1,7 +1,7 @@
 {
   "game": "Neon Core",
-  "releaseId": "20261003-033-mobile-respawn-fix",
-  "clientBuild": "20261003-033-mobile-respawn-fix",
-  "serverBuild": "20261003-033-mobile-respawn-fix",
+  "releaseId": "20261003-037-auto-respawn-final",
+  "clientBuild": "20261003-037-auto-respawn-final",
+  "serverBuild": "20261003-037-auto-respawn-final",
   "databaseSchema": 1
 }
