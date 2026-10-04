@@ -59,10 +59,13 @@ jobs:
           from pathlib import Path
           import re
 
+          import json
           root = Path("index.html").read_text(encoding="utf-8")
           legacy = Path("neoncore/index.html").read_text(encoding="utf-8")
+          release = json.loads(Path("release.json").read_text(encoding="utf-8"))
+          expected_release = str(release["clientBuild"])
 
-          assert '20261003-030-live-update-loader' in root
+          assert expected_release in root
           assert 'MENÚ PRINCIPAL' in root
           assert 'id="name"' in root
           assert 'id="play"' in root
@@ -92,7 +95,9 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
+          expected_release="$(python3 -c 'import json; print(json.load(open("release.json", encoding="utf-8"))["clientBuild"])')"
           url="https://misael546.github.io/NeonCore/?livecheck=$(date +%s%N)"
+          echo "[PAGES] Expected release: $expected_release"
           echo "[PAGES] Checking live URL: $url"
           for i in $(seq 1 12); do
             html="$(curl -fsSL --retry 2 --retry-delay 2 "$url" || true)"
