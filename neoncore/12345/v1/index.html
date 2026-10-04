@@ -20,7 +20,16 @@
       .then(function(r){if(!r.ok)throw new Error("manifest "+r.status);return r.json();})
       .then(function(m){
         var remote=String(m.releaseId||m.clientBuild||"");
-        if(!remote || remote===v)return;
+        if(!remote || remote===v){
+          // Limpia enlaces viejos como ?neon_release=BUILD-1 sin recargar el juego.
+          var current=new URL(location.href);
+          if(current.searchParams.get("neon_release")!==v){
+            current.searchParams.set("neon_release",v);
+            current.searchParams.set("neon_force",String(Date.now()));
+            history.replaceState(null,"",current.href);
+          }
+          return;
+        }
         var target=String(m.clientPath||"neoncore/12345/v1/index.html").replace(/^\//,"");
         var u=new URL(target,base);
         u.searchParams.set("neon_release",remote);
