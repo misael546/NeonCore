@@ -1816,6 +1816,20 @@ function handleShot(ws) {
       });
 
       sendStats(target);
+      send(targetPlayer.ws, {
+        type: 'respawn_ok',
+        x: target.x,
+        y: target.y,
+        hp: target.hp,
+        maxHp: maxHpForLevel(target.level),
+        speed: target.speed,
+        weapon: target.weapon,
+        ammo: target.ammo,
+        level: target.level,
+        xp: target.xp,
+        safeZone: SAFE_ZONE,
+        spawnProtectionMs: 5000
+      });
       sendStats(shooter);
 
       broadcastRoom(shooter.room, {
@@ -2608,6 +2622,20 @@ setInterval(() => {
                   level: pl.level
                 });
                 sendStats(pl);
+                send(foundTarget.ws, {
+                  type: 'respawn_ok',
+                  x: pl.x,
+                  y: pl.y,
+                  hp: pl.hp,
+                  maxHp: maxHpForLevel(pl.level),
+                  speed: pl.speed,
+                  weapon: pl.weapon,
+                  ammo: pl.ammo,
+                  level: pl.level,
+                  xp: pl.xp,
+                  safeZone: SAFE_ZONE,
+                  spawnProtectionMs: 5000
+                });
                 broadcastRoom(code, {
                   type: 'player_update',
                   player: publicPlayer(pl)
@@ -2736,7 +2764,21 @@ setInterval(() => {
               level: pl.level
             });
             sendStats(pl);
-            broadcastRoom(code, {
+            send(foundTarget.ws, {
+                  type: 'respawn_ok',
+                  x: pl.x,
+                  y: pl.y,
+                  hp: pl.hp,
+                  maxHp: maxHpForLevel(pl.level),
+                  speed: pl.speed,
+                  weapon: pl.weapon,
+                  ammo: pl.ammo,
+                  level: pl.level,
+                  xp: pl.xp,
+                  safeZone: SAFE_ZONE,
+                  spawnProtectionMs: 5000
+                });
+                broadcastRoom(code, {
               type: 'player_update',
               player: publicPlayer(pl)
             }, foundTarget.ws);
@@ -2820,6 +2862,20 @@ setInterval(() => {
                 level: target.level
               });
               sendStats(target);
+              send(foundTarget.ws, {
+                type: 'respawn_ok',
+                x: target.x,
+                y: target.y,
+                hp: target.hp,
+                maxHp: maxHpForLevel(target.level),
+                speed: target.speed,
+                weapon: target.weapon,
+                ammo: target.ammo,
+                level: target.level,
+                xp: target.xp,
+                safeZone: SAFE_ZONE,
+                spawnProtectionMs: 5000
+              });
               broadcastRoom(code, {
                 type: 'player_update',
                 player: publicPlayer(target)
