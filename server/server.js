@@ -2006,11 +2006,15 @@ const wss = new WebSocketServer({
   maxPayload: 16 * 1024
 });
 
-wss.on('connection', (ws) => {
+wss.on('connection', async (ws) => {
   const player = createPlayer(ws);
   ws.isAlive = true;
   ws.on('pong', () => { ws.isAlive = true; });
   clients.set(ws, player);
+
+  try {
+    await storageReady;
+  } catch {}
 
   send(ws, {
     type: 'connected',
