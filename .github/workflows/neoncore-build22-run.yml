@@ -1,0 +1,107 @@
+name: Neon Core BUILD-22 runner
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+permissions:
+  contents: write
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Apply BUILD-22
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          import json
+
+          build = "BUILD-22"
+          fire = 650
+          first = 180
+
+          p = Path("release.json")
+          r = json.loads(p.read_text(encoding="utf-8"))
+          r["releaseId"] = build
+          r["clientBuild"] = build
+          r["serverBuild"] = build
+          r["clientPath"] = "neoncore/12345/v1/index.html"
+          p.write_text(json.dumps(r, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+
+          p = Path("server/server.js")
+          s = p.read_text(encoding="utf-8")
+          s = s.replace("BUILD-21", build).replace("Build 21", "Build 22").replace("BUILD 21", "BUILD 22")
+          s = s.replace("const WEAPON_FIRE_RATE = 420;", f"const WEAPON_FIRE_RATE = {fire};")
+          s = s.replace("fireRate: 420", f"fireRate: {fire}")
+          p.write_text(s, encoding="utf-8")
+
+          p = Path("neoncore/12345/v1/index.html")
+          s = p.read_text(encoding="utf-8")
+          s = s.replace("BUILD-21", build).replace("Build 21", "Build 22").replace("BUILD 21", "BUILD 22")
+          s = s.replace("fireRate:420", f"fireRate:{fire}")
+          s = s.replace("p.fireRate=420", f"p.fireRate={fire}")
+
+          marker = 'const pointer={x:W/2,y:H/2,down:false}; let moveX=0,moveY=0;'
+          if "function setFireHeld(held)" not in s:
+              block = marker + f'''
+const FIRST_SHOT_DELAY={first};
+let fireHoldStartedAt=0,fireTriggerActive=false;
+function setFireHeld(held){{
+  const next=!!held;
+  if(next&&!pointer.down){{
+    fireTriggerActive=true;
+    fireHoldStartedAt=performance.now();
+  }}
+  if(!next){{
+    fireTriggerActive=false;
+    fireHoldStartedAt=0;
+  }}
+  pointer.down=next;
+}}'''
+              if marker not in s:
+                  raise SystemExit("client pointer marker not found")
+              s = s.replace(marker, block, 1)
+
+          s = s.replace("pointer.down=true;", "setFireHeld(true);")
+          s = s.replace("pointer.down=false;", "setFireHeld(false);")
+
+          old = '''const now=performance.now();
+  if(now-p.lastShot<p.fireRate)return;'''
+          new = f'''const now=performance.now();
+  if(fireTriggerActive&&now-fireHoldStartedAt<FIRST_SHOT_DELAY)return;
+  if(now-p.lastShot<p.fireRate)return;'''
+          if old not in s:
+              raise SystemExit("client fire block not found")
+          s = s.replace(old, new, 1)
+
+          s = s.replace("fireRate:420,lastShot:0", f"fireRate:{fire},lastShot:0", 1)
+          s = s.replace("p.fireRate=420;", f"p.fireRate={fire};")
+          p.write_text(s, encoding="utf-8")
+
+          # Keep the existing validation workflow aligned with the real current project.
+          p = Path(".github/workflows/neoncore-validation.yml")
+          s = p.read_text(encoding="utf-8")
+          s = s.replace("neoncore/12345/index.html", "neoncore/12345/v1/index.html")
+          s = s.replace("20261003-016-jugar-v172-sala-1", build)
+          s = s.replace("BUILD-20", build).replace("BUILD-21", build)
+          s = s.replace("SERVER_VERSION\\s*=\\s*['\"]2['\"]", "BUILD-22")
+          p.write_text(s, encoding="utf-8")
+
+          print("BUILD-22 prepared:", fire, "ms cadence,", first, "ms initial delay")
+          PY
+      - name: Verify
+        run: |
+          grep -q "BUILD-22" release.json
+          grep -q "const WEAPON_FIRE_RATE = 650" server/server.js
+          grep -q "fireRate: 650" server/server.js
+          grep -q "fireRate:650" neoncore/12345/v1/index.html
+          grep -q "FIRST_SHOT_DELAY=180" neoncore/12345/v1/index.html
+      - name: Commit and push
+        run: |
+          git config user.name "neon-core-sync[bot]"
+          git config user.email "neon-core-sync[bot]@users.noreply.github.com"
+          git add release.json server/server.js neoncore/12345/v1/index.html .github/workflows/neoncore-validation.yml
+          if git diff --cached --quiet; then exit 0; fi
+          git commit -m "BUILD-22: cadencia global y primer disparo controlado [skip ci]"
+          git push
