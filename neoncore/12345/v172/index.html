@@ -9,7 +9,7 @@
 <script>
 (function(){
   try{
-    var v="20261003-038-mobile-load-fix";
+    var v="20261003-039-reliable-mobile-auto-update";
     window.NEON_CORE_BUILD=v;
     window.NEON_RELEASE_MONITOR="global-1";
     try{localStorage.setItem("neon_core_build",v);}catch(e){}
@@ -770,12 +770,24 @@ function chooseGlobalUpdateTarget(state,localRelease){
 async function applyLatestClientSource(target){
   const latest=await fetchLatestClientSource();
   if(!latest || latest.release!==target || !latest.html)return false;
+
+  // En móvil usamos una navegación real con cache-bust. Es más fiable que
+  // reconstruir el documento con document.write() y conserva el nombre/sala.
   try{
-    sessionStorage.setItem("neon_last_applied_release",target);
+    sessionStorage.setItem("neon_pending_release",target);
   }catch{}
-  document.open();
-  document.write(latest.html);
-  document.close();
+
+  try{
+    if(multiplayerSocket && multiplayerSocket.readyState===WebSocket.OPEN){
+      multiplayerSocket.send(JSON.stringify({type:"save_on_exit"}));
+      multiplayerSocket.close(1000,"client_update");
+    }
+  }catch{}
+
+  const url=new URL(location.href);
+  url.searchParams.set("neon_release",target);
+  url.searchParams.set("neon_cache",String(Date.now()));
+  location.replace(url.toString());
   return true;
 }
 
