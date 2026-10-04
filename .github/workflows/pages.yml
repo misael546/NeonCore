@@ -34,7 +34,7 @@ jobs:
           import re, subprocess, tempfile
 
           targets = [
-              Path("neoncore/12345/v167/index.html"),
+              Path("neoncore/12345/v1/index.html"),
               Path("index.html"),
               Path("neoncore/index.html"),
           ]
@@ -69,7 +69,7 @@ jobs:
           assert 'MENÚ PRINCIPAL' in root
           assert 'id="name"' in root
           assert 'id="play"' in root
-          assert './neoncore/12345/v172/?name=' in root
+          assert './neoncore/12345/v1/?name=' in root
           assert 'PUBLIC_ROOM_CODE' not in root
           assert 'Sala #1' not in root
           assert '20261003-167-darkscifi' not in root
@@ -104,7 +104,7 @@ jobs:
             if grep -Fq "$expected_release" <<<"$html" \
                && grep -Fq 'id="name"' <<<"$html" \
                && grep -Fq 'id="play"' <<<"$html" \
-               && grep -Fq './neoncore/12345/v172/?name=' <<<"$html" \
+               && grep -Fq './neoncore/12345/v1/?name=' <<<"$html" \
                && ! grep -Fq 'PUBLIC_ROOM_CODE' <<<"$html" \
                && ! grep -Fq '20261003-167-darkscifi' <<<"$html"; then
               echo "[PAGES] LIVE ROOT VERIFIED: current standalone main menu is being served."
