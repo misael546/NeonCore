@@ -1,0 +1,48 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,user-scalable=no,viewport-fit=cover">
+<title>Neon Core · Build 21</title>
+<style>
+html,body{margin:0;width:100%;height:100%;overflow:hidden;background:#050811}
+#gameFrame{display:block;width:100%;height:100%;border:0;overflow:hidden}
+#loader{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;background:#050811;color:#dffbff;font:900 13px Arial,sans-serif;letter-spacing:1.4px;z-index:5}
+</style>
+</head>
+<body>
+<div id="loader">NEON CORE · BUILD 21 · CARGANDO…</div>
+<iframe id="gameFrame" title="Neon Core"></iframe>
+<script>
+(function(){
+  "use strict";
+  var frame=document.getElementById("gameFrame"),loader=document.getElementById("loader");
+  var source="./index.html?neon_build21="+Date.now();
+  fetch(source,{cache:"no-store",headers:{"Cache-Control":"no-cache"}}).then(function(r){
+    if(!r.ok)throw new Error("HTTP "+r.status);
+    return r.text();
+  }).then(function(html){
+    var patched=String(html)
+      .replaceAll('var v="BUILD-20"','var v="BUILD-21"')
+      .replaceAll("BUILD-20","BUILD-21")
+      .replaceAll("Build 20","Build 21")
+      .replaceAll("BUILD 20","BUILD 21");
+    patched=patched.replace(
+      'if(controlMode!=="mouse"&&!aimJoyActive)p.angle=Math.atan2(moveVelocity.y,moveVelocity.x);',
+      '// BUILD-21: el joystick izquierdo solo mueve; el derecho controla la mira.'
+    );
+    patched=patched.replace(
+      '@media(min-width:800px){.aimJoy{display:none!important}}',
+      'html.pc-controls .aimJoy{display:none!important}html.touch-controls .aimJoy{display:block!important}'
+    );
+    frame.srcdoc=patched;
+    loader.remove();
+  }).catch(function(err){
+    loader.textContent="NEON CORE · ERROR DE CARGA";
+    console.error("[BUILD-21 WRAPPER]",err);
+    setTimeout(function(){location.replace("./index.html?neon_release=BUILD-21&neon_force="+Date.now()+"&neon_reload=1");},1200);
+  });
+})();
+</script>
+</body>
+</html>
