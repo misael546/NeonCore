@@ -1,7 +1,7 @@
 {
   "game": "Neon Core",
-  "releaseId": "20261003-028-update-monitor-fix",
-  "clientBuild": "20261003-028-update-monitor-fix",
-  "serverBuild": "20261003-028-update-monitor-fix",
+  "releaseId": "20261003-029-stop-update-loop",
+  "clientBuild": "20261003-029-stop-update-loop",
+  "serverBuild": "20261003-029-stop-update-loop",
   "databaseSchema": 1
 }
