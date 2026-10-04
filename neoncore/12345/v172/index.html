@@ -1189,6 +1189,8 @@ function connectMultiplayer(roomMode="quick",roomCode=""){ const publicRoomAuto=
         }else if(m.type==="pvp_dead"){
           audioTone(210,.15,"sawtooth",.055,-100);audioTone(105,.3,"triangle",.04,-35,.1);
           p.hp=0;
+          if(Number.isFinite(Number(m.x)))p.x=Number(m.x);
+          if(Number.isFinite(Number(m.y)))p.y=Number(m.y);
           p.alive=false;
           gameActive=false;
           moveX=0;moveY=0;
