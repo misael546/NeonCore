@@ -9,7 +9,7 @@
 <script>
 (function(){
   try{
-    var v="20261003-030-live-update-loader";
+    var v="20261003-031-real-player-death";
     window.NEON_CORE_BUILD=v;
     window.NEON_RELEASE_MONITOR="global-1";
     try{localStorage.setItem("neon_core_build",v);}catch(e){}
@@ -306,7 +306,7 @@ html.pc-controls #chatFeed{width:min(420px,38vw)}
   <div id="deathCard">
     <h2>TANQUE DESTRUIDO</h2>
     <div style="color:#9ca9bd;font-size:13px;margin:8px 0 2px">Puntuación perdida: <b id="deathScore">0</b></div>
-    <button id="restart">VOLVER AL MENÚ</button>
+    <button id="restart">RENACER EN ZONA SEGURA</button>
   </div>
 </div>
 
@@ -1150,8 +1150,16 @@ function connectMultiplayer(roomMode="quick",roomCode=""){ const publicRoomAuto=
           burst(p.x,p.y,m.boss?"#ffd76a":"#ff5474",m.boss?8:4);
         }else if(m.type==="pve_dead"){
           audioTone(180,.18,"sawtooth",.06,-90);audioTone(90,.35,"triangle",.045,-35,.12);audioNoise(.22,.05,.12,250);
-          const r=m.respawn||{};
-          applyServerRespawn(r);
+          p.hp=0;
+          p.alive=false;
+          gameActive=false;
+          moveX=0;moveY=0;
+          resetAllControls();
+          const deathScore=document.getElementById("deathScore");
+          if(deathScore)deathScore.textContent=String(Math.max(0,Number(m.lostScore)||0));
+          document.getElementById("death").style.display="flex";
+          updateHud();
+          updateResourceHud();
           enemies.length=0;
         }else if(m.type==="boss_explosion"){
           const ex=Number(m.x)||p.x,ey=Number(m.y)||p.y,er=Math.max(1,Number(m.r)||42);
@@ -1172,8 +1180,16 @@ function connectMultiplayer(roomMode="quick",roomCode=""){ const publicRoomAuto=
           burst(p.x,p.y,"#ff5474",8);audioTone(130,.13,"square",.045,-65);
         }else if(m.type==="pvp_dead"){
           audioTone(210,.15,"sawtooth",.055,-100);audioTone(105,.3,"triangle",.04,-35,.1);
-          const r=m.respawn||{};
-          applyServerRespawn(r);
+          p.hp=0;
+          p.alive=false;
+          gameActive=false;
+          moveX=0;moveY=0;
+          resetAllControls();
+          const deathScore=document.getElementById("deathScore");
+          if(deathScore)deathScore.textContent=String(Math.max(0,Number(m.lostScore)||0));
+          document.getElementById("death").style.display="flex";
+          updateHud();
+          updateResourceHud();
           enemies.length=0;
         }else if(m.type==="server_stats"){
           if(Number.isFinite(m.kills))p.kills=m.kills;
@@ -1255,7 +1271,7 @@ function connectMultiplayer(roomMode="quick",roomCode=""){ const publicRoomAuto=
         }else if(m.type==="respawn_ok"){
           if(m.safeZone){safeZone=m.safeZone;}
           spawnProtectionUntil=performance.now()+(Number(m.spawnProtectionMs)||5000);
-          p.x=m.x;p.y=m.y;p.hp=Number.isFinite(m.hp)?m.hp:p.maxHp;p.alive=true;audioTone(330,.12,"triangle",.03,140);audioTone(660,.2,"sine",.022,260,.08);
+          p.x=m.x;p.y=m.y;p.hp=Number.isFinite(m.hp)?m.hp:p.maxHp;p.alive=true;gameActive=true;audioTone(330,.12,"triangle",.03,140);audioTone(660,.2,"sine",.022,260,.08);
           if(Number.isFinite(m.maxHp))p.maxHp=m.maxHp;
           if(Number.isFinite(m.speed))p.speed=m.speed;
           if(m.weapon&&weaponStats[m.weapon])p.weapon=m.weapon;
@@ -2265,7 +2281,12 @@ roomCodeInput.addEventListener("input",()=>{
   roomCodeInput.value=roomCodeInput.value.toUpperCase().replace(/[^A-Z0-9]/g,"").slice(0,4);
 });
 
-restartBtn.addEventListener("click",()=>returnToMenu());
+restartBtn.addEventListener("click",()=>{
+  if(!multiplayerSocket || multiplayerSocket.readyState!==WebSocket.OPEN || !currentRoom || p.alive)return;
+  restartBtn.disabled=true;
+  multiplayerSocket.send(JSON.stringify({type:"respawn"}));
+  setTimeout(()=>{restartBtn.disabled=false;},1500);
+});
 
 // Cierra la conexión al salir de esta página para que al volver no quede el tanque anterior conectado.
 function requestServerSaveAndClose(){
