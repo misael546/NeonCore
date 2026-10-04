@@ -40,6 +40,10 @@ const AMMO_PACK_SIZE = 100;
 const AMMO_PACK_COST = 75;
 const MAX_AMMO = 220;
 
+const PISTOLERO_MAX_LEVEL = 1000;
+const PISTOLERO_XP_PER_HIT = 10;
+const PISTOLERO_XP_PER_KILL = 40;
+
 const SHOP_NPC = { x: 3250, y: 2200, r: 24 };
 const SHOP_INTERACTION_RADIUS = 48;
 const BANK_ENABLED = false;
@@ -170,6 +174,31 @@ function masteryXpIntoLevel(xp) {
   return remaining;
 }
 
+function pistoleroXpToNextLevel(level) {
+  return 100 * Math.max(1, Math.min(PISTOLERO_MAX_LEVEL, Number(level) || 1));
+}
+function pistoleroLevelFromXp(xp) {
+  let level = 1, remaining = Math.max(0, Number(xp) || 0);
+  while (level < PISTOLERO_MAX_LEVEL && remaining >= pistoleroXpToNextLevel(level)) { remaining -= pistoleroXpToNextLevel(level); level += 1; }
+  return level;
+}
+function pistoleroXpIntoLevel(xp) {
+  let level = 1, remaining = Math.max(0, Number(xp) || 0);
+  while (level < PISTOLERO_MAX_LEVEL && remaining >= pistoleroXpToNextLevel(level)) { remaining -= pistoleroXpToNextLevel(level); level += 1; }
+  return remaining;
+}
+function weaponPowerAttackBonus(power) {
+  return Math.max(0, Math.floor((Number(power) || 0) / 20));
+}
+function addPistoleroXp(p, amount) {
+  if (!p) return false;
+  const before=pistoleroLevelFromXp(p.pistoleroXp);
+  p.pistoleroXp=Math.max(0,Math.floor(Number(p.pistoleroXp)||0)+Math.max(0,Math.floor(Number(amount)||0)));
+  const after=pistoleroLevelFromXp(p.pistoleroXp);
+  p.pistoleroLevel=after;
+  return after>before;
+}
+
 function inSafeZone(x, y, pad = 0) {
   return Math.hypot(x - SAFE_ZONE.x, y - SAFE_ZONE.y) <= SAFE_ZONE.r + pad;
 }
@@ -225,6 +254,9 @@ function publicPlayer(p) {
     color: p.color,
     weapon: p.weapon,
     power: Number(p.power) || 0,
+    powerAttackBonus: weaponPowerAttackBonus(p.power),
+    pistoleroLevel: pistoleroLevelFromXp(p.pistoleroXp),
+    pistoleroXp: Math.max(0, Number(p.pistoleroXp) || 0),
     equippedSkin: cosmetics.getSkin(p.equippedSkin) ? p.equippedSkin : ''
   };
 }
@@ -256,7 +288,12 @@ function sendStats(p) {
     xp: p.xp,
     level: p.level,
     power: Number(p.power) || 0,
+    powerAttackBonus: weaponPowerAttackBonus(p.power),
     damage: Number(p.damage) || 1,
+    pistoleroLevel: pistoleroLevelFromXp(p.pistoleroXp),
+    pistoleroXp: Math.max(0, Number(p.pistoleroXp) || 0),
+    pistoleroXpIntoLevel: pistoleroXpIntoLevel(p.pistoleroXp),
+    pistoleroXpNeed: pistoleroXpToNextLevel(pistoleroLevelFromXp(p.pistoleroXp)),
     defense: Number(p.defense) || 0,
     fireRate: p.fireRate,
     speed: p.speed,
@@ -295,6 +332,8 @@ function capturePlayerData(p) {
     gold: p.gold || 0,
     diamonds: p.diamonds || 0,
     ammo: clamp(Number(p.ammo) || 0, 0, MAX_AMMO),
+    pistoleroLevel: pistoleroLevelFromXp(p.pistoleroXp),
+    pistoleroXp: Math.max(0, Number(p.pistoleroXp) || 0),
     weapon: WEAPONS[p.weapon] ? p.weapon : null,
     ownedWeapons: normalizeOwnedWeapons(p.ownedWeapons, p.weapon || ''),
     bankedGold: Math.max(0, Number(p.bankedGold) || 0),
@@ -396,13 +435,19 @@ function skinDefenseBonus(p) {
 
 function applyCombatStats(p) {
   const item = WEAPONS[p.weapon] || null;
+  const pistoleroLevel = pistoleroLevelFromXp(p.pistoleroXp);
+  p.pistoleroLevel = pistoleroLevel;
+
   if (item) {
     p.power = Math.max(0, Number(item.power) || 0);
-    p.damage = Math.max(1, damageForPower(p.power));
+    p.powerAttackBonus = weaponPowerAttackBonus(p.power);
+    // ATAQUE real = PISTOLERO + bono de PODER del arma.
+    p.damage = Math.max(1, pistoleroLevel + p.powerAttackBonus);
     p.fireRate = Math.max(100, item.fireRate - Math.max(0, p.level - 1) * 3);
   } else {
     p.weapon = null;
     p.power = 0;
+    p.powerAttackBonus = 0;
     p.damage = 1;
     p.fireRate = 999999;
   }
@@ -1568,7 +1613,7 @@ function handleShot(ws) {
   const weapon = WEAPONS[shooter.weapon];
   if (!weapon) return send(ws, { type: 'shot_result', ok: false, reason: 'no_weapon', ammo: 0, maxAmmo: 0 });
 
-  const damage = clamp(Number(shooter.damage) || weapon.damage, 10, 1000);
+  const damage = clamp(Number(shooter.damage) || 1, 1, 1000);
   const maxRange = Number(weapon.range) || 760;
   const shotX = Number(shooter.x) || 0, shotY = Number(shooter.y) || 0;
   const shotAngle = Number(shooter.angle) || 0;
@@ -1658,6 +1703,8 @@ function handleShot(ws) {
     const targetMaxHp = maxHpForLevel(target.level);
 
     const actualDamage = Math.max(1, damage - (target.defense || 0));
+    addPistoleroXp(shooter, PISTOLERO_XP_PER_HIT);
+    applyCombatStats(shooter);
 
     target.hp = clamp(
       target.hp - actualDamage,
@@ -1695,9 +1742,17 @@ function handleShot(ws) {
       x: target.x,
       y: target.y,
       damageXp: masteryXpIntoLevel(shooter.damageXp),
+      pistoleroLevel: pistoleroLevelFromXp(shooter.pistoleroXp),
+      pistoleroXp: Math.max(0, Number(shooter.pistoleroXp) || 0),
+      pistoleroXpIntoLevel: pistoleroXpIntoLevel(shooter.pistoleroXp),
+      pistoleroXpNeed: pistoleroXpToNextLevel(pistoleroLevelFromXp(shooter.pistoleroXp)),
+      attack: shooter.damage,
+      powerAttackBonus: weaponPowerAttackBonus(shooter.power),
       damageXpNeed: masteryXpToNextLevel(masteryLevelFromXp(shooter.damageXp)),
       damageLevel: masteryLevelFromXp(shooter.damageXp)
     });
+
+    sendStats(shooter);
 
     if (target.hp <= 0) {
       const lostScore = target.score || 0;
@@ -1708,6 +1763,8 @@ function handleShot(ws) {
       shooter.score = (shooter.score || 0) + 25;
       shooter.xp = (shooter.xp || 0) + 40;
       addDamageXp(shooter, 20);
+      addPistoleroXp(shooter, PISTOLERO_XP_PER_KILL);
+      applyCombatStats(shooter);
 
       levelUpIfNeeded(shooter);
 
@@ -1757,6 +1814,8 @@ function handleShot(ws) {
 
   if (targetEnemy) {
     const incomingDamage = targetEnemy.kind === 'boss' ? Math.max(1, Math.round(damage * 0.55)) : damage;
+    addPistoleroXp(shooter, PISTOLERO_XP_PER_HIT);
+    applyCombatStats(shooter);
     targetEnemy.hp = clamp(targetEnemy.hp - incomingDamage, 0, targetEnemy.maxHp);
 
     broadcastRoom(shooter.room, {
@@ -1774,8 +1833,16 @@ function handleShot(ws) {
       amount: damage,
       x: targetEnemy.x,
       y: targetEnemy.y,
-      power: shooter.power
+      power: shooter.power,
+      attack: shooter.damage,
+      pistoleroLevel: pistoleroLevelFromXp(shooter.pistoleroXp),
+      pistoleroXp: Math.max(0, Number(shooter.pistoleroXp) || 0),
+      pistoleroXpIntoLevel: pistoleroXpIntoLevel(shooter.pistoleroXp),
+      pistoleroXpNeed: pistoleroXpToNextLevel(pistoleroLevelFromXp(shooter.pistoleroXp)),
+      powerAttackBonus: weaponPowerAttackBonus(shooter.power)
     });
+
+    sendStats(shooter);
 
     if (targetEnemy.hp <= 0) {
       const isBoss = targetEnemy.kind === 'boss';
@@ -1792,6 +1859,8 @@ function handleShot(ws) {
       shooter.score = (shooter.score || 0) + reward;
       shooter.xp = (shooter.xp || 0) + xp;
 
+      addPistoleroXp(shooter, PISTOLERO_XP_PER_KILL);
+      applyCombatStats(shooter);
       levelUpIfNeeded(shooter);
       void persistPlayer(shooter);
       sendStats(shooter);
@@ -1858,6 +1927,9 @@ function createPlayer(ws) {
     ownedWeaponSkins: [],
     redeemedCodes: [],
     ammo: 0,
+    pistoleroXp: 0,
+    pistoleroLevel: 1,
+    powerAttackBonus: 0,
     weapon: 'blaster',
     color: '#39e7ff',
     room: '',
@@ -2059,6 +2131,8 @@ wss.on('connection', async (ws) => {
           p.gold = Math.max(0, Number(saved.gold) || 0);
           p.diamonds = Math.max(0, Number(saved.diamonds) || 0);
           p.ammo = clamp(Number(saved.ammo) || 0, 0, MAX_AMMO);
+          p.pistoleroXp = Math.max(0, Number(saved.pistoleroXp) || 0);
+          p.pistoleroLevel = pistoleroLevelFromXp(p.pistoleroXp);
           p.bankedGold = Math.max(0, Number(saved.bankedGold) || 0);
           p.bankedDiamonds = Math.max(0, Number(saved.bankedDiamonds) || 0);
           p.ownedSkins = cosmetics.normalizeOwnedSkins(saved.ownedSkins);
@@ -2077,6 +2151,8 @@ wss.on('connection', async (ws) => {
           p.color = /^#[0-9a-fA-F]{6}$/.test(color) ? color : '#39e7ff';
         }
 
+        if (!Number.isFinite(Number(p.pistoleroXp))) p.pistoleroXp = 0;
+        p.pistoleroLevel = pistoleroLevelFromXp(p.pistoleroXp);
         applyCombatStats(p);
         p.joined = true;
 
