@@ -9,37 +9,45 @@
 <script>
 (function(){
   try{
-    var v="BUILD-3";
+    var v="BUILD-4";
     var k="neon_core_build";
     window.NEON_CORE_BUILD=v;
     localStorage.setItem(k,v);
     var base=new URL("../../../",location.href);
     var manifestUrl=new URL("release.json",base);
-    var bust=Date.now()+"-"+Math.random().toString(36).slice(2);
-    fetch(manifestUrl.href+"?neon_check="+bust,{cache:"no-store",headers:{"Cache-Control":"no-cache"}})
-      .then(function(r){if(!r.ok)throw new Error("manifest "+r.status);return r.json();})
-      .then(function(m){
-        var remote=String(m.releaseId||m.clientBuild||"");
-        if(!remote || remote===v){
-          // Limpia enlaces viejos como ?neon_release=BUILD-1 sin recargar el juego.
-          var current=new URL(location.href);
-          if(current.searchParams.get("neon_release")!==v){
-            current.searchParams.set("neon_release",v);
-            current.searchParams.set("neon_force",String(Date.now()));
-            history.replaceState(null,"",current.href);
+    var checking=false;
+    function checkRelease(){
+      if(checking)return;
+      checking=true;
+      var bust=Date.now()+"-"+Math.random().toString(36).slice(2);
+      fetch(manifestUrl.href+"?neon_check="+bust,{cache:"no-store",headers:{"Cache-Control":"no-cache"}})
+        .then(function(r){if(!r.ok)throw new Error("manifest "+r.status);return r.json();})
+        .then(function(m){
+          var remote=String(m.releaseId||m.clientBuild||"");
+          if(!remote || remote===v){
+            var current=new URL(location.href);
+            if(current.searchParams.get("neon_release")!==v){
+              current.searchParams.set("neon_release",v);
+              current.searchParams.set("neon_force",String(Date.now()));
+              history.replaceState(null,"",current.href);
+            }
+            return;
           }
-          return;
-        }
-        var target=String(m.clientPath||"neoncore/12345/v1/index.html").replace(/^\//,"");
-        var u=new URL(target,base);
-        u.searchParams.set("neon_release",remote);
-        u.searchParams.set("neon_force",String(Date.now()));
-        location.replace(u.href);
-      }).catch(function(){});
+          var target=String(m.clientPath||"neoncore/12345/v1/index.html").replace(/^\//,"");
+          var u=new URL(target,base);
+          u.searchParams.set("neon_release",remote);
+          u.searchParams.set("neon_force",String(Date.now()));
+          location.replace(u.href);
+        })
+        .catch(function(){})
+        .finally(function(){checking=false;});
+    }
+    checkRelease();
+    setInterval(checkRelease,10000);
   }catch(e){}
 })();
 </script>
-<title>Neon Core · Build 3</title>
+<title>Neon Core · Build 4</title>
 <style>
 *{box-sizing:border-box}html,body{margin:0;width:100%;height:100%;overflow:hidden;background:#050811;color:#fff;font-family:Arial,sans-serif;touch-action:none}
 #game{display:block;width:100vw;height:100vh}
@@ -246,7 +254,7 @@
 html.pc-controls #chatFeed{width:min(420px,38vw)}
 </style></head>
 <body>
-<canvas id="game"></canvas><div id="buildDisplay">BUILD 3</div><button id="audioToggle" type="button" aria-label="Activar o silenciar audio">🔊</button>
+<canvas id="game"></canvas><div id="buildDisplay">BUILD 4</div><button id="audioToggle" type="button" aria-label="Activar o silenciar audio">🔊</button>
 
 <div id="hud">
   <div class="panel" id="bars">
