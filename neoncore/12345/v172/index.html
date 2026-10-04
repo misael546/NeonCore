@@ -9,10 +9,16 @@
 <script>
 (function(){
   try{
-    var v="20261003-028-update-monitor-fix";
+    var v="20261003-029-stop-update-loop";
     window.NEON_CORE_BUILD=v;
     window.NEON_RELEASE_MONITOR="global-1";
     try{localStorage.setItem("neon_core_build",v);}catch(e){}
+    try{
+      const requested=String(new URL(location.href).searchParams.get("neon_release")||"");
+      if(requested && requested===v){
+        sessionStorage.removeItem("neon_update_attempts_"+requested);
+      }
+    }catch(e){}
   }catch(e){}
 })();
 </script>
@@ -695,7 +701,7 @@ async function saveBeforeGlobalUpdate(){
 
 async function fetchReleaseManifest(){
   try{
-    const url=new URL("../../../release.json?check="+Date.now(),location.href).href;
+    const url=new URL("/NeonCore/release.json?check="+Date.now(),location.origin).href;
     const res=await fetch(url,{cache:"no-store",headers:{"Cache-Control":"no-cache","Pragma":"no-cache"}});
     if(!res.ok)return null;
     return await res.json();
@@ -804,7 +810,21 @@ async function runGlobalReleaseCheck(){
       setTimeout(()=>{
         if(globalUpdateInProgress){
           globalUpdateInProgress=false;
-          try{location.reload();}catch{location.href=location.href;}
+          const target=globalUpdateTargetRelease||"";
+          try{
+            const key="neon_update_attempts_"+target;
+            const attempts=Math.min(99,(Number(sessionStorage.getItem(key))||0)+1);
+            sessionStorage.setItem(key,String(attempts));
+            if(attempts<=3){
+              const url=new URL(location.href);
+              url.searchParams.set("neon_reload",Date.now().toString());
+              url.searchParams.set("neon_release",target);
+              location.replace(url.href);
+              return;
+            }
+          }catch{}
+          const tx=document.querySelector("#serverUpdateNotice .text");
+          if(tx)tx.textContent="La nueva versión ya está en proceso de publicación en GitHub Pages. La recarga automática se detuvo para evitar un bucle.";
         }
       },700);
     }else if(tx){
