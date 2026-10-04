@@ -918,12 +918,6 @@ function connectMultiplayer(roomMode="quick",roomCode=""){ const publicRoomAuto=
             const travelDistance=Math.max(1,Number(m.travelDistance)||Number(m.range)||weaponStats[m.weapon]?.range||760);
             const ix=Number.isFinite(Number(m.impactX))?Number(m.impactX):sx0+Math.cos(angle)*travelDistance;
             const iy=Number.isFinite(Number(m.impactY))?Number(m.impactY):sy0+Math.sin(angle)*travelDistance;
-            bullets.push({
-              x:sx0,y:sy0,startX:sx0,startY:sy0,
-              vx:Math.cos(angle)*1200,vy:Math.sin(angle)*1200,
-              life:travelDistance/1200+0.08,damage:Number(m.damage)||0,
-              range:0,maxRange:travelDistance,impactX:ix,impactY:iy,remoteShot:true
-            });
             audioTone(520,.065,"sawtooth",.03,240);
           }
         }else if(m.type==="enemy_state"){
@@ -1809,7 +1803,6 @@ function drawMinimap(){
 }
 
 function draw(){
-  drawNeonProjectiles();
   ctx.clearRect(0,0,W,H);
   ctx.fillStyle="#070b13";ctx.fillRect(0,0,W,H);
 
@@ -1863,6 +1856,7 @@ function draw(){
   }
 
     for(const b of bullets){ctx.fillStyle="#dffbff";ctx.beginPath();ctx.arc(sx(b.x),sy(b.y),4,0,Math.PI*2);ctx.fill()}
+    drawNeonProjectiles();
   for(const b of bossProjectiles){
     const x=sx(b.x),y=sy(b.y);
     ctx.save();
