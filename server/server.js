@@ -2585,7 +2585,7 @@ setInterval(() => {
                   level: pl.level
                 });
                 sendStats(pl);
-                broadcastRoom(roomCodeOrCodePlaceholder, {
+                broadcastRoom(code, {
                   type: 'player_update',
                   player: publicPlayer(pl)
                 }, foundTarget.ws);
