@@ -9,7 +9,7 @@
 <script>
 (function(){
   try{
-    var v="BUILD-19",checking=false,updating=false,timer=null,base=new URL("../../../../",location.href),manifestUrl=new URL("release.json",base);
+    var v="BUILD-19",checking=false,updating=false,timer=null,base=new URL("../../../",location.href),manifestUrl=new URL("release.json",base);
     window.NEON_CORE_BUILD=v;localStorage.setItem("neon_core_build",v);
     function notice(remote){
       if(updating)return;updating=true;
