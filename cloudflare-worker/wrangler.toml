@@ -1,0 +1,11 @@
+name = "neoncore-multiplayer-prototype"
+main = "src/index.js"
+compatibility_date = "2026-10-04"
+
+[[durable_objects.bindings]]
+name = "NEON_ROOM"
+class_name = "NeonRoom"
+
+[[migrations]]
+tag = "v1"
+new_sqlite_classes = ["NeonRoom"]
