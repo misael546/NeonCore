@@ -1,8 +1,8 @@
 {
   "game": "Neon Core",
-  "releaseId": "20261003-044-global-self-healing-updater",
-  "clientBuild": "20261003-044-global-self-healing-updater",
-  "serverBuild": "20261003-044-global-self-healing-updater",
+  "releaseId": "BUILD-1",
+  "clientBuild": "BUILD-1",
+  "serverBuild": "BUILD-1",
   "databaseSchema": 1,
-  "clientPath": "neoncore/12345/v172/index.html"
+  "clientPath": "neoncore/12345/v1/index.html"
 }
