@@ -9,7 +9,7 @@
 <script>
 (function(){
   try{
-    var v="BUILD-4";
+    var v="BUILD-5";
     var k="neon_core_build";
     window.NEON_CORE_BUILD=v;
     localStorage.setItem(k,v);
@@ -47,7 +47,7 @@
   }catch(e){}
 })();
 </script>
-<title>Neon Core · Build 4</title>
+<title>Neon Core · Build 5</title>
 <style>
 *{box-sizing:border-box}html,body{margin:0;width:100%;height:100%;overflow:hidden;background:#050811;color:#fff;font-family:Arial,sans-serif;touch-action:none}
 #game{display:block;width:100vw;height:100vh}
@@ -254,15 +254,15 @@
 html.pc-controls #chatFeed{width:min(420px,38vw)}
 </style></head>
 <body>
-<canvas id="game"></canvas><div id="buildDisplay">BUILD 4</div><button id="audioToggle" type="button" aria-label="Activar o silenciar audio">🔊</button>
+<canvas id="game"></canvas><div id="buildDisplay">BUILD 5</div><button id="audioToggle" type="button" aria-label="Activar o silenciar audio">🔊</button>
 
 <div id="hud">
   <div class="panel" id="bars">
-    <div class="hudTopLine"><span><b>NEON CORE</b>· <span id="level">Nv. 1</span> · ☠ <span id="pvpKills">0</span></span></div>
+    <div class="hudTopLine"><span><b>NEON CORE</b> · <span id="level">Nv. 1</span> · 👾 <span id="kills">0</span> · ⚔ <span id="pvpKillsHud">0</span></span></div>
     <div class="bar hpBar"><i id="hpFill"></i><span class="barLabel">❤️ <span id="hp">100</span>/<span id="maxHp">100</span></span></div>
-    <div class="bar xpbar"><i id="xpFill"></i><span class="barLabel">XP <span id="xp">0</span>/<span id="xpNeed">100</span></span></div><div class="combatStats"><div class="coreStat powerStat"><span class="statParticles">✦ · ˚ ✧</span><small>PODER</small><b id="powerValue">100</b></div><div class="coreStat defenseStat"><span class="statParticles">✦ ˚ · ✧</span><small>DEFENSA</small><b id="defenseValue">0</b></div></div>
-    <small>🎯 <span id="kills">0</span></small><div id="resourceHud"><span>🪙 <b id="gold">0</b></span><span>💎 <b id="diamonds">0</b></span><span>🔸 <b id="ammo">60</b>/<b id="maxAmmo">220</b></span></div>
-  <div id="weaponHud">ARMA: <b id="weaponName">BLASTER</b></div>
+    <div id="resourceHud"><span>🪙 <b id="gold">0</b></span><span>💎 <b id="diamonds">0</b></span><span>🔸 <b id="ammo">60</b>/<b id="maxAmmo">220</b></span></div>
+    <div id="weaponHud">ARMA: <b id="weaponName">BLASTER</b></div>
+  </div>
 </div>
 
 <button id="chatToggle" type="button" aria-expanded="false" aria-controls="chatBox"><span class="chatIcon">◉</span><span class="chatLabel">CHAT</span></button>
@@ -717,7 +717,11 @@ function startRenderMonitor(){
 function renderPlayers(list){
   const panel=document.getElementById("playersPanel"),count=document.getElementById("playersCount"),box=document.getElementById("playersList");
   const players=Array.isArray(list)?[...list]:[];
-  players.sort((a,b)=>(Number(b.score)||0)-(Number(a.score)||0)||(Number(b.level)||1)-(Number(a.level)||1));
+  players.sort((a,b)=>{
+    const ak=(Number(b.kills)||0)+(Number(b.pvpKills)||0);
+    const bk=(Number(a.kills)||0)+(Number(a.pvpKills)||0);
+    return ak-bk || (Number(b.level)||1)-(Number(a.level)||1);
+  });
   count.textContent=players.length;
   box.innerHTML="";
   for(const q of players){
@@ -726,7 +730,9 @@ function renderPlayers(list){
     const name=document.createElement("span");
     name.textContent=q.id===multiplayerId?(q.name||"Jugador")+" (TÚ)":(q.name||"Jugador");
     const state=document.createElement("small");
-    state.textContent=(q.alive===false?"DESTRUIDO":"Nv."+String(q.level||1))+" · "+String(q.score||0)+" pts";
+    state.textContent=(q.alive===false?"DESTRUIDO":"Nv."+String(q.level||1))
+      +" · 👾 "+String(q.kills||0)
+      +" · ⚔ "+String(q.pvpKills||0);
     row.append(name,state);box.appendChild(row);
   }
   panel.style.display=currentRoom?"block":"none";
@@ -1584,7 +1590,7 @@ function updateWeaponHud(){
 }
 
 function updateHud(){
-  const hpEl=document.getElementById("hp"),maxHpEl=document.getElementById("maxHp"),levelEl=document.getElementById("level"),pvpEl=document.getElementById("pvpKills"),killsEl=document.getElementById("kills");
+  const hpEl=document.getElementById("hp"),maxHpEl=document.getElementById("maxHp"),levelEl=document.getElementById("level"),pvpEl=document.getElementById("pvpKillsHud"),killsEl=document.getElementById("kills");
   if(hpEl)hpEl.textContent=Math.ceil(p.hp);
   if(maxHpEl)maxHpEl.textContent=p.maxHp;
   if(levelEl)levelEl.textContent="Nv. "+p.level;
