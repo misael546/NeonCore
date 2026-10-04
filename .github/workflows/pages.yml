@@ -62,9 +62,12 @@ jobs:
           root = Path("index.html").read_text(encoding="utf-8")
           legacy = Path("neoncore/index.html").read_text(encoding="utf-8")
 
-          assert '20261003-016-jugar-v172-sala-1' in root
-          assert 'PUBLIC_ROOM_CODE' in root
-          assert 'MENÚ PRINCIPAL · SALAS PÚBLICAS' not in root
+          assert '20261003-030-live-update-loader' in root
+          assert 'MENÚ PRINCIPAL' in root
+          assert 'id="name"' in root
+          assert 'id="play"' in root
+          assert './neoncore/12345/v172/?name=' in root
+          assert 'PUBLIC_ROOM_CODE' not in root
           assert 'Sala #1' not in root
           assert '20261003-167-darkscifi' not in root
           assert 'location.replace(target+q)' in legacy
@@ -97,7 +100,7 @@ jobs:
                && grep -Eq 'PUBLIC_ROOM_CODE' <<<"$html" \
                && ! grep -Fq 'MENÚ PRINCIPAL · SALAS PÚBLICAS' <<<"$html" \
                && ! grep -Fq '20261003-167-darkscifi' <<<"$html"; then
-              echo "[PAGES] LIVE ROOT VERIFIED: current main menu is being served."
+              echo "[PAGES] LIVE ROOT VERIFIED: current standalone main menu is being served."
               exit 0
             fi
             echo "[PAGES] Live root check $i/12 did not match current build; waiting..."
