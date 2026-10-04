@@ -2,6 +2,10 @@
 
 const SKINS = Object.freeze({
   core_default: { id:'core_default', name:'NÚCLEO ORIGINAL', rarity:'Común', type:'armor', priceGold:0, priceDiamonds:0, priceUsd:0, style:'core', defenseBonus:0 },
+  neon_runner: { id:'neon_runner', name:'CORREDOR NEÓN', rarity:'Común', type:'armor', priceGold:0, priceDiamonds:0, priceUsd:0, style:'runner', defenseBonus:0 },
+  signal_amber: { id:'signal_amber', name:'SEÑAL ÁMBAR', rarity:'Común', type:'armor', priceGold:0, priceDiamonds:0, priceUsd:0, style:'amber', defenseBonus:0 },
+  pulse_guard: { id:'pulse_guard', name:'GUARDIÁN PULSO', rarity:'Común', type:'armor', priceGold:0, priceDiamonds:0, priceUsd:0, style:'pulse', defenseBonus:0 },
+  shadow_scout: { id:'shadow_scout', name:'EXPLORADOR SOMBRA', rarity:'Común', type:'armor', priceGold:0, priceDiamonds:0, priceUsd:0, style:'shadow', defenseBonus:0 },
   pixel_cyan: { id:'pixel_cyan', name:'PIXEL CYAN', rarity:'Raro', type:'armor', priceGold:5000, priceDiamonds:0, priceUsd:0, style:'pixel', defenseBonus:10 },
   rust_core: { id:'rust_core', name:'NÚCLEO OXIDADO', rarity:'Raro', type:'armor', priceGold:1500, priceDiamonds:0, priceUsd:0, style:'rust', defenseBonus:20 },
   toxic_orb: { id:'toxic_orb', name:'ORBE TÓXICO', rarity:'Épico', type:'armor', priceGold:12000, priceDiamonds:0, priceUsd:0, style:'toxic', defenseBonus:35 },
@@ -31,7 +35,7 @@ const REDEEM_CODES = Object.freeze({
     repeatable:true,
     allSkins:true,
     allWeapons:true,
-    message:'TEST ALL: desbloqueaste todas las armas y todas las armaduras.'
+    message:'TEST ALL: desbloqueaste todas las armas y todos los skins.'
   },
 
   WEAPON_BLASTER: { enabled:true, weaponId:'blaster', message:'Código válido: desbloqueaste BLASTER · NEONSTORM.' },
@@ -68,6 +72,8 @@ const REDEEM_CODES = Object.freeze({
 function getSkin(id) { return SKINS[String(id || '')]; }
 function getWeaponSkin(id) { return WEAPON_SKINS[String(id || '')]; }
 
+const STARTER_SKINS = Object.freeze(['core_default','neon_runner','signal_amber','pulse_guard','shadow_scout']);
+
 function normalizeOwnedSkins(value) {
   const input = Array.isArray(value) ? value : [];
   const out = [];
@@ -78,7 +84,12 @@ function normalizeOwnedSkins(value) {
     seen.add(id);
     out.push(id);
   }
-  if (!seen.has('core_default')) out.unshift('core_default');
+  for (const starterId of STARTER_SKINS) {
+    if (!seen.has(starterId)) {
+      seen.add(starterId);
+      out.unshift(starterId);
+    }
+  }
   return out;
 }
 
@@ -124,7 +135,7 @@ function publicWeaponCatalog() {
 function publicRealMoneyOffers() { return REAL_MONEY_OFFERS.map(offer => ({...offer})); }
 
 module.exports = {
-  SKINS, WEAPON_SKINS, REAL_MONEY_OFFERS, REDEEM_CODES,
+  SKINS, STARTER_SKINS, WEAPON_SKINS, REAL_MONEY_OFFERS, REDEEM_CODES,
   getSkin, getWeaponSkin, normalizeOwnedSkins, normalizeOwnedWeaponSkins,
   normalizeRedeemedCodes, publicCatalog, publicWeaponCatalog, publicRealMoneyOffers
 };

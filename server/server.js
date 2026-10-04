@@ -1,4 +1,4 @@
-/* BUILD-11 · HUD limpia y configuraciones generales */
+/* BUILD-12 · HUD limpia y configuraciones generales */
 'use strict';
 
 const http = require('http');
@@ -802,80 +802,50 @@ function randomEnemySpawnPoint(radius = 24) {
   return { x: 900, y: 900 };
 }
 
-function enemyStats(kind) {
-  if (kind === 'boss') {
+function enemyLevelForSpawn(x,y,kind='drone'){
+  const distanceFromSafe=Math.hypot(Number(x)-SAFE_ZONE.x,Number(y)-SAFE_ZONE.y);
+  const regionLevel=1+Math.floor(Math.max(0,distanceFromSafe-SAFE_ZONE.r)/420);
+  const kindBonus=kind==='boss'?8:kind==='elite'?3:0;
+  return clamp(regionLevel+kindBonus,1,30);
+}
+function enemyStats(kind,level=1) {
+  const lv=Math.max(1,Math.round(Number(level)||1));
+  if(kind==='boss'){
     return {
-      r: 54,
-      hp: BOSS_HP,
-      speed: 58,
-      damage: 0,
-      name: BOSS_NAME,
-      areaRadius: BOSS_AGGRO_RANGE,
-      aggroRadius: BOSS_AGGRO_RANGE,
-      attackRange: BOSS_ATTACK_RANGE,
-      leashRadius: Infinity,
-      attackCooldown: 0,
-      shape: 'boss'
+      r:54,hp:BOSS_HP+Math.max(0,lv-1)*900,speed:58+Math.max(0,lv-1)*1.4,damage:0,
+      name:BOSS_NAME,areaRadius:BOSS_AGGRO_RANGE,aggroRadius:BOSS_AGGRO_RANGE,
+      attackRange:BOSS_ATTACK_RANGE,leashRadius:Infinity,attackCooldown:0,shape:'boss'
     };
   }
-
-  if (kind === 'elite') {
+  if(kind==='elite'){
     return {
-      r: 30,
-      hp: 700,
-      speed: 82,
-      damage: 36,
-      areaRadius: 360,
-      aggroRadius: 620,
-      leashRadius: 520,
-      attackCooldown: 650,
-      shape: 'hex'
+      r:30,hp:700+Math.max(0,lv-1)*75,speed:82+Math.max(0,lv-1)*1.8,
+      damage:36+Math.max(0,lv-1)*2.6,areaRadius:360,aggroRadius:620,leashRadius:520,
+      attackCooldown:Math.max(440,650-Math.max(0,lv-1)*7),shape:'hex',name:'GUARDIÁN NEÓN'
     };
   }
-
   return {
-    r: 22,
-    hp: 140,
-    speed: 72,
-    damage: 18,
-    areaRadius: 190,
-    aggroRadius: 440,
-    leashRadius: 420,
-    attackCooldown: 760,
-    shape: ['square', 'triangle', 'hex'][Math.floor(Math.random() * 3)]
+    r:22,hp:140+Math.max(0,lv-1)*28,speed:72+Math.max(0,lv-1)*1.5,
+    damage:18+Math.max(0,lv-1)*1.25,areaRadius:190,aggroRadius:440,leashRadius:420,
+    attackCooldown:Math.max(500,760-Math.max(0,lv-1)*6),
+    shape:['square','triangle','hex'][Math.floor(Math.random()*3)],name:'DRON NEÓN'
   };
 }
 
-function createEnemy(kind = 'drone') {
-  const stats = enemyStats(kind);
-  const spawn = randomEnemySpawnPoint(stats.r);
-  const now = Date.now();
-
+function createEnemy(kind='drone'){
+  const spawn=randomEnemySpawnPoint(kind==='boss'?54:kind==='elite'?30:22);
+  const level=enemyLevelForSpawn(spawn.x,spawn.y,kind);
+  const stats=enemyStats(kind,level);
+  const now=Date.now();
   return {
-    id: Math.random().toString(36).slice(2, 10),
-    x: spawn.x,
-    y: spawn.y,
-    homeX: spawn.x,
-    homeY: spawn.y,
-    areaRadius: stats.areaRadius,
-    aggroRadius: stats.aggroRadius,
-    leashRadius: stats.leashRadius,
-    patrolTargetX: spawn.x,
-    patrolTargetY: spawn.y,
-    patrolUntil: now + 1200 + Math.random() * 3200,
-    r: stats.r,
-    hp: stats.hp,
-    maxHp: stats.hp,
-    speed: stats.speed,
-    damage: stats.damage,
-    attackCooldown: stats.attackCooldown,
-    lastAttackAt: 0,
-    lastBossShotAt: 0,
-    lastBossAreaAt: 0,
-    bossArea: null,
-    kind,
-    name: stats.name || '',
-    shape: stats.shape
+    id:Math.random().toString(36).slice(2,10),
+    x:spawn.x,y:spawn.y,homeX:spawn.x,homeY:spawn.y,
+    areaRadius:stats.areaRadius,aggroRadius:stats.aggroRadius,leashRadius:stats.leashRadius,
+    patrolTargetX:spawn.x,patrolTargetY:spawn.y,
+    patrolUntil:now+1200+Math.random()*3200,
+    r:stats.r,hp:stats.hp,maxHp:stats.hp,speed:stats.speed,damage:stats.damage,
+    attackCooldown:stats.attackCooldown,lastAttackAt:0,lastBossShotAt:0,lastBossAreaAt:0,
+    bossArea:null,kind,name:stats.name||'',level,shape:stats.shape
   };
 }
 
@@ -2550,12 +2520,13 @@ setInterval(() => {
           const distance = Math.max(1, Math.hypot(target.x - boss.x, target.y - boss.y));
           const travelTime = distance / BOSS_PROJECTILE_SPEED;
 
+          const bossLevel=Number(boss.level)||1;
           const warning = {
             id: 'ba_' + Math.random().toString(36).slice(2, 10),
             x: target.x,
             y: target.y,
             r: BOSS_AOE_RADIUS,
-            damage: BOSS_AOE_DAMAGE,
+            damage: BOSS_AOE_DAMAGE + Math.max(0,bossLevel-1)*8,
             telegraphAt: now,
             hitAt: now + Math.max(450, Math.min(BOSS_AOE_WARNING_MS, travelTime * 1000))
           };
@@ -2570,7 +2541,7 @@ setInterval(() => {
             impactX: target.x,
             impactY: target.y,
             r: 18,
-            damage: BOSS_PROJECTILE_DAMAGE,
+            damage: BOSS_PROJECTILE_DAMAGE + Math.max(0,bossLevel-1)*10,
             range: distance,
             life: travelTime,
             warning
