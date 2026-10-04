@@ -9,7 +9,7 @@
 <script>
 (function(){
   try{
-    var v="20261003-033-mobile-respawn-fix";
+    var v="20261003-034-death-state-sync-fix";
     window.NEON_CORE_BUILD=v;
     window.NEON_RELEASE_MONITOR="global-1";
     try{localStorage.setItem("neon_core_build",v);}catch(e){}
@@ -894,7 +894,12 @@ function renderPlayers(list){
 }
 function updatePlayersFromList(list){
   remotePlayers.clear();
-  for(const q of (list||[])) if(q.id!==multiplayerId) remotePlayers.set(q.id,q);
+  for(const q of (list||[])){
+    if(q.id===multiplayerId)continue;
+    if(q.alive===false)continue;
+    q.targetX=q.x;q.targetY=q.y;q.targetAngle=q.angle;q.targetHp=q.hp;q.targetAlive=q.alive;
+    remotePlayers.set(q.id,q);
+  }
   renderPlayers(list||[]);
 }
 function setConnectionStatus(title,text,show=true){
@@ -1043,6 +1048,7 @@ function connectMultiplayer(roomMode="quick",roomCode=""){ const publicRoomAuto=
             if(old){
               old.targetX=m.player.x;old.targetY=m.player.y;old.targetAngle=m.player.angle;
               old.targetHp=m.player.hp;old.targetAlive=m.player.alive;
+              if(m.player.alive===false)remotePlayers.delete(m.player.id);
               old.name=m.player.name;old.level=m.player.level;old.score=m.player.score;old.kills=m.player.kills;old.color=m.player.color;old.weapon=m.player.weapon;old.equippedSkin=m.player.equippedSkin||"core_default";old.maxHp=m.player.maxHp;old.speed=m.player.speed;
             }else{
               m.player.targetX=m.player.x;m.player.targetY=m.player.y;m.player.targetAngle=m.player.angle;
