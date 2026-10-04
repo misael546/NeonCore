@@ -34,7 +34,7 @@ try {
 const RELEASE_ID = String(UNIFIED_RELEASE_MANIFEST.releaseId || 'unknown');
 const DATABASE_SCHEMA_VERSION = Math.max(1, Number(UNIFIED_RELEASE_MANIFEST.databaseSchema) || 1);
 const SERVER_VERSION = RELEASE_ID;
-const SERVER_UPDATE_MESSAGE = 'Hay una actualización nueva de Neon Core. Espere un momento mientras se actualiza el servidor y se carga la nueva versión.';
+const SERVER_UPDATE_MESSAGE = 'NUEVA ACTUALIZACIÓN DISPONIBLE. Neon Core se actualizará automáticamente en unos segundos. No cierres la pestaña.';
 
 const AMMO_PACK_SIZE = 100;
 const AMMO_PACK_COST = 75;
@@ -2957,6 +2957,8 @@ function announceServerUpdate() {
   const payload = {
     type: 'server_update_notice',
     serverVersion: SERVER_VERSION,
+    clientBuild: String(UNIFIED_RELEASE_MANIFEST.clientBuild || RELEASE_ID),
+    releaseId: RELEASE_ID,
     serverStartedAt: SERVER_STARTED_AT,
     message: SERVER_UPDATE_MESSAGE
   };
