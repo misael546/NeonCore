@@ -25,6 +25,23 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
+      - name: Prepare legacy updater manifest
+        shell: bash
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          import json
+
+          release = json.loads(Path("release.json").read_text(encoding="utf-8"))
+          legacy = dict(release)
+          legacy["clientPath"] = "/NeonCore/" + str(release["clientPath"]).lstrip("/")
+          Path("neoncore/release.json").write_text(
+              json.dumps(legacy, ensure_ascii=False, indent=2) + "\n",
+              encoding="utf-8"
+          )
+          print("[PAGES] Legacy updater manifest prepared:", legacy)
+          PY
+
       - name: Validate Neon Core JavaScript
         shell: bash
         run: |
