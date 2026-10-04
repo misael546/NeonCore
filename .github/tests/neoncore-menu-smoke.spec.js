@@ -21,13 +21,13 @@ test('menu principal: JUGAR abre el cliente completo de Sala 1 v172', async ({ b
     timeout: 45000
   });
 
-  await expect(page.locator('#stableMainMenu')).toBeVisible({ timeout: 15000 });
-  await expect(page.locator('#stableMainMenuName')).toBeVisible({ timeout: 15000 });
-  await expect(page.locator('#stableMainMenuPlay')).toContainText('JUGAR');
+  await expect(page.locator('#name')).toBeVisible({ timeout: 15000 });
+  await expect(page.locator('#play')).toBeVisible({ timeout: 15000 });
+  await expect(page.locator('#play')).toContainText('JUGAR');
   await expect(page.locator('#menuSessionsBtn')).toHaveCount(0);
 
-  await page.locator('#stableMainMenuName').fill('SmokeSala1');
-  await page.locator('#stableMainMenuPlay').click();
+  await page.locator('#name').fill('SmokeSala1');
+  await page.locator('#play').click();
 
   await expect.poll(async () => page.url(), {
     timeout: 15000,
@@ -37,12 +37,14 @@ test('menu principal: JUGAR abre el cliente completo de Sala 1 v172', async ({ b
   await expect.poll(async () => page.evaluate(() => window.NEON_CORE_BUILD), {
     timeout: 15000,
     intervals: [500, 1000]
-  }).toBe('20261003-023-fix-connection-after-hud-cleanup');
+  }).toBe('20261003-025-global-update-monitor');
 
   await expect(page.locator('#moveJoy')).toBeVisible({ timeout: 30000 });
   await expect(page.locator('#fire')).toBeVisible({ timeout: 30000 });
   await expect(page.locator('#kills')).toHaveCount(0);
   await expect(page.locator('#connectionOverlay')).toBeHidden({ timeout: 30000 });
+  await expect(page.locator('#serverUpdateNotice')).toHaveCount(0);
+  expect(await page.evaluate(() => window.NEON_RELEASE_MONITOR)).toBe('global-1');
 
   // La tabla de jugadores ya no muestra PTS: muestra kills de mobs y de jugadores.
   await expect.poll(async () => page.locator('#playersList').innerText(), {
