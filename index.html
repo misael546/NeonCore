@@ -7,7 +7,7 @@
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
 <script>
-(function(){window.NEON_CORE_BUILD="20261003-039-reliable-mobile-auto-update";})();
+(function(){window.NEON_CORE_BUILD="20261003-040-backward-compatible-auto-respawn";})();
 </script>
 <title>Neon Core · Menú Principal</title>
 <style>
@@ -61,7 +61,7 @@ button span{margin-right:7px}
     if(!n){msg.textContent="Escribe tu nombre para entrar.";input.focus();return;}
     try{localStorage.setItem(key,n);}catch{}
     msg.textContent="Entrando a Sesión 1…";
-    const url="./neoncore/12345/v172/?name="+encodeURIComponent(n);
+    const url="./neoncore/12345/v172/?name="+encodeURIComponent(n)+"&neon_release="+encodeURIComponent("20261003-040-backward-compatible-auto-respawn");
     window.location.assign(url);
   }
   button.addEventListener("click",enter);
