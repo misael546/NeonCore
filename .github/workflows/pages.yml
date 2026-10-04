@@ -101,9 +101,11 @@ jobs:
           echo "[PAGES] Checking live URL: $url"
           for i in $(seq 1 12); do
             html="$(curl -fsSL --retry 2 --retry-delay 2 "$url" || true)"
-            if grep -Fq '20261003-016-jugar-v172-sala-1' <<<"$html" \
-               && grep -Eq 'PUBLIC_ROOM_CODE' <<<"$html" \
-               && ! grep -Fq 'MENÚ PRINCIPAL · SALAS PÚBLICAS' <<<"$html" \
+            if grep -Fq "$expected_release" <<<"$html" \
+               && grep -Fq 'id="name"' <<<"$html" \
+               && grep -Fq 'id="play"' <<<"$html" \
+               && grep -Fq './neoncore/12345/v172/?name=' <<<"$html" \
+               && ! grep -Fq 'PUBLIC_ROOM_CODE' <<<"$html" \
                && ! grep -Fq '20261003-167-darkscifi' <<<"$html"; then
               echo "[PAGES] LIVE ROOT VERIFIED: current standalone main menu is being served."
               exit 0
