@@ -7,7 +7,7 @@
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
 <script>
-(function(){window.NEON_CORE_BUILD="20261003-044-global-self-healing-updater";})();
+(function(){window.NEON_CORE_BUILD="BUILD-1";})();
 </script>
 <title>Neon Core · Menú Principal</title>
 <style>
@@ -47,7 +47,7 @@ button span{margin-right:7px}
   <input id="name" maxlength="20" autocomplete="nickname" placeholder="Escribe tu nombre">
   <div id="msg" class="msg">Escribe tu nombre para entrar a la Sesión 1.</div>
   <button id="play" type="button"><span>▶</span>JUGAR</button>
-  <div class="foot"><span>SESIÓN 1</span><span>•</span><span>BUILD 044</span></div>
+  <div class="foot"><span>SESIÓN 1</span><span>•</span><span>BUILD 1</span></div>
 </main>
 <script>
 (function(){
@@ -61,7 +61,7 @@ button span{margin-right:7px}
     if(!n){msg.textContent="Escribe tu nombre para entrar.";input.focus();return;}
     try{localStorage.setItem(key,n);}catch{}
     msg.textContent="Entrando a Sesión 1…";
-    const url="./neoncore/12345/v172/?name="+encodeURIComponent(n)+"&neon_release="+encodeURIComponent("20261003-044-global-self-healing-updater")+"&neon_force="+Date.now();
+    const url="./neoncore/12345/v1/?name="+encodeURIComponent(n)+"&neon_release="+encodeURIComponent("BUILD-1")+"&neon_force="+Date.now();
     window.location.assign(url);
   }
   button.addEventListener("click",enter);
