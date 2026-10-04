@@ -9,7 +9,7 @@
 <script>
 (function(){
   try{
-    var v="BUILD-7",checking=false,updating=false,timer=null,base=new URL("../../../",location.href),manifestUrl=new URL("release.json",base);
+    var v="BUILD-8",checking=false,updating=false,timer=null,base=new URL("../../../",location.href),manifestUrl=new URL("release.json",base);
     window.NEON_CORE_BUILD=v;localStorage.setItem("neon_core_build",v);
     function notice(remote){
       if(updating)return;updating=true;
@@ -33,7 +33,7 @@
   }catch(e){}
 })();
 </script>
-<title>Neon Core · Build 7</title>
+<title>Neon Core · Build 8</title>
 <style>
 *{box-sizing:border-box}html,body{margin:0;width:100%;height:100%;overflow:hidden;background:#050811;color:#fff;font-family:Arial,sans-serif;touch-action:none}
 #game{display:block;width:100vw;height:100vh}
@@ -351,15 +351,10 @@ let neonAudio={
   enabled:true,ready:false
 };
 const NEON_MUSIC_BASE="https://opengameart.org/sites/default/files/";
-const NEON_MUSIC_CREDIT="MUSIC · tricksntraps · OpenGameArt · CC0";
+const NEON_MUSIC_CREDIT="MUSIC · tricksntraps · OpenGameArt · CC0 · BUILD-8";
 const neonMusic={
   tracks:{
-    menu:{file:"Experiment%20G.ogg",name:"MENU"},
-    exploration:{file:"Currents.ogg",name:"EXPLORACION"},
-    tension:{file:"Anti%20Matter%20Magic.ogg",name:"TENSION"},
-    combat:{file:"Tribal%20Chaos.ogg",name:"COMBATE"},
-    boss:{file:"Wicked%20beast.ogg",name:"BOSS"},
-    bonus:{file:"Caves.ogg",name:"TIENDA"}
+    menu:{file:"Currents.ogg",name:"NEON CORE"}, exploration:{file:"Currents.ogg",name:"NEON CORE"}, tension:{file:"Currents.ogg",name:"NEON CORE"}, combat:{file:"Currents.ogg",name:"NEON CORE"}, boss:{file:"Currents.ogg",name:"NEON CORE"}, bonus:{file:"Currents.ogg",name:"NEON CORE"}
   },
   elements:{},
   current:"",
@@ -616,6 +611,19 @@ function startNeonMusic(state){
 }
 function stopNeonMusic(){neonProcClear();neonMusic.current="";neonMusic.desired="";for(const key of Object.keys(neonMusic.elements)){const a=neonMusic.elements[key];try{a.pause();a.currentTime=0;a.volume=0;}catch{}}}
 
+const neonProjectiles=[];
+function drawNeonProjectiles(){
+  const now=performance.now();
+  for(let i=neonProjectiles.length-1;i>=0;i--){
+    const q=neonProjectiles[i],t=Math.max(0,Math.min(1,(now-q.startAt)/q.duration));
+    const x=q.x+(q.tx-q.x)*t,y=q.y+(q.ty-q.y)*t;
+    ctx.save();ctx.translate(sx(x),sy(y));ctx.rotate(q.angle||0);
+    ctx.globalCompositeOperation="lighter";ctx.shadowBlur=12;ctx.shadowColor=q.color||"#39e7ff";
+    ctx.fillStyle=q.color||"#39e7ff";ctx.fillRect(-7,-2,14,4);
+    ctx.fillStyle="#fff";ctx.fillRect(-2,-1,7,2);ctx.restore();
+    if(t>=1)neonProjectiles.splice(i,1);
+  }
+}
 const world={w:6000,h:4400};
 const p={x:3000,y:2200,r:16,angle:0,hp:100,maxHp:100,xp:0,level:1,score:0,kills:0,pvpKills:0,power:100,damage:35,defense:0,speed:205,fireRate:320,lastShot:0,alive:true,gold:0,diamonds:0,ammo:60,maxAmmo:220,weapon:"blaster",equippedSkin:"core_default"};
 const shopNpc={x:3250,y:2200,r:24};
@@ -809,7 +817,7 @@ function connectMultiplayer(roomMode="quick",roomCode=""){ const publicRoomAuto=
         const m=JSON.parse(e.data);
         if(m.type==="server_update_notice"){
           const target=String(m.clientBuild||m.serverVersion||"");
-          if(target&&target!=="BUILD-7"&&typeof window.__neonForceUpdate==="function")window.__neonForceUpdate(target);
+          if(target&&target!=="BUILD-8"&&typeof window.__neonForceUpdate==="function")window.__neonForceUpdate(target);
           return;
         }
         if(m.type==="room_joined"){
@@ -904,7 +912,7 @@ function connectMultiplayer(roomMode="quick",roomCode=""){ const publicRoomAuto=
               remotePlayers.set(m.player.id,m.player);
             }
           }
-        }else if(m.type==="player_shot"){
+        }else if(m.type==="player_shot"){neonProjectiles.push({id:m.shotId||Math.random(),x:Number(m.x)||0,y:Number(m.y)||0,tx:Number(m.impactX)||Number(m.x)||0,ty:Number(m.impactY)||Number(m.y)||0,angle:Number(m.angle)||0,startAt:performance.now(),duration:Math.max(45,Number(m.travelMs)||120),color:m.id===playerId?"#fff":"#39e7ff"});
           if(m.id!==multiplayerId && Number.isFinite(Number(m.x)) && Number.isFinite(Number(m.y)) && Number.isFinite(Number(m.angle))){
             const sx0=Number(m.x),sy0=Number(m.y),angle=Number(m.angle);
             const travelDistance=Math.max(1,Number(m.travelDistance)||Number(m.range)||weaponStats[m.weapon]?.range||760);
@@ -1465,48 +1473,26 @@ function drawTank(x,y,angle,color="#39e7ff",r=24,weapon="",skinId="",weaponSkinI
   const wt=performance.now()/1000;
   const weaponId=String(weapon||"blaster");
   const weaponVisuals={
-    blaster:{base:"#39e7ff",accent:"#bafcff",glow:"#39e7ff",len:25,thick:7},
-    pulse:{base:"#c58cff",accent:"#f7eaff",glow:"#9c5dff",len:29,thick:6},
-    cannon:{base:"#ffd76a",accent:"#fff4c7",glow:"#ff9f43",len:29,thick:13},
-    railgun:{base:"#a4b6ff",accent:"#e8ecff",glow:"#7d8fff",len:35,thick:6},
-    nova:{base:"#fff1b8",accent:"#ffffff",glow:"#ff9b3f",len:37,thick:15},
-    plasma:{base:"#ff5b61",accent:"#ffd5d8",glow:"#ff3d59",len:33,thick:10},
-    vortex:{base:"#6ff3b0",accent:"#ddffef",glow:"#36e49a",len:36,thick:8},
-    quasar:{base:"#65c7ff",accent:"#e2f6ff",glow:"#4cb6ff",len:40,thick:7},
-    singularity:{base:"#b67cff",accent:"#f2e7ff",glow:"#8b4dff",len:42,thick:11},
-    omega:{base:"#ffffff",accent:"#ffe38a",glow:"#ffb02e",len:45,thick:16}
+    blaster:{base:"#39e7ff",accent:"#dfffff",glow:"#39e7ff",len:17,thick:4},
+    pulse:{base:"#c58cff",accent:"#f7eaff",glow:"#9c5dff",len:18,thick:4},
+    cannon:{base:"#ffd76a",accent:"#fff4c7",glow:"#ff9f43",len:20,thick:5},
+    railgun:{base:"#a4b6ff",accent:"#e8ecff",glow:"#7d8fff",len:21,thick:4},
+    nova:{base:"#fff1b8",accent:"#ffffff",glow:"#ff9b3f",len:21,thick:5},
+    plasma:{base:"#ff5b61",accent:"#ffd5d8",glow:"#ff3d59",len:20,thick:4},
+    vortex:{base:"#6ff3b0",accent:"#ddffef",glow:"#36e49a",len:19,thick:4},
+    quasar:{base:"#65c7ff",accent:"#e2f6ff",glow:"#4cb6ff",len:21,thick:4},
+    singularity:{base:"#b67cff",accent:"#f2e7ff",glow:"#8b4dff",len:22,thick:5},
+    omega:{base:"#ffffff",accent:"#ffe38a",glow:"#ffb02e",len:23,thick:5}
   };
   const v=weaponVisuals[weaponId]||weaponVisuals.blaster;
   ctx.save();ctx.globalCompositeOperation="lighter";ctx.shadowBlur=14;ctx.shadowColor=v.glow;
 
-  if(weaponId==="pulse"||weaponId==="vortex"){
-    ctx.fillStyle="#101a2b";ctx.fillRect(r-2,-11,v.len,5);ctx.fillRect(r-2,6,v.len,5);
-    ctx.fillStyle=v.base;ctx.fillRect(r+1,-9,v.len-5,3);ctx.fillRect(r+1,6,v.len-5,3);
-    ctx.fillStyle=v.accent;ctx.fillRect(r+v.len-4,-9,7,3);ctx.fillRect(r+v.len-4,6,7,3);
-  }else if(weaponId==="cannon"||weaponId==="nova"||weaponId==="plasma"){
-    ctx.fillStyle="#10192a";ctx.fillRect(r-2,-v.thick/2,v.len+4,v.thick);
-    ctx.fillStyle=v.base;ctx.fillRect(r+1,-v.thick/2+2,v.len-9,v.thick-4);
-    ctx.fillStyle=v.accent;ctx.fillRect(r+v.len-9,-v.thick/2-2,10,v.thick+4);
-    ctx.fillStyle="#fff8";ctx.fillRect(r+8,-v.thick/2-3,4,v.thick+6);
-  }else if(weaponId==="railgun"||weaponId==="quasar"){
-    ctx.fillStyle="#101827";ctx.fillRect(r-1,-4,v.len+9,8);
-    ctx.fillStyle=v.base;ctx.fillRect(r,v.thick/-2,v.len+2,v.thick);
-    ctx.fillStyle=v.accent;ctx.fillRect(r+7,-7,5,14);ctx.fillRect(r+v.len-4,-6,4,12);
-  }else if(weaponId==="singularity"){
-    ctx.fillStyle="#111326";ctx.fillRect(r-2,-6,v.len+4,12);
-    ctx.fillStyle=v.base;ctx.fillRect(r+1,-4,v.len-3,8);
-    ctx.fillStyle=v.accent;ctx.beginPath();ctx.arc(r+v.len+1,0,8,0,Math.PI*2);ctx.fill();
-    ctx.globalAlpha=.5;ctx.beginPath();ctx.arc(r+v.len+1,0,12+Math.sin(wt*4)*2,0,Math.PI*2);ctx.strokeStyle=v.glow;ctx.stroke();
-  }else if(weaponId==="omega"){
-    ctx.fillStyle="#151b2a";ctx.fillRect(r-2,-v.thick/2,v.len+6,v.thick);
-    ctx.fillStyle=v.base;ctx.fillRect(r+1,-v.thick/2+2,v.len-3,v.thick-4);
-    ctx.fillStyle=v.accent;ctx.beginPath();ctx.arc(r+v.len+2,0,9,0,Math.PI*2);ctx.fill();
-    ctx.globalAlpha=.75;ctx.strokeStyle=v.accent;ctx.lineWidth=2;ctx.beginPath();ctx.arc(r+v.len+2,0,14,wt%Math.PI,(wt%Math.PI)+Math.PI*1.55);ctx.stroke();
-  }else{
-    ctx.fillStyle="#101b2d";ctx.fillRect(r-1,-4,v.len,8);
-    ctx.fillStyle=v.base;ctx.fillRect(r+2,-3,v.len-6,6);
-    ctx.fillStyle=v.accent;ctx.fillRect(r+v.len-4,-2,8,4);
-  }
+  // Pistola compacta: cuerpo corto, corredera y empuñadura pequeña.
+  ctx.fillStyle="#0a1322";ctx.fillRect(r,-v.thick/2,v.len,v.thick);
+  ctx.fillStyle=v.base;ctx.fillRect(r+2,-v.thick/2+1,v.len-5,Math.max(2,v.thick-2));
+  ctx.fillStyle=v.accent;ctx.fillRect(r+v.len-5,-1.5,5,3);
+  ctx.fillStyle="#111827";ctx.fillRect(r+v.len*.28,v.thick/2-1,Math.max(3,v.len*.22),8);
+  ctx.fillStyle=v.glow;ctx.globalAlpha=.72;ctx.fillRect(r+v.len*.42,-1,Math.max(3,v.len*.22),2);ctx.globalAlpha=1;
 
   // Partículas integradas del arma: salen del cañón, sin usar el inventario de skins.
   for(let i=0;i<7;i++){
@@ -1823,6 +1809,7 @@ function drawMinimap(){
 }
 
 function draw(){
+  drawNeonProjectiles();
   ctx.clearRect(0,0,W,H);
   ctx.fillStyle="#070b13";ctx.fillRect(0,0,W,H);
 
