@@ -9,7 +9,7 @@
 <script>
 (function(){
   try{
-    var v="BUILD-8",checking=false,updating=false,timer=null,base=new URL("../../../",location.href),manifestUrl=new URL("release.json",base);
+    var v="BUILD-9",checking=false,updating=false,timer=null,base=new URL("../../../",location.href),manifestUrl=new URL("release.json",base);
     window.NEON_CORE_BUILD=v;localStorage.setItem("neon_core_build",v);
     function notice(remote){
       if(updating)return;updating=true;
@@ -33,7 +33,7 @@
   }catch(e){}
 })();
 </script>
-<title>Neon Core · Build 8</title>
+<title>Neon Core · Build 9</title>
 <style>
 *{box-sizing:border-box}html,body{margin:0;width:100%;height:100%;overflow:hidden;background:#050811;color:#fff;font-family:Arial,sans-serif;touch-action:none}
 #game{display:block;width:100vw;height:100vh}
@@ -240,13 +240,13 @@
 html.pc-controls #chatFeed{width:min(420px,38vw)}
 </style><style>.shopCloseBtn{width:36px;height:36px;flex:0 0 36px;margin:0;border:1px solid #39e7ff66;border-radius:10px;background:#111a2d;color:#fff;font-size:24px;line-height:1;font-weight:900;pointer-events:auto}.shopCloseBtn:hover{border-color:#39e7ff;background:#183d58}.cosmeticShopHead{position:relative;z-index:2}</style></head>
 <body>
-<canvas id="game"></canvas><div id="buildDisplay">BUILD 6</div><button id="audioToggle" type="button" aria-label="Activar o silenciar audio">🔊</button>
+<canvas id="game"></canvas><div id="buildDisplay">BUILD 9</div><button id="audioToggle" type="button" aria-label="Activar o silenciar audio">🔊</button>
 
 <div id="hud">
   <div class="panel" id="bars">
     <div class="hudTopLine"><span><b>NEON CORE</b> · <span id="level">Nv. 1</span> · 👾 <span id="kills">0</span> · ⚔ <span id="pvpKillsHud">0</span></span></div>
     <div class="bar hpBar"><i id="hpFill"></i><span class="barLabel">❤️ <span id="hp">100</span>/<span id="maxHp">100</span></span></div>
-    <div id="resourceHud"><span>🪙 <b id="gold">0</b></span><span>💎 <b id="diamonds">0</b></span><span>🔸 <b id="ammo">60</b>/<b id="maxAmmo">220</b></span></div>
+    <div id="resourceHud"><span>🪙 <b id="gold">0</b></span><span>💎 <b id="diamonds">0</b></span><span>🔸 <b id="ammo">0</b>/<b id="maxAmmo">220</b></span></div>
     <div id="weaponHud">ARMA: <b id="weaponName">BLASTER</b></div>
   </div>
 </div>
@@ -271,7 +271,7 @@ html.pc-controls #chatFeed{width:min(420px,38vw)}
     <section id="shopArsenalSection" class="shopSection">
       <div class="shopSubTitle arsenalCompleteTitle">⚔ ARSENAL · 10 ARMAS · PODER ASCENDENTE</div>
       <div class="arsenalAmmoBar">
-        <div><strong>🔸 MUNICIÓN</strong><span><b id="arsenalAmmo">60</b>/<b id="arsenalMaxAmmo">220</b></span></div>
+        <div><strong>🔸 MUNICIÓN</strong><span><b id="arsenalAmmo">0</b>/<b id="arsenalMaxAmmo">220</b></span></div>
         <button id="buyAmmoBtn" type="button">COMPRAR 100 · 🪙 75</button>
       </div>
       <div id="arsenalGrid" class="shopGrid shopUnifiedGrid"></div>
@@ -351,7 +351,7 @@ let neonAudio={
   enabled:true,ready:false
 };
 const NEON_MUSIC_BASE="https://opengameart.org/sites/default/files/";
-const NEON_MUSIC_CREDIT="MUSIC · tricksntraps · OpenGameArt · CC0 · BUILD-8";
+const NEON_MUSIC_CREDIT="MUSIC · tricksntraps · OpenGameArt · CC0 · BUILD-9";
 const neonMusic={
   tracks:{
     menu:{file:"Currents.ogg",name:"NEON CORE"}, exploration:{file:"Currents.ogg",name:"NEON CORE"}, tension:{file:"Currents.ogg",name:"NEON CORE"}, combat:{file:"Currents.ogg",name:"NEON CORE"}, boss:{file:"Currents.ogg",name:"NEON CORE"}, bonus:{file:"Currents.ogg",name:"NEON CORE"}
@@ -625,7 +625,7 @@ function drawNeonProjectiles(){
   }
 }
 const world={w:6000,h:4400};
-const p={x:3000,y:2200,r:16,angle:0,hp:100,maxHp:100,xp:0,level:1,score:0,kills:0,pvpKills:0,power:100,damage:35,defense:0,speed:205,fireRate:320,lastShot:0,alive:true,gold:0,diamonds:0,ammo:60,maxAmmo:220,weapon:"blaster",equippedSkin:"core_default"};
+const p={x:3000,y:2200,r:16,angle:0,hp:100,maxHp:100,xp:0,level:1,score:0,kills:0,pvpKills:0,power:100,damage:35,defense:0,speed:205,fireRate:320,lastShot:0,alive:true,gold:0,diamonds:0,ammo:0,maxAmmo:220,weapon:"blaster",equippedSkin:"core_default"};
 const shopNpc={x:3250,y:2200,r:24};
 const weaponNames={
   blaster:"BLASTER · NEONSTORM",
@@ -641,15 +641,15 @@ const weaponNames={
 };
 const weaponStats={
   blaster:{name:"BLASTER · NEONSTORM",power:100,fireRate:280,maxAmmo:220,cost:0,range:760},
-  pulse:{name:"PULSE · PRISMA",power:200,fireRate:190,maxAmmo:260,cost:500,range:820},
-  cannon:{name:"CANNON · SOLARIS",power:400,fireRate:520,maxAmmo:320,cost:1500,range:880},
-  railgun:{name:"RAILGUN · ECLIPSE",power:743,fireRate:700,maxAmmo:380,cost:6500,range:960},
-  nova:{name:"NOVA · SUPERNOVA",power:1486,fireRate:1000,maxAmmo:450,cost:22000,range:1040},
-  plasma:{name:"PLASMA · INFERNO",power:2286,fireRate:550,maxAmmo:500,cost:60000,range:1120},
-  vortex:{name:"VORTEX · SHARD",power:3286,fireRate:950,maxAmmo:550,cost:150000,range:1200},
-  quasar:{name:"QUASAR · RAY",power:4429,fireRate:1050,maxAmmo:600,cost:400000,range:1280},
-  singularity:{name:"SINGULARITY · CORE",power:6000,fireRate:1400,maxAmmo:650,cost:900000,range:1360},
-  omega:{name:"OMEGA · ASCENSION",power:8000,fireRate:900,maxAmmo:700,cost:2000000,range:1440}
+  pulse:{name:"PULSE · PRISMA",power:200,fireRate:190,maxAmmo:220,cost:500,range:820},
+  cannon:{name:"CANNON · SOLARIS",power:400,fireRate:520,maxAmmo:220,cost:1500,range:880},
+  railgun:{name:"RAILGUN · ECLIPSE",power:743,fireRate:700,maxAmmo:220,cost:6500,range:960},
+  nova:{name:"NOVA · SUPERNOVA",power:1486,fireRate:1000,maxAmmo:220,cost:22000,range:1040},
+  plasma:{name:"PLASMA · INFERNO",power:2286,fireRate:550,maxAmmo:220,cost:60000,range:1120},
+  vortex:{name:"VORTEX · SHARD",power:3286,fireRate:950,maxAmmo:220,cost:150000,range:1200},
+  quasar:{name:"QUASAR · RAY",power:4429,fireRate:1050,maxAmmo:220,cost:400000,range:1280},
+  singularity:{name:"SINGULARITY · CORE",power:6000,fireRate:1400,maxAmmo:220,cost:900000,range:1360},
+  omega:{name:"OMEGA · ASCENSION",power:8000,fireRate:900,maxAmmo:220,cost:2000000,range:1440}
 };let shopOpen=false,shopSection="arsenal";
 const SHOP_INTERACTION_RADIUS_CLIENT=48;
 const COSMETIC_SKINS=[
@@ -817,7 +817,7 @@ function connectMultiplayer(roomMode="quick",roomCode=""){ const publicRoomAuto=
         const m=JSON.parse(e.data);
         if(m.type==="server_update_notice"){
           const target=String(m.clientBuild||m.serverVersion||"");
-          if(target&&target!=="BUILD-8"&&typeof window.__neonForceUpdate==="function")window.__neonForceUpdate(target);
+          if(target&&target!=="BUILD-9"&&typeof window.__neonForceUpdate==="function")window.__neonForceUpdate(target);
           return;
         }
         if(m.type==="room_joined"){
