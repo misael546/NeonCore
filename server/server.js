@@ -1970,7 +1970,7 @@ const httpServer = http.createServer(async (req, res) => {
 
   if (pathname === '/client') {
     try {
-      const clientPath = path.join(__dirname, '..', 'neoncore', '12345', 'v172', 'index.html');
+      const clientPath = path.join(__dirname, '..', 'neoncore', '12345', 'v1', 'index.html');
       const html = fs.readFileSync(clientPath, 'utf8');
       res.writeHead(200, {
         'Content-Type': 'text/html; charset=utf-8',
