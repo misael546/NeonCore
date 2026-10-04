@@ -1819,7 +1819,6 @@ function handleShot(ws) {
       });
     }
   }
-}
 
     }catch(error){ console.error('[PROJECTILE HIT]',error?.message||error); }
   },travelMs);
