@@ -4,8 +4,13 @@ const { Pool } = require('pg');
 
 let pool = null;
 let storageReady = false;
+let releaseInfo = {
+  releaseId: '',
+  schemaVersion: 0,
+  updatedAt: 0
+};
 
-async function initStorage() {
+async function initStorage(releaseId = '', schemaVersion = 1) {
   if (storageReady) return true;
 
   if (!process.env.DATABASE_URL) {
@@ -40,8 +45,46 @@ async function initStorage() {
     'ON neoncore_players (updated_at)'
   );
 
+  await pool.query(
+    'CREATE TABLE IF NOT EXISTS neoncore_runtime (' +
+      'id SMALLINT PRIMARY KEY CHECK (id = 1),' +
+      'release_id VARCHAR(128) NOT NULL,' +
+      'schema_version INTEGER NOT NULL,' +
+      'updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()' +
+    ')'
+  );
+
+  const cleanReleaseId = String(releaseId || 'unknown').slice(0, 128);
+  const cleanSchemaVersion = Math.max(1, Number(schemaVersion) || 1);
+
+  await pool.query(
+    'INSERT INTO neoncore_runtime (id, release_id, schema_version, updated_at) ' +
+      'VALUES (1, $1, $2, NOW()) ' +
+      'ON CONFLICT (id) DO UPDATE SET ' +
+      'release_id = EXCLUDED.release_id, ' +
+      'schema_version = EXCLUDED.schema_version, ' +
+      'updated_at = NOW()',
+    [cleanReleaseId, cleanSchemaVersion]
+  );
+
+  const runtime = await pool.query(
+    'SELECT release_id, schema_version, updated_at FROM neoncore_runtime WHERE id = 1'
+  );
+
+  const row = runtime.rows[0];
+  releaseInfo = {
+    releaseId: String(row?.release_id || cleanReleaseId),
+    schemaVersion: Number(row?.schema_version) || cleanSchemaVersion,
+    updatedAt: row?.updated_at ? new Date(row.updated_at).getTime() : Date.now()
+  };
+
   storageReady = true;
-  console.log('[STORAGE] PostgreSQL conectado: persistencia permanente activa.');
+  console.log(
+    '[STORAGE] PostgreSQL conectado: persistencia permanente activa · release=' +
+      releaseInfo.releaseId +
+      ' · schema=' +
+      releaseInfo.schemaVersion
+  );
   return true;
 }
 
@@ -113,6 +156,11 @@ async function closeStorage() {
   }
 
   storageReady = false;
+  releaseInfo = {
+    releaseId: '',
+    schemaVersion: 0,
+    updatedAt: 0
+  };
 }
 
 module.exports = {
@@ -123,5 +171,8 @@ module.exports = {
   closeStorage,
   get enabled() {
     return storageReady;
+  },
+  get releaseInfo() {
+    return { ...releaseInfo };
   }
 };
