@@ -2082,6 +2082,18 @@ wss.on('connection', async (ws) => {
           sendPlayerList(p.room);
         }
 
+        // Cada conexión recibe la versión vigente del servidor. Esto permite
+        // que una pestaña antigua se actualice sola aunque GitHub Pages aún
+        // tenga una copia en caché del HTML anterior.
+        send(ws, {
+          type: 'server_update_notice',
+          serverVersion: SERVER_VERSION,
+          clientBuild: String(UNIFIED_RELEASE_MANIFEST.clientBuild || RELEASE_ID),
+          releaseId: RELEASE_ID,
+          serverStartedAt: SERVER_STARTED_AT,
+          message: SERVER_UPDATE_MESSAGE
+        });
+
         return;
       }
 
