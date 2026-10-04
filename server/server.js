@@ -2589,6 +2589,7 @@ setInterval(() => {
                   type: 'player_update',
                   player: publicPlayer(pl)
                 }, foundTarget.ws);
+                sendPlayerList(code);
               }
             }
           }
@@ -2709,6 +2710,11 @@ setInterval(() => {
               level: pl.level
             });
             sendStats(pl);
+            broadcastRoom(code, {
+              type: 'player_update',
+              player: publicPlayer(pl)
+            }, foundTarget.ws);
+            sendPlayerList(code);
           }
         }
       }
@@ -2785,6 +2791,11 @@ setInterval(() => {
                 level: target.level
               });
               sendStats(target);
+              broadcastRoom(code, {
+                type: 'player_update',
+                player: publicPlayer(target)
+              }, foundTarget.ws);
+              sendPlayerList(code);
             }
           }
         }
