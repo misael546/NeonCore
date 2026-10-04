@@ -10,24 +10,9 @@
 (function(){
   try{
     var v="20261003-023-fix-connection-after-hud-cleanup";
-    var k="neon_core_build";
     window.NEON_CORE_BUILD=v;
-    var old=localStorage.getItem(k);
-    if(old!==v) localStorage.setItem(k,v);
-    window.setTimeout(function(){
-      fetch(location.pathname+"?update_check="+Date.now(),{
-        cache:"no-store",
-        headers:{"Cache-Control":"no-cache"}
-      }).then(function(r){return r.text();}).then(function(html){
-        var m=html.match(/window\.NEON_CORE_BUILD\s*=\s*"([^"]+)"/);
-        if(m && m[1]!==window.NEON_CORE_BUILD){
-  window.__NEON_PENDING_BUILD_UPDATE=m[1];
-  if(typeof window.showServerUpdateNotice==="function"){
-    window.showServerUpdateNotice("Hay una nueva versión de Neon Core. Pulsa ACTUALIZAR AHORA para cargarla.");
-  }
-}
-      }).catch(function(){});
-    },1500);
+    window.NEON_RELEASE_MONITOR="global-1";
+    try{localStorage.setItem("neon_core_build",v);}catch(e){}
   }catch(e){}
 })();
 </script>
@@ -667,66 +652,172 @@ const MULTIPLAYER_SERVER="wss://neon-core-multiplayer.onrender.com/ws";
 const RENDER_HEALTH_URL=MULTIPLAYER_SERVER.replace(/^wss:/,"https:").replace(/^ws:/,"http:").replace(/\/ws$/,"/health");
 let renderStatusTimer=null,renderServerVersion="",renderServerStartedAt=0;
 let serverUpdateNoticeOpen=false;
+let globalReleaseMonitorStarted=false;
+let globalUpdateInProgress=false;
+let globalUpdateStableChecks=0;
+let globalUpdateTargets=null;
+
 function showServerUpdateNotice(message){
-  if(serverUpdateNoticeOpen)return;
   serverUpdateNoticeOpen=true;
   let wrap=document.getElementById("serverUpdateNotice");
   if(!wrap){
     const style=document.createElement("style");
     style.id="serverUpdateNoticeStyle";
     style.textContent=`
-      #serverUpdateNotice{position:fixed;inset:0;z-index:10050;display:flex;align-items:center;justify-content:center;padding:18px;background:rgba(2,5,12,.82);backdrop-filter:blur(7px);touch-action:auto}
-      #serverUpdateNotice .card{width:min(390px,94vw);background:linear-gradient(180deg,#0b1425,#070d18);border:1px solid #39e7ff99;border-radius:18px;padding:22px;box-shadow:0 20px 80px #000;text-align:center}
+      #serverUpdateNotice{position:fixed;inset:0;z-index:10050;display:flex;align-items:center;justify-content:center;padding:18px;background:rgba(2,5,12,.9);backdrop-filter:blur(8px);touch-action:auto}
+      #serverUpdateNotice .card{width:min(390px,94vw);background:linear-gradient(180deg,#0b1425,#070d18);border:1px solid #39e7ff99;border-radius:18px;padding:24px;box-shadow:0 20px 80px #000;text-align:center}
       #serverUpdateNotice .title{display:block;color:#39e7ff;font-size:21px;font-weight:900;letter-spacing:1.5px;text-shadow:0 0 16px #39e7ff55}
-      #serverUpdateNotice .text{display:block;margin-top:9px;color:#c8d3e5;font-size:13px;line-height:1.5}
-      #serverUpdateNotice .sub{display:block;margin-top:6px;color:#74839a;font-size:10px}
-      #serverUpdateNotice button{width:100%;min-height:46px;margin-top:16px;border:0;border-radius:11px;background:linear-gradient(135deg,#183d58,#1a5b74);color:#fff;font-weight:900;letter-spacing:.7px;font-size:14px;box-shadow:0 0 18px #39e7ff20}
+      #serverUpdateNotice .text{display:block;margin-top:10px;color:#c8d3e5;font-size:13px;line-height:1.5}
+      #serverUpdateNotice .sub{display:block;margin-top:9px;color:#74839a;font-size:11px}
+      #serverUpdateNotice .spinner{width:32px;height:32px;border:3px solid #26344e;border-top-color:#39e7ff;border-radius:50%;margin:0 auto 14px;animation:spin .8s linear infinite}
     `;
     document.head.appendChild(style);
     wrap=document.createElement("div");
     wrap.id="serverUpdateNotice";
-    wrap.innerHTML='<div class="card"><span class="title">⚡ ACTUALIZACIÓN DISPONIBLE</span><span class="text"></span><span class="sub">Para seguir jugando con la versión más reciente, actualiza esta pestaña.</span><button type="button">ACTUALIZAR AHORA</button></div>';
+    wrap.innerHTML='<div class="card"><div class="spinner"></div><span class="title">ACTUALIZANDO SERVIDOR</span><span class="text"></span><span class="sub">Espere un momento. Neon Core está aplicando los cambios nuevos.</span></div>';
     document.body.appendChild(wrap);
-    wrap.querySelector("button").addEventListener("click",()=>{
-      try{requestServerSaveAndClose();}catch{}
-      location.reload();
-    });
   }
   const tx=wrap.querySelector(".text");
-  if(tx)tx.textContent=message||"El servidor se actualizó.";
+  if(tx)tx.textContent=message||"Se detectó una actualización.";
   wrap.style.display="flex";
 }
-window.showServerUpdateNotice=showServerUpdateNotice;
-if(window.__NEON_PENDING_BUILD_UPDATE) setTimeout(()=>showServerUpdateNotice("Hay una nueva versión de Neon Core. Pulsa ACTUALIZAR AHORA para cargarla."),0);
-async function checkRenderStatus(){
+
+async function saveBeforeGlobalUpdate(){
   try{
-    const res=await fetch(RENDER_HEALTH_URL,{cache:"no-store"});
-    if(!res.ok)throw new Error("health");
-    const data=await res.json();
-    const version=String(data.version||"");
-    const startedAt=Number(data.startedAt)||0;
-    if(renderServerVersion && (version!==renderServerVersion || startedAt!==renderServerStartedAt)){
-      showServerUpdateNotice("El servidor terminó una actualización. La pestaña se actualizará para aplicar los cambios.");
-      if(!gameActive && !PUBLIC_ROOM_CODE)nameBox.style.display="flex";
-      if(PUBLIC_ROOM_CODE && playerName){
-        nameBox.style.display="none";
-        if(!multiplayerSocket || multiplayerSocket.readyState!==1) setTimeout(()=>connectMultiplayer("join",PUBLIC_ROOM_CODE),250);
+    if(multiplayerSocket && multiplayerSocket.readyState===WebSocket.OPEN){
+      multiplayerSocket.send(JSON.stringify({type:"save_on_exit"}));
+      await new Promise(resolve=>setTimeout(resolve,350));
+    }
+  }catch{}
+  try{requestServerSaveAndClose();}catch{}
+}
+
+function readDatabaseSignature(data){
+  if(!data||typeof data!=="object")return "unavailable";
+  const d=data.diagnostics&&typeof data.diagnostics==="object"?data.diagnostics:{};
+  const explicit=data.databaseRevision||data.databaseVersion||d.databaseRevision||d.databaseVersion||"";
+  if(explicit)return "revision:"+String(explicit);
+  return "storage:"+String(data.storage||"offline")+"|ready:"+String(Boolean(d.storageReady));
+}
+
+async function fetchGitHubBuild(){
+  try{
+    const url=location.pathname+"?neon_release_check="+Date.now();
+    const res=await fetch(url,{cache:"no-store",headers:{"Cache-Control":"no-cache","Pragma":"no-cache"}});
+    if(!res.ok)return "";
+    const html=await res.text();
+    const m=html.match(/window\.NEON_CORE_BUILD\s*=\s*"([^"]+)"/);
+    return m?String(m[1]):"";
+  }catch{return "";}
+}
+
+async function fetchRenderHealth(){
+  try{
+    const res=await fetch(RENDER_HEALTH_URL,{cache:"no-store",headers:{"Cache-Control":"no-cache"}});
+    if(!res.ok)return null;
+    return await res.json();
+  }catch{return null;}
+}
+
+function globalTargetReached(state){
+  if(!globalUpdateTargets)return false;
+  if(globalUpdateTargets.github && state.github!==globalUpdateTargets.github)return false;
+  if(globalUpdateTargets.render && (
+    !state.render ||
+    state.render.version!==globalUpdateTargets.render.version ||
+    Number(state.render.startedAt)!==Number(globalUpdateTargets.render.startedAt)
+  ))return false;
+  if(globalUpdateTargets.db && state.db!==globalUpdateTargets.db)return false;
+  return Boolean(state.render);
+}
+
+async function runGlobalReleaseCheck(){
+  const [github,render]=await Promise.all([fetchGitHubBuild(),fetchRenderHealth()]);
+  const db=readDatabaseSignature(render);
+  const state={github,render:render?{
+    version:String(render.version||""),
+    startedAt:Number(render.startedAt)||0
+  }:null,db};
+
+  if(!globalReleaseMonitorStarted){
+    globalReleaseMonitorStarted=true;
+    renderServerVersion=state.render?.version||"";
+    renderServerStartedAt=state.render?.startedAt||0;
+    window.__NEON_RELEASE_BASELINE=state;
+    return;
+  }
+
+  const githubChanged=Boolean(state.github && window.NEON_CORE_BUILD && state.github!==window.NEON_CORE_BUILD);
+  const renderChanged=Boolean(
+    state.render &&
+    renderServerVersion &&
+    (state.render.version!==renderServerVersion || state.render.startedAt!==renderServerStartedAt)
+  );
+  const dbChanged=Boolean(
+    window.__NEON_DB_BASELINE &&
+    state.db!==window.__NEON_DB_BASELINE
+  );
+
+  if((githubChanged||renderChanged||dbChanged) && !globalUpdateInProgress){
+    globalUpdateInProgress=true;
+    globalUpdateStableChecks=0;
+    globalUpdateTargets={
+      github:githubChanged?state.github:"",
+      render:renderChanged?state.render:null,
+      db:dbChanged?state.db:""
+    };
+    showServerUpdateNotice(
+      githubChanged?"Se detectaron cambios nuevos en GitHub Pages.":
+      renderChanged?"Se detectó una actualización del servidor Render.":
+      "Se detectó un cambio en la persistencia de datos."
+    );
+    await saveBeforeGlobalUpdate();
+    return;
+  }
+
+  if(globalUpdateInProgress){
+    if(globalTargetReached(state)){
+      globalUpdateStableChecks++;
+      const status=wrapStatus();
+      if(status)status.textContent="Servidor actualizado. Cargando la versión nueva…";
+      if(globalUpdateStableChecks>=2){
+        globalUpdateInProgress=false;
+        try{location.reload();}catch{location.href=location.href;}
+        return;
       }
-    }else if(!gameActive && currentRoom){
-      setConnectionStatus("SERVIDOR DISPONIBLE","Render está listo. Conectando…",false);
+    }else{
+      globalUpdateStableChecks=0;
+      const status=wrapStatus();
+      if(status)status.textContent=state.render
+        ?"Actualizando GitHub Pages, Render y la persistencia. Espere un momento…"
+        :"Esperando a que Render termine de actualizar…";
     }
-    renderServerVersion=version;
-    renderServerStartedAt=startedAt;
-  }catch{
-    if(!gameActive){
-      setConnectionStatus("RENDER ACTUALIZANDO","El servidor de Render no responde. Neon Core está esperando a que vuelva.",false);
-    }
+    return;
+  }
+
+  if(state.render){
+    renderServerVersion=state.render.version;
+    renderServerStartedAt=state.render.startedAt;
+    window.__NEON_DB_BASELINE=state.db;
   }
 }
+
+function wrapStatus(){
+  const wrap=document.getElementById("serverUpdateNotice");
+  return wrap?wrap.querySelector(".text"):null;
+}
+
 function startRenderMonitor(){
   if(renderStatusTimer)clearInterval(renderStatusTimer);
-  checkRenderStatus();
-  renderStatusTimer=setInterval(checkRenderStatus,2500);
+  fetchRenderHealth().then(data=>{
+    if(data){
+      renderServerVersion=String(data.version||"");
+      renderServerStartedAt=Number(data.startedAt)||0;
+      window.__NEON_DB_BASELINE=readDatabaseSignature(data);
+    }
+  }).catch(()=>{});
+  runGlobalReleaseCheck();
+  renderStatusTimer=setInterval(runGlobalReleaseCheck,2500);
 }
 function renderPlayers(list){
   const panel=document.getElementById("playersPanel"),count=document.getElementById("playersCount"),box=document.getElementById("playersList");
