@@ -1,4 +1,4 @@
-/* BUILD-21 · HUD limpia y configuraciones generales */
+/* BUILD-22 · HUD limpia y configuraciones generales */
 'use strict';
 
 const http = require('http');
@@ -45,7 +45,7 @@ const MAX_AMMO = INVENTORY_SLOTS * INVENTORY_STACK_MAX;
 const PICKUP_RADIUS = 85;
 const DROP_LIFETIME_MS = 10 * 60 * 1000;
 const PROJECTILE_SPEED = 1200;
-const WEAPON_FIRE_RATE = 420;
+const WEAPON_FIRE_RATE = 650;
 const PROJECTILE_RANGE = 1000;
 
 const PISTOLERO_MAX_LEVEL = 1000;
@@ -57,16 +57,16 @@ const SHOP_INTERACTION_RADIUS = 48;
 const BANK_ENABLED = false;
 
 const WEAPONS = {
-  blaster: { name: 'BLASTER · NEONSTORM', cost: 0, power: 100, fireRate: 420, maxAmmo:8000, range: 1000 },
-  pulse: { name: 'PULSE · PRISMA', cost: 500, power: 200, fireRate: 420, maxAmmo:8000, range: 1000 },
-  cannon: { name: 'CANNON · SOLARIS', cost: 1500, power: 400, fireRate: 420, maxAmmo:8000, range: 1000 },
-  railgun: { name: 'RAILGUN · ECLIPSE', cost: 6500, power: 743, fireRate: 420, maxAmmo:8000, range: 1000 },
-  nova: { name: 'NOVA · SUPERNOVA', cost: 22000, power: 1486, fireRate: 420, maxAmmo:8000, range: 1000 },
-  plasma: { name: 'PLASMA · INFERNO', cost: 60000, power: 2286, fireRate: 420, maxAmmo:8000, range: 1000 },
-  vortex: { name: 'VORTEX · SHARD', cost: 150000, power: 3286, fireRate: 420, maxAmmo:8000, range: 1000 },
-  quasar: { name: 'QUASAR · RAY', cost: 400000, power: 4429, fireRate: 420, maxAmmo:8000, range: 1000 },
-  singularity: { name: 'SINGULARITY · CORE', cost: 900000, power: 6000, fireRate: 420, maxAmmo:8000, range: 1000 },
-  omega: { name: 'OMEGA · ASCENSION', cost: 2000000, power: 8000, fireRate: 420, maxAmmo:8000, range: 1000 }
+  blaster: { name: 'BLASTER · NEONSTORM', cost: 0, power: 100, fireRate: 650, maxAmmo:8000, range: 1000 },
+  pulse: { name: 'PULSE · PRISMA', cost: 500, power: 200, fireRate: 650, maxAmmo:8000, range: 1000 },
+  cannon: { name: 'CANNON · SOLARIS', cost: 1500, power: 400, fireRate: 650, maxAmmo:8000, range: 1000 },
+  railgun: { name: 'RAILGUN · ECLIPSE', cost: 6500, power: 743, fireRate: 650, maxAmmo:8000, range: 1000 },
+  nova: { name: 'NOVA · SUPERNOVA', cost: 22000, power: 1486, fireRate: 650, maxAmmo:8000, range: 1000 },
+  plasma: { name: 'PLASMA · INFERNO', cost: 60000, power: 2286, fireRate: 650, maxAmmo:8000, range: 1000 },
+  vortex: { name: 'VORTEX · SHARD', cost: 150000, power: 3286, fireRate: 650, maxAmmo:8000, range: 1000 },
+  quasar: { name: 'QUASAR · RAY', cost: 400000, power: 4429, fireRate: 650, maxAmmo:8000, range: 1000 },
+  singularity: { name: 'SINGULARITY · CORE', cost: 900000, power: 6000, fireRate: 650, maxAmmo:8000, range: 1000 },
+  omega: { name: 'OMEGA · ASCENSION', cost: 2000000, power: 8000, fireRate: 650, maxAmmo:8000, range: 1000 }
 };
 
 function damageForPower(power) {
@@ -1803,7 +1803,7 @@ function createPlayer(ws) {
     defense: 0,
     damagePenalty: 0,
     defensePenalty: 0,
-    fireRate: 420,
+    fireRate: 650,
     score: 0,
     kills: 0,
     xp: 0,
@@ -1832,7 +1832,7 @@ function createPlayer(ws) {
     room: '',
     alive: true,
     frozen: false,
-    lastShot: 0,
+    lastShot: Date.now() + 180,
     speed: 225,
     lastStateAt: Date.now(),
     stateViolations: 0,
