@@ -9,7 +9,7 @@
 <script>
 (function(){
   try{
-    var v="20261003-022-remove-pvp-kills-hud";
+    var v="20261003-023-fix-connection-after-hud-cleanup";
     var k="neon_core_build";
     window.NEON_CORE_BUILD=v;
     var old=localStorage.getItem(k);
@@ -1893,7 +1893,6 @@ function draw(){
   document.getElementById("hp").textContent=Math.ceil(p.hp);
   document.getElementById("maxHp").textContent=p.maxHp;
   document.getElementById("level").textContent="Nv. "+p.level;
-  document.getElementById("pvpKills").textContent=p.pvpKills;
   const need=Math.max(1,serverXpNeed);
   document.getElementById("xp").textContent=p.xp;
   document.getElementById("xpNeed").textContent=need;
