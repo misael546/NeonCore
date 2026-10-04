@@ -7,7 +7,7 @@
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
 <script>
-(function(){window.NEON_CORE_BUILD="20261003-042-global-stable-installer";})();
+(function(){window.NEON_CORE_BUILD="20261003-043-global-force-updater-v2";})();
 </script>
 <title>Neon Core · Menú Principal</title>
 <style>
@@ -61,7 +61,7 @@ button span{margin-right:7px}
     if(!n){msg.textContent="Escribe tu nombre para entrar.";input.focus();return;}
     try{localStorage.setItem(key,n);}catch{}
     msg.textContent="Entrando a Sesión 1…";
-    const url="./neoncore/12345/?name="+encodeURIComponent(n)+"&neon_release="+encodeURIComponent("20261003-042-global-stable-installer");
+    const url="./neoncore/12345/v172/?name="+encodeURIComponent(n)+"&neon_release="+encodeURIComponent("20261003-043-global-force-updater-v2")+"&neon_force="+Date.now();
     window.location.assign(url);
   }
   button.addEventListener("click",enter);
