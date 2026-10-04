@@ -1,7 +1,7 @@
 {
   "game": "Neon Core",
-  "releaseId": "20261003-026-global-release",
-  "clientBuild": "20261003-026-global-release",
-  "serverBuild": "20261003-026-global-release",
+  "releaseId": "20261003-027-remove-legacy-build",
+  "clientBuild": "20261003-027-remove-legacy-build",
+  "serverBuild": "20261003-027-remove-legacy-build",
   "databaseSchema": 1
 }
