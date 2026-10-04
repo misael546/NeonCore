@@ -9,7 +9,7 @@
 <script>
 (function(){
   try{
-    var v="20261003-035-death-respawn-xp-fix";
+    var v="20261003-036-auto-respawn-xp-ammo-fix";
     window.NEON_CORE_BUILD=v;
     window.NEON_RELEASE_MONITOR="global-1";
     try{localStorage.setItem("neon_core_build",v);}catch(e){}
@@ -1155,21 +1155,23 @@ function connectMultiplayer(roomMode="quick",roomCode=""){ const publicRoomAuto=
           audioTone(m.boss?95:160,.16,"square",.05,-45);
           burst(p.x,p.y,m.boss?"#ffd76a":"#ff5474",m.boss?8:4);
         }else if(m.type==="pve_dead"){
-          audioTone(180,.18,"sawtooth",.06,-90);audioTone(90,.35,"triangle",.045,-35,.12);audioNoise(.22,.05,.12,250);
-          p.hp=0;
+          audioTone(180,.18,"sawtooth",.06,-90);audioTone(90,.35,"triangle",.045,-35,.1);audioNoise(.16,.04,.08,250);
           if(Number.isFinite(Number(m.x)))p.x=Number(m.x);
           if(Number.isFinite(Number(m.y)))p.y=Number(m.y);
-          p.alive=false;
-          gameActive=false;
+          if(Number.isFinite(Number(m.hp)))p.hp=Math.max(1,Number(m.hp));else p.hp=p.maxHp;
+          if(Number.isFinite(Number(m.maxHp)))p.maxHp=Number(m.maxHp);
+          if(Number.isFinite(Number(m.level)))p.level=Number(m.level);
+          if(Number.isFinite(Number(m.xp)))p.xp=Number(m.xp);
+          if(Object.prototype.hasOwnProperty.call(m,"ammo"))p.ammo=Math.max(0,Number(m.ammo)||0);
+          p.alive=true;
+          gameActive=true;
           moveX=0;moveY=0;
           resetAllControls();
-          const deathScore=document.getElementById("deathScore");
-          if(deathScore)deathScore.textContent=String(Math.max(0,Number(m.lostScore)||0));
-          document.getElementById("death").style.display="flex";
+          document.getElementById("death").style.display="none";
           updateHud();
           updateResourceHud();
           enemies.length=0;
-        }else if(m.type==="boss_explosion"){
+        }else if(}else if(m.type==="boss_explosion"){
           const ex=Number(m.x)||p.x,ey=Number(m.y)||p.y,er=Math.max(1,Number(m.r)||42);
           burst(ex,ey,m.blocked?"#ff8b4a":"#ff3b32",m.blocked?22:42);
           particles.push({x:ex,y:ey,vx:0,vy:0,life:.55,maxLife:.55,color:"#ffd76a",size:er,ring:true});
@@ -1188,20 +1190,21 @@ function connectMultiplayer(roomMode="quick",roomCode=""){ const publicRoomAuto=
           burst(p.x,p.y,"#ff5474",8);audioTone(130,.13,"square",.045,-65);
         }else if(m.type==="pvp_dead"){
           audioTone(210,.15,"sawtooth",.055,-100);audioTone(105,.3,"triangle",.04,-35,.1);
-          p.hp=0;
           if(Number.isFinite(Number(m.x)))p.x=Number(m.x);
           if(Number.isFinite(Number(m.y)))p.y=Number(m.y);
-          p.alive=false;
-          gameActive=false;
+          if(Number.isFinite(Number(m.hp)))p.hp=Math.max(1,Number(m.hp));else p.hp=p.maxHp;
+          if(Number.isFinite(Number(m.maxHp)))p.maxHp=Number(m.maxHp);
+          if(Number.isFinite(Number(m.level)))p.level=Number(m.level);
+          if(Object.prototype.hasOwnProperty.call(m,"ammo"))p.ammo=Math.max(0,Number(m.ammo)||0);
+          p.alive=true;
+          gameActive=true;
           moveX=0;moveY=0;
           resetAllControls();
-          const deathScore=document.getElementById("deathScore");
-          if(deathScore)deathScore.textContent=String(Math.max(0,Number(m.lostScore)||0));
-          document.getElementById("death").style.display="flex";
+          document.getElementById("death").style.display="none";
           updateHud();
           updateResourceHud();
           enemies.length=0;
-        }else if(m.type==="server_stats"){
+        }else if(}else if(m.type==="server_stats"){
           if(Number.isFinite(m.kills))p.kills=m.kills;
           if(Number.isFinite(m.pvpKills))p.pvpKills=m.pvpKills;
           if(Number.isFinite(m.score))p.score=m.score;
