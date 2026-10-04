@@ -9,7 +9,7 @@
 <script>
 (function(){
   try{
-    var v="20261003-031-real-player-death";
+    var v="20261003-032-dead-player-render-fix";
     window.NEON_CORE_BUILD=v;
     window.NEON_RELEASE_MONITOR="global-1";
     try{localStorage.setItem("neon_core_build",v);}catch(e){}
@@ -2037,6 +2037,7 @@ function draw(){
     ctx.restore();
   }
   for(const other of remotePlayers.values()){
+    if(other.alive===false)continue;
     drawTank(other.x,other.y,other.angle,other.color||"#7cff72",24,other.weapon||"",other.equippedSkin||"",other.equippedWeaponSkin||"");
     drawNameTag(other.name||"Jugador",other.x,other.y,24,"#7cff72");
     const ox=sx(other.x),oy=sy(other.y)-31;
@@ -2064,8 +2065,10 @@ function draw(){
     }
     ctx.globalAlpha=1;
   }
-  drawTank(p.x,p.y,p.angle,"#39e7ff",p.r,p.weapon||"",p.equippedSkin||"",equippedWeaponSkin||"");
-  drawNameTag(playerName,p.x,p.y,p.r,"#39e7ff");
+  if(p.alive!==false){
+    drawTank(p.x,p.y,p.angle,"#39e7ff",p.r,p.weapon||"",p.equippedSkin||"",equippedWeaponSkin||"");
+    drawNameTag(playerName,p.x,p.y,p.r,"#39e7ff");
+  }
   if(controlMode==="mouse"&&gameActive){ctx.save();ctx.strokeStyle="rgba(57,231,255,.95)";ctx.lineWidth=1.5;ctx.beginPath();ctx.arc(pointer.x,pointer.y,10,0,Math.PI*2);ctx.moveTo(pointer.x-16,pointer.y);ctx.lineTo(pointer.x+16,pointer.y);ctx.moveTo(pointer.x,pointer.y-16);ctx.lineTo(pointer.x,pointer.y+16);ctx.stroke();ctx.restore();}
   drawMinimap();updateCosmeticShop();updateResourceHud();
 
