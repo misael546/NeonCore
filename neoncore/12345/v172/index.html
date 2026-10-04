@@ -9,7 +9,7 @@
 <script>
 (function(){
   try{
-    var v="20261003-025-global-update-monitor";
+    var v="20261003-026-global-release";
     window.NEON_CORE_BUILD=v;
     window.NEON_RELEASE_MONITOR="global-1";
     try{localStorage.setItem("neon_core_build",v);}catch(e){}
@@ -652,10 +652,9 @@ const MULTIPLAYER_SERVER="wss://neon-core-multiplayer.onrender.com/ws";
 const RENDER_HEALTH_URL=MULTIPLAYER_SERVER.replace(/^wss:/,"https:").replace(/^ws:/,"http:").replace(/\/ws$/,"/health");
 let renderStatusTimer=null,renderServerVersion="",renderServerStartedAt=0;
 let serverUpdateNoticeOpen=false;
-let globalReleaseMonitorStarted=false;
 let globalUpdateInProgress=false;
-let globalUpdateStableChecks=0;
-let globalUpdateTargets=null;
+let globalUpdateTargetRelease="";
+let globalReleaseMonitorStarted=false;
 
 function showServerUpdateNotice(message){
   serverUpdateNoticeOpen=true;
@@ -664,17 +663,17 @@ function showServerUpdateNotice(message){
     const style=document.createElement("style");
     style.id="serverUpdateNoticeStyle";
     style.textContent=`
-      #serverUpdateNotice{position:fixed;inset:0;z-index:10050;display:flex;align-items:center;justify-content:center;padding:18px;background:rgba(2,5,12,.9);backdrop-filter:blur(8px);touch-action:auto}
-      #serverUpdateNotice .card{width:min(390px,94vw);background:linear-gradient(180deg,#0b1425,#070d18);border:1px solid #39e7ff99;border-radius:18px;padding:24px;box-shadow:0 20px 80px #000;text-align:center}
+      #serverUpdateNotice{position:fixed;inset:0;z-index:10050;display:flex;align-items:center;justify-content:center;padding:18px;background:rgba(2,5,12,.92);backdrop-filter:blur(8px);touch-action:auto}
+      #serverUpdateNotice .card{width:min(400px,94vw);background:linear-gradient(180deg,#0b1425,#070d18);border:1px solid #39e7ff99;border-radius:18px;padding:24px;box-shadow:0 20px 80px #000;text-align:center}
+      #serverUpdateNotice .spinner{width:34px;height:34px;border:3px solid #26344e;border-top-color:#39e7ff;border-radius:50%;margin:0 auto 14px;animation:spin .8s linear infinite}
       #serverUpdateNotice .title{display:block;color:#39e7ff;font-size:21px;font-weight:900;letter-spacing:1.5px;text-shadow:0 0 16px #39e7ff55}
       #serverUpdateNotice .text{display:block;margin-top:10px;color:#c8d3e5;font-size:13px;line-height:1.5}
-      #serverUpdateNotice .sub{display:block;margin-top:9px;color:#74839a;font-size:11px}
-      #serverUpdateNotice .spinner{width:32px;height:32px;border:3px solid #26344e;border-top-color:#39e7ff;border-radius:50%;margin:0 auto 14px;animation:spin .8s linear infinite}
+      #serverUpdateNotice .sub{display:block;margin-top:9px;color:#74839a;font-size:11px;line-height:1.45}
     `;
     document.head.appendChild(style);
     wrap=document.createElement("div");
     wrap.id="serverUpdateNotice";
-    wrap.innerHTML='<div class="card"><div class="spinner"></div><span class="title">ACTUALIZANDO SERVIDOR</span><span class="text"></span><span class="sub">Espere un momento. Neon Core está aplicando los cambios nuevos.</span></div>';
+    wrap.innerHTML='<div class="card"><div class="spinner"></div><span class="title">ACTUALIZANDO SERVIDOR</span><span class="text"></span><span class="sub">Espere un momento. Neon Core está sincronizando GitHub Pages, Render y los datos.</span></div>';
     document.body.appendChild(wrap);
   }
   const tx=wrap.querySelector(".text");
@@ -686,29 +685,19 @@ async function saveBeforeGlobalUpdate(){
   try{
     if(multiplayerSocket && multiplayerSocket.readyState===WebSocket.OPEN){
       multiplayerSocket.send(JSON.stringify({type:"save_on_exit"}));
-      await new Promise(resolve=>setTimeout(resolve,350));
+      await new Promise(resolve=>setTimeout(resolve,400));
     }
   }catch{}
   try{requestServerSaveAndClose();}catch{}
 }
 
-function readDatabaseSignature(data){
-  if(!data||typeof data!=="object")return "unavailable";
-  const d=data.diagnostics&&typeof data.diagnostics==="object"?data.diagnostics:{};
-  const explicit=data.databaseRevision||data.databaseVersion||d.databaseRevision||d.databaseVersion||"";
-  if(explicit)return "revision:"+String(explicit);
-  return "storage:"+String(data.storage||"offline")+"|ready:"+String(Boolean(d.storageReady));
-}
-
-async function fetchGitHubBuild(){
+async function fetchReleaseManifest(){
   try{
-    const url=location.pathname+"?neon_release_check="+Date.now();
+    const url=new URL("../../../release.json?check="+Date.now(),location.href).href;
     const res=await fetch(url,{cache:"no-store",headers:{"Cache-Control":"no-cache","Pragma":"no-cache"}});
-    if(!res.ok)return "";
-    const html=await res.text();
-    const m=html.match(/window\.NEON_CORE_BUILD\s*=\s*"([^"]+)"/);
-    return m?String(m[1]):"";
-  }catch{return "";}
+    if(!res.ok)return null;
+    return await res.json();
+  }catch{return null;}
 }
 
 async function fetchRenderHealth(){
@@ -719,103 +708,121 @@ async function fetchRenderHealth(){
   }catch{return null;}
 }
 
-function globalTargetReached(state){
-  if(!globalUpdateTargets)return false;
-  if(globalUpdateTargets.github && state.github!==globalUpdateTargets.github)return false;
-  if(globalUpdateTargets.render && (
-    !state.render ||
-    state.render.version!==globalUpdateTargets.render.version ||
-    Number(state.render.startedAt)!==Number(globalUpdateTargets.render.startedAt)
-  ))return false;
-  if(globalUpdateTargets.db && state.db!==globalUpdateTargets.db)return false;
-  return Boolean(state.render);
+function readGlobalReleaseState(manifest,health){
+  return {
+    manifestRelease:String(manifest?.releaseId||""),
+    serverRelease:String(health?.releaseId||health?.version||""),
+    databaseRelease:String(health?.databaseReleaseId||""),
+    databaseSchema:Number(health?.databaseSchema)||0,
+    startedAt:Number(health?.startedAt)||0
+  };
+}
+
+function allGlobalSourcesReady(state,target){
+  return Boolean(
+    target &&
+    state.manifestRelease===target &&
+    state.serverRelease===target &&
+    state.databaseRelease===target
+  );
 }
 
 async function runGlobalReleaseCheck(){
-  const [github,render]=await Promise.all([fetchGitHubBuild(),fetchRenderHealth()]);
-  const db=readDatabaseSignature(render);
-  const state={github,render:render?{
-    version:String(render.version||""),
-    startedAt:Number(render.startedAt)||0
-  }:null,db};
+  const [manifest,health]=await Promise.all([fetchReleaseManifest(),fetchRenderHealth()]);
+  const state=readGlobalReleaseState(manifest,health);
+  const localRelease=String(window.NEON_CORE_BUILD||"");
+
+  if(state.manifestRelease) document.title="Neon Core · "+state.manifestRelease;
+
+  const serverChanged=globalReleaseMonitorStarted && (
+    state.serverRelease!==renderServerVersion ||
+    state.startedAt!==renderServerStartedAt
+  );
+  const pageChanged=Boolean(state.manifestRelease && state.manifestRelease!==localRelease);
+  const databaseChanged=Boolean(
+    globalReleaseMonitorStarted &&
+    state.databaseRelease &&
+    window.__NEON_DATABASE_RELEASE &&
+    state.databaseRelease!==window.__NEON_DATABASE_RELEASE
+  );
 
   if(!globalReleaseMonitorStarted){
     globalReleaseMonitorStarted=true;
-    renderServerVersion=state.render?.version||"";
-    renderServerStartedAt=state.render?.startedAt||0;
-    window.__NEON_RELEASE_BASELINE=state;
-    return;
+    renderServerVersion=state.serverRelease;
+    renderServerStartedAt=state.startedAt;
+    window.__NEON_DATABASE_RELEASE=state.databaseRelease;
   }
 
-  const githubChanged=Boolean(state.github && window.NEON_CORE_BUILD && state.github!==window.NEON_CORE_BUILD);
-  const renderChanged=Boolean(
-    state.render &&
-    renderServerVersion &&
-    (state.render.version!==renderServerVersion || state.render.startedAt!==renderServerStartedAt)
-  );
-  const dbChanged=Boolean(
-    window.__NEON_DB_BASELINE &&
-    state.db!==window.__NEON_DB_BASELINE
+  const componentsMismatch=Boolean(
+    state.manifestRelease &&
+    state.serverRelease &&
+    state.databaseRelease &&
+    (
+      state.manifestRelease!==state.serverRelease ||
+      state.manifestRelease!==state.databaseRelease
+    )
   );
 
-  if((githubChanged||renderChanged||dbChanged) && !globalUpdateInProgress){
+  const updateDetected=pageChanged || serverChanged || databaseChanged || componentsMismatch;
+
+  if(updateDetected && !globalUpdateInProgress){
     globalUpdateInProgress=true;
-    globalUpdateStableChecks=0;
-    globalUpdateTargets={
-      github:githubChanged?state.github:"",
-      render:renderChanged?state.render:null,
-      db:dbChanged?state.db:""
-    };
+    globalUpdateTargetRelease=
+      state.manifestRelease ||
+      state.serverRelease ||
+      state.databaseRelease ||
+      localRelease;
+
     showServerUpdateNotice(
-      githubChanged?"Se detectaron cambios nuevos en GitHub Pages.":
-      renderChanged?"Se detectó una actualización del servidor Render.":
-      "Se detectó un cambio en la persistencia de datos."
+      state.serverRelease && state.serverRelease!==localRelease
+        ? "Se detectó una actualización del servidor. Guardando la partida y esperando a que todo quede sincronizado…"
+        : pageChanged
+          ? "Se detectaron cambios nuevos en GitHub Pages. Esperando a que Render y los datos reciban la misma versión…"
+          : "Se detectó un cambio de versión. Sincronizando todos los componentes…"
     );
+
     await saveBeforeGlobalUpdate();
     return;
   }
 
   if(globalUpdateInProgress){
-    if(globalTargetReached(state)){
-      globalUpdateStableChecks++;
-      const status=wrapStatus();
-      if(status)status.textContent="Servidor actualizado. Cargando la versión nueva…";
-      if(globalUpdateStableChecks>=2){
-        globalUpdateInProgress=false;
-        try{location.reload();}catch{location.href=location.href;}
-        return;
+    const target=globalUpdateTargetRelease;
+    const ready=allGlobalSourcesReady(state,target) && localRelease===target;
+
+    const tx=document.querySelector("#serverUpdateNotice .text");
+    if(ready){
+      if(tx)tx.textContent="Todo está sincronizado. Cargando la versión nueva…";
+      setTimeout(()=>{
+        if(globalUpdateInProgress){
+          globalUpdateInProgress=false;
+          try{location.reload();}catch{location.href=location.href;}
+        }
+      },700);
+    }else if(tx){
+      if(!health){
+        tx.textContent="Render está actualizando. Espere un momento…";
+      }else if(!state.manifestRelease){
+        tx.textContent="GitHub Pages todavía está publicando la nueva versión. Espere un momento…";
+      }else if(!state.databaseRelease){
+        tx.textContent="Esperando a que la base de datos confirme la nueva versión…";
+      }else if(state.manifestRelease!==state.serverRelease || state.manifestRelease!==state.databaseRelease){
+        tx.textContent="Sincronizando GitHub Pages + Render + base de datos…";
+      }else{
+        tx.textContent="La nueva versión está lista. Preparando la recarga…";
       }
-    }else{
-      globalUpdateStableChecks=0;
-      const status=wrapStatus();
-      if(status)status.textContent=state.render
-        ?"Actualizando GitHub Pages, Render y la persistencia. Espere un momento…"
-        :"Esperando a que Render termine de actualizar…";
     }
     return;
   }
 
-  if(state.render){
-    renderServerVersion=state.render.version;
-    renderServerStartedAt=state.render.startedAt;
-    window.__NEON_DB_BASELINE=state.db;
+  if(health){
+    renderServerVersion=state.serverRelease;
+    renderServerStartedAt=state.startedAt;
+    window.__NEON_DATABASE_RELEASE=state.databaseRelease;
   }
-}
-
-function wrapStatus(){
-  const wrap=document.getElementById("serverUpdateNotice");
-  return wrap?wrap.querySelector(".text"):null;
 }
 
 function startRenderMonitor(){
   if(renderStatusTimer)clearInterval(renderStatusTimer);
-  fetchRenderHealth().then(data=>{
-    if(data){
-      renderServerVersion=String(data.version||"");
-      renderServerStartedAt=Number(data.startedAt)||0;
-      window.__NEON_DB_BASELINE=readDatabaseSignature(data);
-    }
-  }).catch(()=>{});
   runGlobalReleaseCheck();
   renderStatusTimer=setInterval(runGlobalReleaseCheck,2500);
 }
