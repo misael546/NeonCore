@@ -1,3 +1,4 @@
+/* BUILD-11 · HUD limpia y configuraciones generales */
 'use strict';
 
 const http = require('http');

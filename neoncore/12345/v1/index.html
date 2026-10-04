@@ -9,7 +9,7 @@
 <script>
 (function(){
   try{
-    var v="BUILD-10",checking=false,updating=false,timer=null,base=new URL("../../../",location.href),manifestUrl=new URL("release.json",base);
+    var v="BUILD-11",checking=false,updating=false,timer=null,base=new URL("../../../",location.href),manifestUrl=new URL("release.json",base);
     window.NEON_CORE_BUILD=v;localStorage.setItem("neon_core_build",v);
     function notice(remote){
       if(updating)return;updating=true;
@@ -33,7 +33,7 @@
   }catch(e){}
 })();
 </script>
-<title>Neon Core · Build 10</title>
+<title>Neon Core · Build 11</title>
 <style>
 *{box-sizing:border-box}html,body{margin:0;width:100%;height:100%;overflow:hidden;background:#050811;color:#fff;font-family:Arial,sans-serif;touch-action:none}
 #game{display:block;width:100vw;height:100vh}
@@ -238,20 +238,42 @@
  #chatBox{left:calc(8px + min(205px,61vw))!important;top:41px;width:min(290px,calc(100vw - 8px))}
 }
 html.pc-controls #chatFeed{width:min(420px,38vw)}
-</style><style>.shopCloseBtn{width:36px;height:36px;flex:0 0 36px;margin:0;border:1px solid #39e7ff66;border-radius:10px;background:#111a2d;color:#fff;font-size:24px;line-height:1;font-weight:900;pointer-events:auto}.shopCloseBtn:hover{border-color:#39e7ff;background:#183d58}.cosmeticShopHead{position:relative;z-index:2}</style></head>
+</style><style>.shopCloseBtn{width:36px;height:36px;flex:0 0 36px;margin:0;border:1px solid #39e7ff66;border-radius:10px;background:#111a2d;color:#fff;font-size:24px;line-height:1;font-weight:900;pointer-events:auto}.shopCloseBtn:hover{border-color:#39e7ff;background:#183d58}.cosmeticShopHead{position:relative;z-index:2}<style id="neonHudV11">
+#hud{top:10px;left:10px;right:auto;z-index:140;pointer-events:none}
+#bars{width:min(430px,calc(100vw - 20px));min-width:0;padding:7px 8px}
+.hudTopLine{display:flex;align-items:center;gap:8px}.hpBar{flex:1;min-width:145px;margin-top:0}
+.hudTools{display:flex;align-items:center;gap:5px;margin-left:auto;pointer-events:auto}
+.hudTools button{position:relative!important;left:auto!important;right:auto!important;bottom:auto!important;z-index:141!important;width:34px;height:30px;min-width:34px;margin:0;padding:0;border:1px solid #33415d;border-radius:9px;background:linear-gradient(135deg,#091524,#10273c);color:#dffbff;display:grid!important;place-items:center;font-size:16px;font-weight:900;pointer-events:auto;cursor:pointer;box-shadow:0 0 13px #000,inset 0 0 10px #39e7ff08}
+.hudTools button:hover{border-color:#39e7ff;box-shadow:0 0 18px #39e7ff22,0 0 10px #000}.hudTools button:active{transform:scale(.94)}
+.hudTools #proximityVoiceBtn{border-color:#6b557d;color:#f4e9ff}
+html.pc-controls #controlConfigBtn,html.touch-controls #controlConfigBtn{display:grid!important}
+#chatToggle{min-width:34px!important;height:30px!important;position:relative!important;left:auto!important;bottom:auto!important}
+#chatToggle:before,#chatToggle:after{display:none!important}
+#controlEditor{padding:10px;backdrop-filter:blur(9px)}
+#controlCard{width:min(350px,94vw);max-height:82vh;overflow:auto;padding:13px;border-radius:17px;border-color:#39e7ff55;background:linear-gradient(180deg,#0c1626,#070d17);box-shadow:0 20px 70px #000,0 0 30px #39e7ff12}
+#controlCard::-webkit-scrollbar{width:5px}#controlCard::-webkit-scrollbar-thumb{background:#26344e;border-radius:9px}
+#utilityHead{gap:8px;margin-bottom:8px}.settingsMark{width:29px;height:29px;border:1px solid #39e7ff55;border-radius:8px;background:#081523;display:grid;place-items:center;color:#39e7ff}
+.utilityHeadText{flex:1;min-width:0}.utilityHeadText strong{display:block;color:#dffbff;font-size:15px;letter-spacing:1px}.utilityHeadText small{display:block;margin-top:2px;color:#71819a;font-size:8px;letter-spacing:.7px}
+.utilityClose{width:31px!important;height:31px!important;min-width:31px!important;margin:0!important;padding:0!important;border:1px solid #4a2f47!important;border-radius:9px!important;background:#17101c!important;color:#ffb6c5!important;font-size:21px!important;line-height:1!important;font-weight:900!important;display:grid!important;place-items:center!important}
+.utilityTabs{gap:6px;margin-bottom:9px}.utilityTab{min-height:38px!important}.controlRow{margin:8px 0}.controlActions{margin-top:9px;gap:6px}
+#statsView .statsGrid{gap:6px}#statsView .statBox{padding:8px}#statsView .statsHero{padding:10px;margin-bottom:8px}.statsXp{margin-top:7px;padding:8px}
+@media(max-width:600px){#hud{top:max(8px,env(safe-area-inset-top));left:8px}#bars{width:min(360px,calc(100vw - 16px));padding:6px}.hpBar{min-width:118px}.hudTools{gap:4px}.hudTools button{width:32px;height:29px;min-width:32px;font-size:15px}#controlEditor{padding:8px}#controlCard{width:min(340px,96vw);max-height:84vh;padding:11px}}
+</style></style></head>
 <body>
-<canvas id="game"></canvas><div id="buildDisplay">BUILD 10</div><button id="audioToggle" type="button" aria-label="Activar o silenciar audio">🔊</button>
+<canvas id="game"></canvas><div id="buildDisplay">BUILD 11</div><button id="audioToggle" type="button" aria-label="Activar o silenciar audio">🔊</button>
 
 <div id="hud">
   <div class="panel" id="bars">
-    <div class="hudTopLine"><span><b>NEON CORE</b> · <span id="level">Nv. 1</span> · 👾 <span id="kills">0</span> · ⚔ <span id="pvpKillsHud">0</span></span></div>
-    <div class="bar hpBar"><i id="hpFill"></i><span class="barLabel">❤️ <span id="hp">100</span>/<span id="maxHp">100</span></span></div>
-    <div id="resourceHud"><span>🪙 <b id="gold">0</b></span><span>💎 <b id="diamonds">0</b></span><span>🔸 <b id="ammo">0</b>/<b id="maxAmmo">220</b></span></div>
-    <div id="weaponHud">ARMA: <b id="weaponName">BLASTER</b></div>
+    <div class="hudTopLine">
+      <div class="bar hpBar"><i id="hpFill"></i><span class="barLabel">❤️ <span id="hp">100</span>/<span id="maxHp">100</span></span></div>
+      <div class="hudTools">
+        <button id="controlConfigBtn" type="button" aria-label="Abrir configuraciones generales" title="Configuraciones generales">⚙</button>
+        <button id="chatToggle" type="button" aria-expanded="false" aria-controls="chatBox" aria-label="Abrir chat" title="Chat">💬</button>
+        <button id="proximityVoiceBtn" type="button" aria-label="Chat de voz por proximidad próximamente" title="Chat de voz por proximidad · Próximamente">🎙</button>
+      </div>
+    </div>
   </div>
 </div>
-
-<button id="chatToggle" type="button" aria-expanded="false" aria-controls="chatBox"><span class="chatIcon">◉</span><span class="chatLabel">CHAT</span></button>
 <div id="minimapWrap"><canvas id="minimap" width="360" height="270"></canvas><span id="minimapTitle">MINIMAPA</span></div>
 <div id="cosmeticShop" aria-hidden="true"><div class="shopBackdrop"></div>
   <div class="cosmeticShopCard shopUnifiedCard">
@@ -321,11 +343,10 @@ html.pc-controls #chatFeed{width:min(420px,38vw)}
   </div>
 </div>
 
-<button id="controlConfigBtn" type="button" aria-label="Abrir configuración y estadísticas">⚙</button>
 <div id="controlEditor"><div id="controlCard">
-<div id="utilityHead"><strong>⚙ NÚCLEO</strong><small>AJUSTES UNIVERSALES</small><button id="controlClose" type="button" aria-label="Cerrar configuración">×</button></div>
+<div id="utilityHead"><div class="settingsMark">⚙</div><div class="utilityHeadText"><strong>CONFIGURACIONES GENERALES</strong><small>CONTROLES · STATS · NEON CORE</small></div><button id="controlClose" class="utilityClose" type="button" aria-label="Cerrar configuraciones">×</button></div>
 <div class="utilityTabs"><button class="utilityTab active" data-utility-tab="controls" type="button">CONTROLES</button><button class="utilityTab" data-utility-tab="stats" type="button">STATS</button></div>
-<section id="controlView" class="utilityView active"><p>Este menú funciona igual en Android, iPhone, tablet y PC. Los cambios quedan guardados en este dispositivo.</p>
+<section id="controlView" class="utilityView active"><p>Configuración universal. Los cambios quedan guardados en este dispositivo.</p>
 <div class="controlRow"><label>Arriba</label><button class="bindKey" data-bind="up" type="button">W</button></div><div class="controlRow"><label>Izquierda</label><button class="bindKey" data-bind="left" type="button">A</button></div><div class="controlRow"><label>Abajo</label><button class="bindKey" data-bind="down" type="button">S</button></div><div class="controlRow"><label>Derecha</label><button class="bindKey" data-bind="right" type="button">D</button></div><div class="controlRow"><label>Disparo teclado</label><button class="bindKey" data-bind="fire" type="button">ESPACIO</button></div><div id="bindMsg" style="min-height:18px;margin:-2px 0 8px;color:#39e7ff;font-size:11px;text-align:center"></div>
 <div class="controlRow"><label for="joySize">Joystick</label><input id="joySize" type="range" min="80" max="170" value="112"></div><div class="controlRow"><label for="fireSize">Disparo</label><input id="fireSize" type="range" min="60" max="130" value="86"></div><div class="controlRow"><label for="joyX">Joystick X</label><input id="joyX" type="range" min="0" max="100" value="8"></div><div class="controlRow"><label for="joyY">Joystick Y</label><input id="joyY" type="range" min="0" max="100" value="8"></div><div class="controlRow"><label for="fireX">Disparo X</label><input id="fireX" type="range" min="0" max="100" value="8"></div><div class="controlRow"><label for="fireY">Disparo Y</label><input id="fireY" type="range" min="0" max="100" value="8"></div>
 <div class="controlActions"><button id="controlReset" type="button">Restablecer</button><button id="controlDone" type="button">Listo</button></div></section>
@@ -361,7 +382,7 @@ let neonAudio={
   enabled:true,ready:false
 };
 const NEON_MUSIC_BASE="https://opengameart.org/sites/default/files/";
-const NEON_MUSIC_CREDIT="MUSIC · tricksntraps · OpenGameArt · CC0 · BUILD-10";
+const NEON_MUSIC_CREDIT="MUSIC · tricksntraps · OpenGameArt · CC0 · BUILD-11";
 const neonMusic={
   tracks:{
     menu:{file:"Currents.ogg",name:"NEON CORE"}, exploration:{file:"Currents.ogg",name:"NEON CORE"}, tension:{file:"Currents.ogg",name:"NEON CORE"}, combat:{file:"Currents.ogg",name:"NEON CORE"}, boss:{file:"Currents.ogg",name:"NEON CORE"}, bonus:{file:"Currents.ogg",name:"NEON CORE"}
@@ -827,7 +848,7 @@ function connectMultiplayer(roomMode="quick",roomCode=""){ const publicRoomAuto=
         const m=JSON.parse(e.data);
         if(m.type==="server_update_notice"){
           const target=String(m.clientBuild||m.serverVersion||"");
-          if(target&&target!=="BUILD-10"&&typeof window.__neonForceUpdate==="function")window.__neonForceUpdate(target);
+          if(target&&target!=="BUILD-11"&&typeof window.__neonForceUpdate==="function")window.__neonForceUpdate(target);
           return;
         }
         if(m.type==="room_joined"){
@@ -1995,13 +2016,17 @@ function formatBind(code){const map={Space:"ESPACIO",ArrowUp:"↑",ArrowDown:"�
 function updateBindButtons(){document.querySelectorAll(".bindKey").forEach(btn=>{const k=btn.dataset.bind;btn.textContent=controlCapture===k?"PULSA UNA TECLA":formatBind(pcBindings[k]);});}
 updateBindButtons();
 document.querySelectorAll(".bindKey").forEach(btn=>btn.addEventListener("click",e=>{e.preventDefault();e.stopPropagation();controlCapture=btn.dataset.bind;if(bindMsg)bindMsg.textContent="Presiona la tecla que quieres usar.";updateBindButtons();}));
-controlConfigBtn.style.display="block";
+controlConfigBtn.style.display="grid";
 const controlInputs={joySize:document.getElementById("joySize"),fireSize:document.getElementById("fireSize"),joyX:document.getElementById("joyX"),joyY:document.getElementById("joyY"),fireX:document.getElementById("fireX"),fireY:document.getElementById("fireY")};
 function syncControlInputs(){for(const k in controlInputs)controlInputs[k].value=controlConfig[k];}
 for(const [k,input] of Object.entries(controlInputs))input.addEventListener("input",()=>{controlConfig[k]=Number(input.value);saveControlConfig();});
 syncControlInputs();applyControlConfig();
+function closeGeneralSettings(){controlCapture=null;if(bindMsg)bindMsg.textContent="";updateBindButtons();controlEditor.style.display="none";}
 controlConfigBtn.addEventListener("click",e=>{e.preventDefault();e.stopPropagation();syncControlInputs();setUtilityTab("controls");updateStatsPanel();controlEditor.style.display="flex";});
-document.getElementById("controlDone").addEventListener("click",()=>{controlEditor.style.display="none";});document.getElementById("controlClose").addEventListener("click",()=>{controlEditor.style.display="none";});controlEditor.addEventListener("click",e=>{if(e.target===controlEditor)controlEditor.style.display="none";});
+document.getElementById("controlDone").addEventListener("click",closeGeneralSettings);
+document.getElementById("controlClose").addEventListener("click",closeGeneralSettings);
+controlEditor.addEventListener("click",e=>{if(e.target===controlEditor)closeGeneralSettings();});
+document.addEventListener("keydown",e=>{if(e.key!=="Escape"||controlEditor.style.display!=="flex")return;if(controlCapture){controlCapture=null;if(bindMsg)bindMsg.textContent="";updateBindButtons();e.preventDefault();e.stopImmediatePropagation();return;}e.preventDefault();e.stopImmediatePropagation();closeGeneralSettings();});
 document.getElementById("controlReset").addEventListener("click",()=>{controlConfig={...controlDefaults};pcBindings={...pcBindDefaults};savePcBindings();controlCapture=null;if(bindMsg)bindMsg.textContent="Controles restablecidos.";updateBindButtons();syncControlInputs();saveControlConfig();});
 
 
@@ -2016,7 +2041,7 @@ function resetAllControls(){
   updateBindButtons();
 }
 addEventListener("resize",resetAllControls);
-addEventListener("orientationchange",()=>{updateControlMode();resetAllControls();resize();applyControlConfig();controlConfigBtn.style.display="block";setTimeout(()=>{updateControlMode();resize();applyControlConfig();},120);});
+addEventListener("orientationchange",()=>{updateControlMode();resetAllControls();resize();applyControlConfig();controlConfigBtn.style.display="grid";setTimeout(()=>{updateControlMode();resize();applyControlConfig();},120);});
 addEventListener("blur",resetAllControls);
 document.addEventListener("visibilitychange",()=>{
   // Cambiar de pestaña NO cierra la sesión ni toca el motor de audio.
@@ -2031,7 +2056,7 @@ document.addEventListener("visibilitychange",()=>{
   }catch{}
 });
 
-const chatToggle=document.getElementById("chatToggle"),chatBox=document.getElementById("chatBox");
+const chatToggle=document.getElementById("chatToggle"),chatBox=document.getElementById("chatBox"),proximityVoiceBtn=document.getElementById("proximityVoiceBtn");
 const chatCloseStatic=document.getElementById("chatCloseStatic");
 const chatForm=document.getElementById("chatForm"),chatInput=document.getElementById("chatInput");
 let chatOpen=false;
@@ -2054,6 +2079,7 @@ chatForm.addEventListener("submit",e=>{
 });
 chatInput.addEventListener("keydown",e=>{if(e.key==="Escape"){chatInput.blur();setChatOpen(false);}});
 setChatOpen(false);
+if(proximityVoiceBtn)proximityVoiceBtn.addEventListener("click",e=>{e.preventDefault();e.stopPropagation();showToast("🎙 CHAT DE VOZ POR PROXIMIDAD · PRÓXIMAMENTE");});
 const nameBox=document.getElementById("nameBox");
 const nameForm=document.getElementById("nameForm");
 const username=document.getElementById("username");
@@ -2179,6 +2205,7 @@ username.addEventListener("keydown",e=>{
 });
 
 addEventListener("keydown",e=>{
+  if(controlEditor.style.display==="flex")return;
   if(e.target===username||e.target===roomCodeInput||e.target===chatInput)return;
   if(controlCapture){
     e.preventDefault();
