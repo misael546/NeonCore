@@ -9,7 +9,7 @@
 <script>
 (function(){
   try{
-    var v="20261003-029-stop-update-loop";
+    var v="20261003-030-live-update-loader";
     window.NEON_CORE_BUILD=v;
     window.NEON_RELEASE_MONITOR="global-1";
     try{localStorage.setItem("neon_core_build",v);}catch(e){}
@@ -659,10 +659,14 @@ const RENDER_HEALTH_URL=MULTIPLAYER_SERVER.replace(/^wss:/,"https:").replace(/^w
 let renderStatusTimer=null,renderServerVersion="",renderServerStartedAt=0;
 let serverUpdateNoticeOpen=false;
 let globalUpdateInProgress=false;
-let websocketRelease="";
-let websocketDatabaseRelease="";
 let globalUpdateTargetRelease="";
 let globalReleaseMonitorStarted=false;
+let websocketRelease="";
+let websocketDatabaseRelease="";
+
+const GITHUB_RAW_ROOT="https://raw.githubusercontent.com/misael546/NeonCore/main/";
+const RELEASE_MANIFEST_URL=GITHUB_RAW_ROOT+"release.json";
+const CLIENT_SOURCE_URL=GITHUB_RAW_ROOT+"neoncore/12345/v172/index.html";
 
 function showServerUpdateNotice(message){
   serverUpdateNoticeOpen=true;
@@ -671,17 +675,17 @@ function showServerUpdateNotice(message){
     const style=document.createElement("style");
     style.id="serverUpdateNoticeStyle";
     style.textContent=`
-      #serverUpdateNotice{position:fixed;inset:0;z-index:10050;display:flex;align-items:center;justify-content:center;padding:18px;background:rgba(2,5,12,.92);backdrop-filter:blur(8px);touch-action:auto}
-      #serverUpdateNotice .card{width:min(400px,94vw);background:linear-gradient(180deg,#0b1425,#070d18);border:1px solid #39e7ff99;border-radius:18px;padding:24px;box-shadow:0 20px 80px #000;text-align:center}
+      #serverUpdateNotice{position:fixed;inset:0;z-index:10050;display:flex;align-items:center;justify-content:center;padding:18px;background:rgba(2,5,12,.94);backdrop-filter:blur(8px);touch-action:auto}
+      #serverUpdateNotice .card{width:min(410px,94vw);background:linear-gradient(180deg,#0b1425,#070d18);border:1px solid #39e7ff99;border-radius:18px;padding:24px;box-shadow:0 20px 80px #000;text-align:center}
       #serverUpdateNotice .spinner{width:34px;height:34px;border:3px solid #26344e;border-top-color:#39e7ff;border-radius:50%;margin:0 auto 14px;animation:spin .8s linear infinite}
-      #serverUpdateNotice .title{display:block;color:#39e7ff;font-size:21px;font-weight:900;letter-spacing:1.5px;text-shadow:0 0 16px #39e7ff55}
+      #serverUpdateNotice .title{display:block;color:#39e7ff;font-size:21px;font-weight:900;letter-spacing:1.5px}
       #serverUpdateNotice .text{display:block;margin-top:10px;color:#c8d3e5;font-size:13px;line-height:1.5}
       #serverUpdateNotice .sub{display:block;margin-top:9px;color:#74839a;font-size:11px;line-height:1.45}
     `;
     document.head.appendChild(style);
     wrap=document.createElement("div");
     wrap.id="serverUpdateNotice";
-    wrap.innerHTML='<div class="card"><div class="spinner"></div><span class="title">ACTUALIZANDO SERVIDOR</span><span class="text"></span><span class="sub">Espere un momento. Neon Core está sincronizando GitHub Pages, Render y los datos.</span></div>';
+    wrap.innerHTML='<div class="card"><div class="spinner"></div><span class="title">ACTUALIZANDO SERVIDOR</span><span class="text"></span><span class="sub">Espere un momento. Neon Core está sincronizando todos los componentes.</span></div>';
     document.body.appendChild(wrap);
   }
   const tx=wrap.querySelector(".text");
@@ -696,21 +700,41 @@ async function saveBeforeGlobalUpdate(){
       await new Promise(resolve=>setTimeout(resolve,400));
     }
   }catch{}
-  try{requestServerSaveAndClose();}catch{}
 }
 
-async function fetchReleaseManifest(){
+async function fetchJsonNoCache(url){
   try{
-    const url=new URL("/NeonCore/release.json?check="+Date.now(),location.origin).href;
-    const res=await fetch(url,{cache:"no-store",headers:{"Cache-Control":"no-cache","Pragma":"no-cache"}});
+    const res=await fetch(url+(url.includes("?")?"&":"?")+"t="+Date.now(),{
+      cache:"no-store",
+      headers:{"Cache-Control":"no-cache","Pragma":"no-cache"}
+    });
     if(!res.ok)return null;
     return await res.json();
   }catch{return null;}
 }
 
+async function fetchLatestClientSource(){
+  try{
+    const res=await fetch(CLIENT_SOURCE_URL+"?t="+Date.now(),{
+      cache:"no-store",
+      headers:{"Cache-Control":"no-cache","Pragma":"no-cache"}
+    });
+    if(!res.ok)return null;
+    const html=await res.text();
+    const m=html.match(/window\.NEON_CORE_BUILD\s*=\s*"([^"]+)"/);
+    return {
+      html,
+      release:m?String(m[1]):""
+    };
+  }catch{return null;}
+}
+
 async function fetchRenderHealth(){
   try{
-    const res=await fetch(RENDER_HEALTH_URL,{cache:"no-store",headers:{"Cache-Control":"no-cache"}});
+    const res=await fetch(RENDER_HEALTH_URL+"?t="+Date.now(),{
+      cache:"no-store",
+      headers:{"Cache-Control":"no-cache","Pragma":"no-cache"}
+    });
     if(!res.ok)return null;
     return await res.json();
   }catch{return null;}
@@ -721,7 +745,6 @@ function readGlobalReleaseState(manifest,health){
     manifestRelease:String(manifest?.releaseId||""),
     serverRelease:String(health?.releaseId||health?.version||websocketRelease||""),
     databaseRelease:String(health?.databaseReleaseId||websocketDatabaseRelease||""),
-    databaseSchema:Number(health?.databaseSchema)||0,
     startedAt:Number(health?.startedAt)||Number(window.__NEON_WS_STARTED_AT)||0
   };
 }
@@ -736,34 +759,33 @@ function allGlobalSourcesReady(state,target){
 }
 
 function chooseGlobalUpdateTarget(state,localRelease){
-  const candidates=[
-    state.manifestRelease,
-    state.serverRelease,
-    state.databaseRelease
-  ].filter(Boolean).filter(value=>value!==localRelease);
+  const candidates=[state.manifestRelease,state.serverRelease,state.databaseRelease]
+    .filter(Boolean)
+    .filter(value=>value!==localRelease);
   if(!candidates.length)return localRelease;
   candidates.sort((a,b)=>String(a).localeCompare(String(b)));
   return candidates[candidates.length-1];
 }
 
+async function applyLatestClientSource(target){
+  const latest=await fetchLatestClientSource();
+  if(!latest || latest.release!==target || !latest.html)return false;
+  try{
+    sessionStorage.setItem("neon_last_applied_release",target);
+  }catch{}
+  document.open();
+  document.write(latest.html);
+  document.close();
+  return true;
+}
+
 async function runGlobalReleaseCheck(){
-  const [manifest,health]=await Promise.all([fetchReleaseManifest(),fetchRenderHealth()]);
+  const [manifest,health]=await Promise.all([
+    fetchJsonNoCache(RELEASE_MANIFEST_URL),
+    fetchRenderHealth()
+  ]);
   const state=readGlobalReleaseState(manifest,health);
   const localRelease=String(window.NEON_CORE_BUILD||"");
-
-  if(state.manifestRelease) document.title="Neon Core · "+state.manifestRelease;
-
-  const serverChanged=globalReleaseMonitorStarted && (
-    state.serverRelease!==renderServerVersion ||
-    state.startedAt!==renderServerStartedAt
-  );
-  const pageChanged=Boolean(state.manifestRelease && state.manifestRelease!==localRelease);
-  const databaseChanged=Boolean(
-    globalReleaseMonitorStarted &&
-    state.databaseRelease &&
-    window.__NEON_DATABASE_RELEASE &&
-    state.databaseRelease!==window.__NEON_DATABASE_RELEASE
-  );
 
   if(!globalReleaseMonitorStarted){
     globalReleaseMonitorStarted=true;
@@ -772,6 +794,17 @@ async function runGlobalReleaseCheck(){
     window.__NEON_DATABASE_RELEASE=state.databaseRelease;
   }
 
+  const pageChanged=Boolean(state.manifestRelease && state.manifestRelease!==localRelease);
+  const serverChanged=Boolean(
+    state.serverRelease &&
+    renderServerVersion &&
+    (state.serverRelease!==renderServerVersion || state.startedAt!==renderServerStartedAt)
+  );
+  const databaseChanged=Boolean(
+    state.databaseRelease &&
+    window.__NEON_DATABASE_RELEASE &&
+    state.databaseRelease!==window.__NEON_DATABASE_RELEASE
+  );
   const componentsMismatch=Boolean(
     state.manifestRelease &&
     state.serverRelease &&
@@ -782,62 +815,41 @@ async function runGlobalReleaseCheck(){
     )
   );
 
-  const updateDetected=pageChanged || serverChanged || databaseChanged || componentsMismatch;
+  const detected=pageChanged||serverChanged||databaseChanged||componentsMismatch;
 
-  if(updateDetected && !globalUpdateInProgress){
+  if(detected && !globalUpdateInProgress){
     globalUpdateInProgress=true;
     globalUpdateTargetRelease=chooseGlobalUpdateTarget(state,localRelease);
-
-    showServerUpdateNotice(
-      state.serverRelease && state.serverRelease!==localRelease
-        ? "Se detectó una actualización del servidor. Guardando la partida y esperando a que todo quede sincronizado…"
-        : pageChanged
-          ? "Se detectaron cambios nuevos en GitHub Pages. Esperando a que Render y los datos reciban la misma versión…"
-          : "Se detectó un cambio de versión. Sincronizando todos los componentes…"
-    );
-
+    showServerUpdateNotice("Se detectó una actualización. Guardando la partida y esperando a que GitHub Pages, Render y la base de datos queden sincronizados…");
     await saveBeforeGlobalUpdate();
     return;
   }
 
   if(globalUpdateInProgress){
     const target=globalUpdateTargetRelease;
-    const ready=allGlobalSourcesReady(state,target);
-
     const tx=document.querySelector("#serverUpdateNotice .text");
-    if(ready){
-      if(tx)tx.textContent="Todo está sincronizado. Cargando la versión nueva…";
-      setTimeout(()=>{
-        if(globalUpdateInProgress){
-          globalUpdateInProgress=false;
-          const target=globalUpdateTargetRelease||"";
-          try{
-            const key="neon_update_attempts_"+target;
-            const attempts=Math.min(99,(Number(sessionStorage.getItem(key))||0)+1);
-            sessionStorage.setItem(key,String(attempts));
-            if(attempts<=3){
-              const url=new URL(location.href);
-              url.searchParams.set("neon_reload",Date.now().toString());
-              url.searchParams.set("neon_release",target);
-              location.replace(url.href);
-              return;
-            }
-          }catch{}
-          const tx=document.querySelector("#serverUpdateNotice .text");
-          if(tx)tx.textContent="La nueva versión ya está en proceso de publicación en GitHub Pages. La recarga automática se detuvo para evitar un bucle.";
-        }
-      },700);
-    }else if(tx){
+
+    if(allGlobalSourcesReady(state,target)){
+      if(tx)tx.textContent="Servidor sincronizado. Cargando los archivos nuevos…";
+      const applied=await applyLatestClientSource(target);
+
+      if(!applied && tx){
+        tx.textContent="La nueva versión ya llegó al servidor, pero GitHub Pages aún está publicando el archivo. Espere un momento…";
+      }
+      return;
+    }
+
+    if(tx){
       if(!health){
-        tx.textContent="Render está actualizando. Espere un momento…";
+        tx.textContent="Render está reiniciando. Espere un momento…";
       }else if(!state.manifestRelease){
-        tx.textContent="GitHub Pages todavía está publicando la nueva versión. Espere un momento…";
+        tx.textContent="Esperando la publicación de GitHub…";
       }else if(!state.databaseRelease){
-        tx.textContent="Esperando a que la base de datos confirme la nueva versión…";
+        tx.textContent="Esperando la confirmación de la base de datos…";
       }else if(state.manifestRelease!==state.serverRelease || state.manifestRelease!==state.databaseRelease){
         tx.textContent="Sincronizando GitHub Pages + Render + base de datos…";
       }else{
-        tx.textContent="La nueva versión está lista. Preparando la recarga…";
+        tx.textContent="Esperando los archivos nuevos…";
       }
     }
     return;
