@@ -653,6 +653,8 @@ const RENDER_HEALTH_URL=MULTIPLAYER_SERVER.replace(/^wss:/,"https:").replace(/^w
 let renderStatusTimer=null,renderServerVersion="",renderServerStartedAt=0;
 let serverUpdateNoticeOpen=false;
 let globalUpdateInProgress=false;
+let websocketRelease="";
+let websocketDatabaseRelease="";
 let globalUpdateTargetRelease="";
 let globalReleaseMonitorStarted=false;
 
@@ -711,10 +713,10 @@ async function fetchRenderHealth(){
 function readGlobalReleaseState(manifest,health){
   return {
     manifestRelease:String(manifest?.releaseId||""),
-    serverRelease:String(health?.releaseId||health?.version||""),
-    databaseRelease:String(health?.databaseReleaseId||""),
+    serverRelease:String(health?.releaseId||health?.version||websocketRelease||""),
+    databaseRelease:String(health?.databaseReleaseId||websocketDatabaseRelease||""),
     databaseSchema:Number(health?.databaseSchema)||0,
-    startedAt:Number(health?.startedAt)||0
+    startedAt:Number(health?.startedAt)||Number(window.__NEON_WS_STARTED_AT)||0
   };
 }
 
@@ -962,6 +964,19 @@ function connectMultiplayer(roomMode="quick",roomCode=""){ const publicRoomAuto=
           }else nameBox.style.display="flex";
         }else if(m.type==="connected"){
           multiplayerId=m.id;
+          websocketRelease=String(m.releaseId||m.version||"");
+          websocketDatabaseRelease=String(m.databaseReleaseId||"");
+          if(globalUpdateInProgress){
+            const target=globalUpdateTargetRelease;
+            if(websocketRelease!==target || websocketDatabaseRelease!==target){
+              try{socket.close(4002,"waiting_for_update");}catch{}
+              return;
+            }
+            renderServerVersion=websocketRelease;
+            renderServerStartedAt=Number(m.startedAt)||renderServerStartedAt;
+            window.__NEON_WS_STARTED_AT=renderServerStartedAt;
+            window.__NEON_DATABASE_RELEASE=websocketDatabaseRelease;
+          }
         }else if(m.type==="duplicate_session"){
           multiplayerReady=false;
           gameActive=false;
@@ -1235,7 +1250,16 @@ function connectMultiplayer(roomMode="quick",roomCode=""){ const publicRoomAuto=
         if(multiplayerSocket!==socket)return;
        if(multiplayerConnectTimer){clearTimeout(multiplayerConnectTimer);multiplayerConnectTimer=null;}
        multiplayerSocket=null;
-       if(globalUpdateInProgress)return;
+       if(globalUpdateInProgress){
+         multiplayerConnectTimer=setTimeout(()=>{
+           if(!multiplayerConnectTimer) return;
+           multiplayerConnectTimer=null;
+           if(multiplayerSocket===null && currentRoom){
+             connectMultiplayer("join",currentRoom==="OPEN"?"":currentRoom);
+           }
+         },2200);
+         return;
+       }
        if(currentRoom){
          const reconnectMode=currentRoom==="OPEN"?"quick":"join";
          const reconnectCode=currentRoom==="OPEN"?"":currentRoom;
