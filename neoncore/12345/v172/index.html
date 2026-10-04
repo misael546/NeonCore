@@ -9,7 +9,7 @@
 <script>
 (function(){
   try{
-    var v="20261003-042-global-stable-installer";
+    var v="20261003-043-global-force-updater-v2";
     window.NEON_CORE_BUILD=v;
     window.NEON_RELEASE_MONITOR="global-1";
     try{localStorage.setItem("neon_core_build",v);}catch(e){}
@@ -801,8 +801,22 @@ function chooseGlobalUpdateTarget(state,localRelease){
 }
 
 async function applyLatestClientSource(target){
+  if(!target || target===String(window.NEON_CORE_BUILD||""))return false;
+
   const latest=await fetchLatestClientSource();
-  if(!latest || latest.release!==target || !latest.html)return false;
+  if(!latest || latest.release!==target || !latest.html){
+    // Segundo canal: fuerza una recarga de la misma página con un query único.
+    // Esto permite que GitHub Pages vuelva a pedir el HTML aunque tenga una
+    // copia anterior en caché.
+    try{
+      const fallback=new URL(location.href);
+      fallback.searchParams.set("neon_release",target);
+      fallback.searchParams.set("neon_force",String(Date.now()));
+      location.replace(fallback.toString());
+      return true;
+    }catch{}
+    return false;
+  }
 
   try{
     sessionStorage.setItem("neon_pending_release",target);
@@ -815,19 +829,20 @@ async function applyLatestClientSource(target){
     }
   }catch{}
 
-  // No dependemos de la caché de GitHub Pages: el HTML nuevo ya viene de
-  // raw.githubusercontent.com y se carga directamente en este documento.
   try{
     document.open();
     document.write(latest.html);
     document.close();
     return true;
   }catch(e){
-    const url=new URL(location.href);
-    url.searchParams.set("neon_release",target);
-    url.searchParams.set("neon_cache",String(Date.now()));
-    location.replace(url.toString());
-    return true;
+    try{
+      const url=new URL(location.href);
+      url.searchParams.set("neon_release",target);
+      url.searchParams.set("neon_force",String(Date.now()));
+      location.replace(url.toString());
+      return true;
+    }catch{}
+    return false;
   }
 }
 
@@ -872,39 +887,40 @@ async function runGlobalReleaseCheck(){
   if(detected && !globalUpdateInProgress){
     globalUpdateInProgress=true;
     globalUpdateTargetRelease=chooseGlobalUpdateTarget(state,localRelease);
-    showServerUpdateNotice("Se detectó una actualización. Guardando la partida y esperando a que GitHub Pages, Render y la base de datos queden sincronizados…");
+    showServerUpdateNotice("ACTUALIZANDO SERVIDOR · Forzando sincronización global…");
     await saveBeforeGlobalUpdate();
+
+    // Intento inmediato: no bloqueamos por GitHub Pages, Render o DB.
+    const target=globalUpdateTargetRelease;
+    if(target && target!==localRelease){
+      const applied=await applyLatestClientSource(target);
+      if(applied)return;
+    }
     return;
   }
+
+
 
   if(globalUpdateInProgress){
     const target=globalUpdateTargetRelease;
     const tx=document.querySelector("#serverUpdateNotice .text");
 
-    if(allGlobalSourcesReady(state,target)){
-      if(tx)tx.textContent="Servidor sincronizado. Cargando los archivos nuevos…";
+    // FORZADO GLOBAL: no esperamos a que Render/DB coincidan para poder
+    // actualizar el cliente. El manifest es la fuente de verdad del cliente.
+    if(target && target!==localRelease){
+      if(tx)tx.textContent="Cargando la actualización global "+target+"…";
       const applied=await applyLatestClientSource(target);
-
-      if(!applied && tx){
-        tx.textContent="La nueva versión ya llegó al servidor, pero GitHub Pages aún está publicando el archivo. Espere un momento…";
-      }
+      if(applied)return;
+      if(tx)tx.textContent="Actualización no disponible todavía. Reintentando automáticamente…";
       return;
     }
 
-    if(tx){
-      if(!health){
-        tx.textContent="Render está reiniciando. Espere un momento…";
-      }else if(!state.manifestRelease){
-        tx.textContent="Esperando la publicación de GitHub…";
-      }else if(!state.databaseRelease){
-        tx.textContent="Esperando la confirmación de la base de datos…";
-      }else if(state.manifestRelease!==state.serverRelease || state.manifestRelease!==state.databaseRelease){
-        tx.textContent="Sincronizando GitHub Pages + Render + base de datos…";
-      }else{
-        tx.textContent="Esperando los archivos nuevos…";
-      }
-    }
-    return;
+    // Si ya estamos en el target, cerramos el estado de actualización.
+    globalUpdateInProgress=false;
+    globalUpdateTargetRelease="";
+    const notice=document.getElementById("serverUpdateNotice");
+    if(notice)notice.style.display="none";
+    if(tx)tx.textContent="";
   }
 
   if(health){
@@ -1073,9 +1089,9 @@ function connectMultiplayer(roomMode="quick",roomCode=""){ const publicRoomAuto=
 
           if(globalUpdateInProgress){
             const target=globalUpdateTargetRelease;
-            if(websocketRelease!==target || websocketDatabaseRelease!==target){
-              try{socket.close(4002,"waiting_for_update");}catch{}
-              return;
+            if(target && target!==localBuildNow){
+              const applied=await applyLatestClientSource(target);
+              if(applied)return;
             }
             renderServerVersion=websocketRelease;
             renderServerStartedAt=Number(m.startedAt)||renderServerStartedAt;
