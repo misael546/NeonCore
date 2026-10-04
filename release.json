@@ -1,7 +1,7 @@
 {
   "game": "Neon Core",
-  "releaseId": "20261003-039-reliable-mobile-auto-update",
-  "clientBuild": "20261003-039-reliable-mobile-auto-update",
-  "serverBuild": "20261003-039-reliable-mobile-auto-update",
+  "releaseId": "20261003-040-backward-compatible-auto-respawn",
+  "clientBuild": "20261003-040-backward-compatible-auto-respawn",
+  "serverBuild": "20261003-040-backward-compatible-auto-respawn",
   "databaseSchema": 1
 }
