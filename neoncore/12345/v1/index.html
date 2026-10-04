@@ -9,7 +9,7 @@
 <script>
 (function(){
   try{
-    var v="BUILD-6",checking=false,updating=false,timer=null,base=new URL("../../../",location.href),manifestUrl=new URL("release.json",base);
+    var v="BUILD-7",checking=false,updating=false,timer=null,base=new URL("../../../",location.href),manifestUrl=new URL("release.json",base);
     window.NEON_CORE_BUILD=v;localStorage.setItem("neon_core_build",v);
     function notice(remote){
       if(updating)return;updating=true;
@@ -33,7 +33,7 @@
   }catch(e){}
 })();
 </script>
-<title>Neon Core · Build 6</title>
+<title>Neon Core · Build 7</title>
 <style>
 *{box-sizing:border-box}html,body{margin:0;width:100%;height:100%;overflow:hidden;background:#050811;color:#fff;font-family:Arial,sans-serif;touch-action:none}
 #game{display:block;width:100vw;height:100vh}
@@ -350,15 +350,16 @@ let neonAudio={
   ctx:null,master:null,compressor:null,musicGain:null,musicTimer:null,musicStep:0,
   enabled:true,ready:false
 };
-const NEON_MUSIC_BASE="../../../assets/music/";
-const NEON_MUSIC_CREDIT="Music by tinytunatunes";
+const NEON_MUSIC_BASE="https://opengameart.org/sites/default/files/";
+const NEON_MUSIC_CREDIT="MUSIC · tricksntraps · OpenGameArt · CC0";
 const neonMusic={
   tracks:{
-    menu:{file:"main_menu.mp3",name:"MENU"},
-    exploration:{file:"exploration.mp3",name:"EXPLORACION"},
-    tension:{file:"tension.mp3",name:"TENSION"},
-    combat:{file:"combat.mp3",name:"COMBATE"},
-    bonus:{file:"bonus.mp3",name:"TIENDA"}
+    menu:{file:"Experiment%20G.ogg",name:"MENU"},
+    exploration:{file:"Currents.ogg",name:"EXPLORACION"},
+    tension:{file:"Anti%20Matter%20Magic.ogg",name:"TENSION"},
+    combat:{file:"Tribal%20Chaos.ogg",name:"COMBATE"},
+    boss:{file:"Wicked%20beast.ogg",name:"BOSS"},
+    bonus:{file:"Caves.ogg",name:"TIENDA"}
   },
   elements:{},
   current:"",
@@ -417,6 +418,7 @@ function ensureNeonMusicTracks(){
     a.loop=true;
     a.preload="auto";
     a.volume=0;
+    a.setAttribute("data-neon-remote-music","1");
     a.setAttribute("aria-label","Musica Neon Core "+info.name);
     neonMusic.elements[key]=a;
   }
@@ -458,15 +460,17 @@ function desiredNeonMusicState(){
     const cosmetic=document.getElementById("cosmeticShop");
     const ammo=document.getElementById("ammoShop");
     if((cosmetic&&cosmetic.style.display==="flex")||(ammo&&ammo.style.display!=="none"))return "bonus";
-    if(bossWarnings&&bossWarnings.length>0)return "tension";
+    if(bossWarnings&&bossWarnings.length>0)return "boss";
     const recentCombat=(performance.now()-Number(p.lastShot||0))<5500;
-    let nearbyEnemy=false;
+    let nearbyEnemy=false,nearbyBoss=false;
     for(const e of (enemies||[])){
       const ex=Number(e.x),ey=Number(e.y);
       if(!Number.isFinite(ex)||!Number.isFinite(ey))continue;
-      if(Math.hypot(ex-p.x,ey-p.y)<720){nearbyEnemy=true;break;}
+      const d=Math.hypot(ex-p.x,ey-p.y);
+      if(e.kind==="boss"&&d<1100){nearbyBoss=true;break;}
+      if(d<720)nearbyEnemy=true;
     }
-    return (recentCombat||nearbyEnemy)?"combat":"exploration";
+    return nearbyBoss?"boss":(recentCombat||nearbyEnemy)?"combat":"exploration";
   }catch{return gameActive?"exploration":"menu";}
 }
 
@@ -565,9 +569,9 @@ function neonProcTick(){
   if(!neonAudio.enabled||!neonAudio.ctx||!neonAudio.musicGain)return;
   const state=neonProcMusic.state||"exploration",pat=neonProcPatterns[state]||neonProcPatterns.exploration;
   const i=neonProcMusic.step++%pat.length,now=neonAudio.ctx.currentTime+.012;
-  const tempo=state==="combat"?0.17:state==="tension"?.235:state==="bonus"?.20:.22;
+  const tempo=state==="boss"?0.145:state==="combat"?0.17:state==="tension"?.235:state==="bonus"?.20:.22;
   const root=pat[i];
-  neonProcPlayNote(root,tempo*.78,now,state==="combat"?"sawtooth":"triangle",state==="tension"?.042:.046);
+  neonProcPlayNote(root,tempo*.78,now,(state==="combat"||state==="boss")?"sawtooth":"triangle",state==="boss"?.052:state==="tension"?.042:.046);
   neonProcPlayNote(root/2,tempo*.92,now,"sine",state==="combat"?.022:.018);
   if(i%4===0)neonProcPlayNote(root*1.25,tempo*.52,now+tempo*.06,"triangle",.014);
   if(i%3===2)neonProcPlayNote(root*2,tempo*.28,now+tempo*.10,"sine",.010);
@@ -575,10 +579,40 @@ function neonProcTick(){
 }
 function startNeonMusic(state){
   if(!neonAudio.enabled||!neonAudio.ctx)return;
-  const key=neonProcPatterns[state]?state:"exploration";
+  const key=neonMusic.tracks[state]?state:"exploration";
   neonMusic.desired=key;
-  if(neonProcMusic.state===key&&neonProcMusic.timer)return;
-  neonProcClear();neonProcMusic.state=key;neonMusic.current=key;neonProcTick();
+  const now=performance.now();
+  if(neonMusic.current===key){
+    const current=neonMusic.elements[key];
+    if(current&&!current.paused&&!current.ended)return;
+    if(current){
+      current.play().catch(()=>{
+        if(neonProcMusic.state!==key||!neonProcMusic.timer){
+          neonProcClear();neonProcMusic.state=key;neonProcTick();
+        }
+      });
+      return;
+    }
+  }
+  if(neonMusic.current && now-neonMusic.lastSwitch<700 && state!=="bonus" && state!=="tension" && state!=="boss")return;
+  neonMusic.lastSwitch=now;
+  const old=neonMusic.current?neonMusic.elements[neonMusic.current]:null;
+  if(old){fadeNeonMusic(old,0,260);setTimeout(()=>{try{old.pause();old.currentTime=0;}catch{}},280);}
+  neonProcClear();
+  const next=neonMusic.elements[key];
+  neonMusic.current=key;
+  if(next){
+    next.volume=0;
+    next.currentTime=0;
+    next.play().then(()=>{
+      fadeNeonMusic(next,.78,700);
+    }).catch(()=>{
+      neonMusic.current=key;
+      neonProcClear();neonProcMusic.state=key;neonProcTick();
+    });
+  }else{
+    neonProcMusic.state=key;neonProcTick();
+  }
 }
 function stopNeonMusic(){neonProcClear();neonMusic.current="";neonMusic.desired="";for(const key of Object.keys(neonMusic.elements)){const a=neonMusic.elements[key];try{a.pause();a.currentTime=0;a.volume=0;}catch{}}}
 
@@ -775,7 +809,7 @@ function connectMultiplayer(roomMode="quick",roomCode=""){ const publicRoomAuto=
         const m=JSON.parse(e.data);
         if(m.type==="server_update_notice"){
           const target=String(m.clientBuild||m.serverVersion||"");
-          if(target&&target!=="BUILD-6"&&typeof window.__neonForceUpdate==="function")window.__neonForceUpdate(target);
+          if(target&&target!=="BUILD-7"&&typeof window.__neonForceUpdate==="function")window.__neonForceUpdate(target);
           return;
         }
         if(m.type==="room_joined"){
@@ -2260,7 +2294,7 @@ function frame(now){
 }
 requestAnimationFrame(frame);
 </script>
-<script>(function(){var ua=String(navigator.userAgent||"");var touch=Number(navigator.maxTouchPoints||0)>0||"ontouchstart"in window;var android=/Android/i.test(ua);if(!touch||!android)return;document.documentElement.classList.add("neon-touch");var btn=document.createElement("button");btn.id="neonFullscreenButton";btn.type="button";btn.setAttribute("aria-label","Activar pantalla completa");btn.innerHTML="<span>⛶</span><b>PANTALLA COMPLETA</b>";document.body.appendChild(btn);function active(){return !!document.fullscreenElement||!!document.webkitFullscreenElement;}function refresh(){btn.style.display=active()?"none":"flex";}function enter(){if(active())return;try{var root=document.documentElement;if(root.requestFullscreen){var p=root.requestFullscreen();if(p&&typeof p.then==="function"){p.then(refresh).catch(function(){var b=btn.querySelector("b");if(b)b.textContent="TOCA DE NUEVO";setTimeout(function(){var x=btn.querySelector("b");if(x)x.textContent="PANTALLA COMPLETA";},1800);});}else refresh();return;}if(root.webkitRequestFullscreen){root.webkitRequestFullscreen();refresh();return;}var b2=btn.querySelector("b");if(b2)b2.textContent="NO COMPATIBLE";}catch(e){var b3=btn.querySelector("b");if(b3)b3.textContent="NO DISPONIBLE";}}btn.addEventListener("click",function(e){e.preventDefault();e.stopPropagation();enter();});document.addEventListener("fullscreenchange",refresh);document.addEventListener("webkitfullscreenchange",refresh);refresh();})();</script><div id="neonMusicCredit" style="position:fixed;right:6px;bottom:4px;z-index:2;color:#ffffff;font:7px Arial,sans-serif;opacity:.22;pointer-events:none">MUSIC · tinytunatunes</div>
+<script>(function(){var ua=String(navigator.userAgent||"");var touch=Number(navigator.maxTouchPoints||0)>0||"ontouchstart"in window;var android=/Android/i.test(ua);if(!touch||!android)return;document.documentElement.classList.add("neon-touch");var btn=document.createElement("button");btn.id="neonFullscreenButton";btn.type="button";btn.setAttribute("aria-label","Activar pantalla completa");btn.innerHTML="<span>⛶</span><b>PANTALLA COMPLETA</b>";document.body.appendChild(btn);function active(){return !!document.fullscreenElement||!!document.webkitFullscreenElement;}function refresh(){btn.style.display=active()?"none":"flex";}function enter(){if(active())return;try{var root=document.documentElement;if(root.requestFullscreen){var p=root.requestFullscreen();if(p&&typeof p.then==="function"){p.then(refresh).catch(function(){var b=btn.querySelector("b");if(b)b.textContent="TOCA DE NUEVO";setTimeout(function(){var x=btn.querySelector("b");if(x)x.textContent="PANTALLA COMPLETA";},1800);});}else refresh();return;}if(root.webkitRequestFullscreen){root.webkitRequestFullscreen();refresh();return;}var b2=btn.querySelector("b");if(b2)b2.textContent="NO COMPATIBLE";}catch(e){var b3=btn.querySelector("b");if(b3)b3.textContent="NO DISPONIBLE";}}btn.addEventListener("click",function(e){e.preventDefault();e.stopPropagation();enter();});document.addEventListener("fullscreenchange",refresh);document.addEventListener("webkitfullscreenchange",refresh);refresh();})();</script><div id="neonMusicCredit" style="position:fixed;right:6px;bottom:4px;z-index:2;color:#ffffff;font:7px Arial,sans-serif;opacity:.22;pointer-events:none">MUSIC · tricksntraps · OpenGameArt · CC0</div>
 <script>
 /* NEON CORE 172 · COMBAT POLISH
    Capa visual única: no reemplaza la lógica de servidor ni crea sistemas duplicados.
