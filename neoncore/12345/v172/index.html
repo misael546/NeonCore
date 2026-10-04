@@ -9,7 +9,7 @@
 <script>
 (function(){
   try{
-    var v="20261003-034-death-state-sync-fix";
+    var v="20261003-035-death-respawn-xp-fix";
     window.NEON_CORE_BUILD=v;
     window.NEON_RELEASE_MONITOR="global-1";
     try{localStorage.setItem("neon_core_build",v);}catch(e){}
@@ -1157,6 +1157,8 @@ function connectMultiplayer(roomMode="quick",roomCode=""){ const publicRoomAuto=
         }else if(m.type==="pve_dead"){
           audioTone(180,.18,"sawtooth",.06,-90);audioTone(90,.35,"triangle",.045,-35,.12);audioNoise(.22,.05,.12,250);
           p.hp=0;
+          if(Number.isFinite(Number(m.x)))p.x=Number(m.x);
+          if(Number.isFinite(Number(m.y)))p.y=Number(m.y);
           p.alive=false;
           gameActive=false;
           moveX=0;moveY=0;
