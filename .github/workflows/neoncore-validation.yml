@@ -33,28 +33,47 @@ jobs:
           node - <<'NODE'
           const fs = require('fs');
           const files = [
-            'neoncore/12345/index.html'
+            'neoncore/12345/v1/index.html',
+            'index.html',
+            'sessions/index.html'
           ];
           for (const file of files) {
             const html = fs.readFileSync(file, 'utf8');
-            const matches = [...html.matchAll(/<script>([\s\S]*?)<\/script>/g)];
+            const matches = [...html.matchAll(/<script(?:[^>]*)>([\s\S]*?)<\/script>/gi)];
+            for (const match of matches) {
+              if (match[1].trim()) new Function(match[1]);
+            }
             if (!matches.length) throw new Error(file + ': no inline script found');
-            new Function(matches[matches.length - 1][1]);
             console.log(file + ': OK');
           }
           NODE
 
-      - name: Verify build synchronization
+      - name: Verify BUILD-22 synchronization
         working-directory: .
         run: |
           node - <<'NODE'
           const fs = require('fs');
+          const release = JSON.parse(fs.readFileSync('release.json','utf8'));
           const root = fs.readFileSync('index.html','utf8');
           const sessions = fs.readFileSync('sessions/index.html','utf8');
+          const client = fs.readFileSync('neoncore/12345/v1/index.html','utf8');
           const server = fs.readFileSync('server/server.js','utf8');
-          if (!/var\s+v\s*=\s*["']20261003-016-jugar-v172-sala-1["']/.test(root)) throw new Error('Root build marker is not current');
-          if (!root.includes('id="username"') || !root.includes('MENÚ PRINCIPAL') || !root.includes('> JUGAR</button>') || root.includes('SESIONES MULTIJUGADOR')) throw new Error('Main menu is not synchronized for Session 1');
-          if (!sessions.includes('Neon Core · Sesiones') || !sessions.includes('const WS=')) throw new Error('Sessions page is not synchronized');
-          if (!/SERVER_VERSION\s*=\s*['"]2['"]/.test(server)) throw new Error('Server version is not 2');
-          console.log('Build synchronization: OK');
+
+          const build = String(release.clientBuild || '');
+          if (build !== 'BUILD-22' || release.releaseId !== 'BUILD-22' || release.serverBuild !== 'BUILD-22') {
+            throw new Error('release.json is not BUILD-22');
+          }
+          if (!root.includes('BUILD-22') || !root.includes('id="name"') || !root.includes('id="play"')) {
+            throw new Error('Main menu is not BUILD-22');
+          }
+          if (!sessions.includes('Neon Core · Sesiones') || !sessions.includes('const WS=')) {
+            throw new Error('Sessions page is not synchronized');
+          }
+          if (!client.includes('BUILD-22') || !client.includes('FIRST_SHOT_DELAY=180') || !client.includes('fireRate:650')) {
+            throw new Error('Client combat tuning is not synchronized');
+          }
+          if (!server.includes('BUILD-22') || !server.includes('const WEAPON_FIRE_RATE = 650') || !server.includes('fireRate: 650')) {
+            throw new Error('Server combat tuning is not synchronized');
+          }
+          console.log('BUILD-22 synchronization: OK');
           NODE
