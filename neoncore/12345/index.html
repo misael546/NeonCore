@@ -47,7 +47,7 @@ small{display:block;margin-top:10px;color:#71819a;font-size:10px}
     try{name=String(new URL(location.href).searchParams.get("name")||"").trim().slice(0,20);}catch{}
     if(!name){try{name=String(localStorage.getItem(nameKey)||"").trim().slice(0,20);}catch{}}
     const query=name?"?name="+encodeURIComponent(name)+"&neon_release="+encodeURIComponent(target)+"&neon_force="+Date.now(): "?neon_release="+encodeURIComponent(target)+"&neon_force="+Date.now();
-    try{history.replaceState({},"","../"+clientPath+query);}catch{}
+    try{history.replaceState({},"","../../"+clientPath+query);}catch{}
     status("Instalando automáticamente la build "+target+"…");
     document.open();document.write(html);document.close();
   }catch(e){
