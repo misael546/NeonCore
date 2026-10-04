@@ -9,7 +9,7 @@
 <script>
 (function(){
   try{
-    var v="BUILD-1";
+    var v="BUILD-2";
     var k="neon_core_build";
     window.NEON_CORE_BUILD=v;
     var old=localStorage.getItem(k);
@@ -538,11 +538,11 @@ setInterval(()=>updateNeonMusicState(false),1000);
    Keeps the existing state system (menu/exploration/tension/combat/bonus). */
 const neonProcMusic={timer:null,step:0,state:"",voices:[]};
 const neonProcPatterns={
- menu:[261.63,329.63,392,523.25,392,329.63,293.66,392],
- exploration:[220,261.63,329.63,392,329.63,261.63,293.66,329.63],
- tension:[146.83,174.61,196,233.08,196,174.61,155.56,196],
- combat:[164.81,196,246.94,293.66,246.94,220,196,246.94],
- bonus:[329.63,392,493.88,659.25,493.88,392,440,523.25]
+ menu:[196,246.94,293.66,392,329.63,246.94,220,293.66,392,493.88,392,293.66],
+ exploration:[174.61,220,261.63,329.63,293.66,246.94,220,261.63,349.23,329.63,261.63,220],
+ tension:[110,130.81,146.83,174.61,164.81,146.83,123.47,146.83,196,174.61,146.83,130.81],
+ combat:[146.83,174.61,220,293.66,261.63,220,174.61,233.08,293.66,349.23,293.66,220],
+ bonus:[261.63,329.63,392,523.25,493.88,392,329.63,440,523.25,659.25,523.25,392]
 };
 function neonProcStopVoice(v){try{v.osc.stop();}catch{}try{v.osc.disconnect();v.gain.disconnect();}catch{}}
 function neonProcClear(){if(neonProcMusic.timer){clearTimeout(neonProcMusic.timer);neonProcMusic.timer=null;}for(const v of neonProcMusic.voices)neonProcStopVoice(v);neonProcMusic.voices=[];neonProcMusic.step=0;neonProcMusic.state="";}
@@ -557,11 +557,13 @@ function neonProcPlayNote(freq,dur,when,type="triangle",gain=.055){
 function neonProcTick(){
   if(!neonAudio.enabled||!neonAudio.ctx||!neonAudio.musicGain)return;
   const state=neonProcMusic.state||"exploration",pat=neonProcPatterns[state]||neonProcPatterns.exploration;
-  const i=neonProcMusic.step++%pat.length,now=neonAudio.ctx.currentTime+.015;
-  const tempo=state==="combat"?0.20:state==="tension"?.27:state==="bonus"?.18:.24;
-  neonProcPlayNote(pat[i],tempo*.88,now,"triangle",state==="tension"?.045:.052);
-  if(i%2===0)neonProcPlayNote(pat[i]/2,tempo*.9,now,"sine",.028);
-  if(i===0)neonProcPlayNote(pat[0]*1.5,tempo*.45,now+tempo*.05,"sine",.018);
+  const i=neonProcMusic.step++%pat.length,now=neonAudio.ctx.currentTime+.012;
+  const tempo=state==="combat"?0.17:state==="tension"?.235:state==="bonus"?.20:.22;
+  const root=pat[i];
+  neonProcPlayNote(root,tempo*.78,now,state==="combat"?"sawtooth":"triangle",state==="tension"?.042:.046);
+  neonProcPlayNote(root/2,tempo*.92,now,"sine",state==="combat"?.022:.018);
+  if(i%4===0)neonProcPlayNote(root*1.25,tempo*.52,now+tempo*.06,"triangle",.014);
+  if(i%3===2)neonProcPlayNote(root*2,tempo*.28,now+tempo*.10,"sine",.010);
   neonProcMusic.timer=setTimeout(neonProcTick,tempo*1000);
 }
 function startNeonMusic(state){
@@ -1035,6 +1037,7 @@ function connectMultiplayer(roomMode="quick",roomCode=""){ const publicRoomAuto=
             const ix=Number.isFinite(Number(m.impactX))?Number(m.impactX):sx0+Math.cos(angle)*travelDistance;
             const iy=Number.isFinite(Number(m.impactY))?Number(m.impactY):sy0+Math.sin(angle)*travelDistance;
             bullets.push({x:sx0,y:sy0,startX:sx0,startY:sy0,vx:Math.cos(angle)*bulletSpeed,vy:Math.sin(angle)*bulletSpeed,life:travelDistance/bulletSpeed+0.08,damage:Number(m.damage)||p.damage,range:0,maxRange:travelDistance,impactX:ix,impactY:iy});
+            weaponShotSound(p.weapon);
             if(m.hitKind && m.hitKind!=="range"){
               const impactColor=m.hitKind==="player"?"#ff5474":m.hitKind==="enemy"?"#ff9f43":"#8da2c1";
               burst(ix,iy,impactColor,m.hitKind==="enemy"?10:7);
@@ -1161,15 +1164,31 @@ function enemyExplosion(e){
   e.dead=true;
 }
 
+function weaponShotSound(weapon){
+  if(!neonAudio.enabled)return;
+  const profiles={
+    blaster:[430,.052,"square",.052,170],
+    pulse:[620,.065,"triangle",.045,260],
+    cannon:[105,.12,"sawtooth",.075,-55],
+    railgun:[980,.095,"sine",.052,-620],
+    nova:[260,.13,"sawtooth",.065,420],
+    plasma:[760,.085,"square",.048,-300],
+    vortex:[340,.11,"triangle",.050,520],
+    quasar:[1180,.075,"sine",.055,-780],
+    singularity:[190,.16,"sawtooth",.070,720],
+    omega:[520,.18,"triangle",.080,980]
+  };
+  const q=profiles[String(weapon||"blaster")]||profiles.blaster;
+  audioTone(q[0],q[1],q[2],q[3],q[4]);
+  if(["cannon","nova","singularity","omega"].includes(String(weapon||""))) audioTone(q[0]*.5,q[1]*.72,"sine",.028,0,.012);
+}
 function fire(){
   if(!p.alive)return;
-  if((p.ammo||0)<=0){audioTone(220,.08,"square",.045,-100);showShopMsg("Sin munición. Ve con el vendedor.");return;}
+  if((p.ammo||0)<=0){audioTone(155,.09,"square",.045,-70);showShopMsg("Sin munición. Ve con el vendedor.");return;}
   const now=performance.now();
   if(now-p.lastShot<p.fireRate)return;
   if(!multiplayerSocket || multiplayerSocket.readyState!==1)return;
   p.lastShot=now;
-  audioTone(520,.075,"sawtooth",.055,260);
-  audioTone(1040,.055,"triangle",.025,-180,.018);
   multiplayerSocket.send(JSON.stringify({type:"fire"}));
 }
 function returnToMenu(){
