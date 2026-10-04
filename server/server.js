@@ -1,6 +1,8 @@
 'use strict';
 
 const http = require('http');
+const fs = require('fs');
+const path = require('path');
 const { WebSocketServer } = require('ws');
 const storage = require('./storage');
 const cosmetics = require('./cosmetics');
@@ -11,8 +13,28 @@ const WORLD = { w: 6000, h: 4400 };
 const MAX_PLAYERS = 16;
 const SAFE_ZONE = { x: 3000, y: 2200, r: 300 };
 
-const SERVER_VERSION = '2';
-const SERVER_UPDATE_MESSAGE = 'Hay una actualización nueva de Neon Core. Actualiza la pestaña para continuar con la versión más reciente.';
+let UNIFIED_RELEASE_MANIFEST = {
+  game: 'Neon Core',
+  releaseId: 'unknown',
+  clientBuild: 'unknown',
+  serverBuild: 'unknown',
+  databaseSchema: 1
+};
+
+try {
+  const manifestPath = path.join(__dirname, '..', 'release.json');
+  UNIFIED_RELEASE_MANIFEST = {
+    ...UNIFIED_RELEASE_MANIFEST,
+    ...JSON.parse(fs.readFileSync(manifestPath, 'utf8'))
+  };
+} catch (error) {
+  console.warn('[RELEASE] No se pudo cargar release.json:', error?.message || error);
+}
+
+const RELEASE_ID = String(UNIFIED_RELEASE_MANIFEST.releaseId || 'unknown');
+const DATABASE_SCHEMA_VERSION = Math.max(1, Number(UNIFIED_RELEASE_MANIFEST.databaseSchema) || 1);
+const SERVER_VERSION = RELEASE_ID;
+const SERVER_UPDATE_MESSAGE = 'Hay una actualización nueva de Neon Core. Espere un momento mientras se actualiza el servidor y se carga la nueva versión.';
 
 const AMMO_PACK_SIZE = 100;
 const AMMO_PACK_COST = 75;
@@ -1948,8 +1970,13 @@ const httpServer = http.createServer(async (req, res) => {
         rooms: rooms.size,
         pvp: true,
         version: SERVER_VERSION,
+        releaseId: RELEASE_ID,
+        clientBuild: String(UNIFIED_RELEASE_MANIFEST.clientBuild || RELEASE_ID),
         startedAt: SERVER_STARTED_AT,
         storage: storage.enabled ? 'postgres' : 'memory',
+        databaseReleaseId: String(storage.releaseInfo?.releaseId || ''),
+        databaseSchema: Number(storage.releaseInfo?.schemaVersion) || DATABASE_SCHEMA_VERSION,
+        databaseUpdatedAt: Number(storage.releaseInfo?.updatedAt) || 0,
         status: 'online',
         diagnostics: {
           rooms: rooms.size,
@@ -2391,7 +2418,7 @@ wss.on('connection', (ws) => {
   });
 });
 
-const storageReady = storage.initStorage().catch((error) => {
+const storageReady = storage.initStorage(RELEASE_ID, DATABASE_SCHEMA_VERSION).catch((error) => {
   console.error('[STORAGE INIT]', error?.stack || error);
   return false;
 });
