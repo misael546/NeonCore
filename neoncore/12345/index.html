@@ -29,7 +29,7 @@ small{display:block;margin-top:10px;color:#71819a;font-size:10px}
 <script>
 (async function(){
   const RAW="https://raw.githubusercontent.com/misael546/NeonCore/main/";
-  const fallbackPath="neoncore/12345/v172/index.html";
+  const fallbackPath="neoncore/12345/v1/index.html";
   const nameKey="neon_core_player_name";
   function status(t){const e=document.getElementById("status");if(e)e.textContent=t;}
   function cb(u){return u+(u.includes("?")?"&":"?")+"t="+Date.now()+"-"+Math.random().toString(36).slice(2);}
@@ -52,11 +52,11 @@ small{display:block;margin-top:10px;color:#71819a;font-size:10px}
     document.open();document.write(html);document.close();
   }catch(e){
     // Nunca bloqueamos al jugador en esta pantalla: el siguiente intento usa
-    // una URL única y, si GitHub Raw falla temporalmente, entra directo a v172.
+    // una URL única y, si GitHub Raw falla temporalmente, entra directo a v1.
     status("Actualización no disponible. Reintentando automáticamente…");
     setTimeout(()=>{
       try{
-        const u=new URL("./v172/",location.href);
+        const u=new URL("./v1/",location.href);
         const name=String(new URL(location.href).searchParams.get("name")||"").trim().slice(0,20);
         if(name)u.searchParams.set("name",name);
         u.searchParams.set("neon_force",String(Date.now()));
