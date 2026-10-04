@@ -9,45 +9,31 @@
 <script>
 (function(){
   try{
-    var v="BUILD-5";
-    var k="neon_core_build";
-    window.NEON_CORE_BUILD=v;
-    localStorage.setItem(k,v);
-    var base=new URL("../../../",location.href);
-    var manifestUrl=new URL("release.json",base);
-    var checking=false;
-    function checkRelease(){
-      if(checking)return;
-      checking=true;
-      var bust=Date.now()+"-"+Math.random().toString(36).slice(2);
-      fetch(manifestUrl.href+"?neon_check="+bust,{cache:"no-store",headers:{"Cache-Control":"no-cache"}})
-        .then(function(r){if(!r.ok)throw new Error("manifest "+r.status);return r.json();})
-        .then(function(m){
-          var remote=String(m.releaseId||m.clientBuild||"");
-          if(!remote || remote===v){
-            var current=new URL(location.href);
-            if(current.searchParams.get("neon_release")!==v){
-              current.searchParams.set("neon_release",v);
-              current.searchParams.set("neon_force",String(Date.now()));
-              history.replaceState(null,"",current.href);
-            }
-            return;
-          }
-          var target=String(m.clientPath||"neoncore/12345/v1/index.html").replace(/^\//,"");
-          var u=new URL(target,base);
-          u.searchParams.set("neon_release",remote);
-          u.searchParams.set("neon_force",String(Date.now()));
-          location.replace(u.href);
-        })
-        .catch(function(){})
-        .finally(function(){checking=false;});
+    var v="BUILD-6",checking=false,updating=false,timer=null,base=new URL("../../../",location.href),manifestUrl=new URL("release.json",base);
+    window.NEON_CORE_BUILD=v;localStorage.setItem("neon_core_build",v);
+    function notice(remote){
+      if(updating)return;updating=true;
+      var el=document.getElementById("neonUpdateOverlay");
+      if(!el){el=document.createElement("div");el.id="neonUpdateOverlay";el.innerHTML='<div class="neonUpdateCard"><div class="neonUpdatePulse"></div><strong>NUEVA ACTUALIZACIÓN DISPONIBLE</strong><span id="neonUpdateText"></span><b id="neonUpdateCount">3</b></div>';document.body.appendChild(el);}
+      el.style.display="flex";document.documentElement.classList.add("neon-update-lock");
+      var t=el.querySelector("#neonUpdateText"),n=3,count=el.querySelector("#neonUpdateCount");
+      if(t)t.textContent="Versión "+remote+" detectada. Esta pestaña se recargará automáticamente.";
+      if(count)count.textContent=n;clearInterval(timer);
+      timer=setInterval(function(){n--;if(count)count.textContent=Math.max(0,n);if(n<=0){clearInterval(timer);var m=window.__NEON_RELEASE_MANIFEST||{},target=String(m.clientPath||"neoncore/12345/v1/index.html").replace(/^\//,""),u=new URL(target,base);u.searchParams.set("neon_release",remote);u.searchParams.set("neon_force",String(Date.now()));u.searchParams.set("neon_reload","1");location.replace(u.href);}},1000);
     }
-    checkRelease();
-    setInterval(checkRelease,10000);
+    window.__neonForceUpdate=notice;
+    window.__neonCheckRelease=function(){
+      if(checking||updating)return;checking=true;
+      fetch(manifestUrl.href+"?neon_check="+Date.now()+"-"+Math.random().toString(36).slice(2),{cache:"no-store",headers:{"Cache-Control":"no-cache"}})
+      .then(function(r){if(!r.ok)throw new Error("manifest "+r.status);return r.json();})
+      .then(function(m){window.__NEON_RELEASE_MANIFEST=m||{};var remote=String(m.releaseId||m.clientBuild||"");if(remote&&remote!==v)notice(remote);})
+      .catch(function(){}).finally(function(){checking=false;});
+    };
+    window.__neonCheckRelease();setInterval(window.__neonCheckRelease,10000);
   }catch(e){}
 })();
 </script>
-<title>Neon Core · Build 5</title>
+<title>Neon Core · Build 6</title>
 <style>
 *{box-sizing:border-box}html,body{margin:0;width:100%;height:100%;overflow:hidden;background:#050811;color:#fff;font-family:Arial,sans-serif;touch-action:none}
 #game{display:block;width:100vw;height:100vh}
@@ -70,10 +56,10 @@
 #toastFeed{position:fixed;left:50%;top:74px;transform:translateX(-50%);z-index:15;display:grid;gap:5px;width:min(360px,86vw);pointer-events:none}.toast{background:rgba(5,8,17,.9);border:1px solid #26344e;border-radius:9px;padding:7px 10px;text-align:center;color:#dffbff;font-size:11px;font-weight:bold;box-shadow:0 6px 20px #000;animation:toastIn .2s ease-out}@keyframes toastIn{from{opacity:0;transform:translateY(-5px)}to{opacity:1;transform:translateY(0)}}#chatFeed{position:fixed;left:10px;bottom:190px;width:min(390px,55vw);max-height:150px;display:flex;flex-direction:column;justify-content:flex-end;gap:5px;z-index:11;pointer-events:none;overflow:hidden;mask-image:linear-gradient(to bottom,transparent 0,#000 14%,#000 100%);-webkit-mask-image:linear-gradient(to bottom,transparent 0,#000 14%,#000 100%)}.chatLine{align-self:flex-start;max-width:100%;padding:5px 9px;border:1px solid #39e7ff55;border-radius:9px;background:linear-gradient(90deg,#061421ef,#0b1220d9);box-shadow:0 0 14px #39e7ff12,0 5px 15px #0008;backdrop-filter:blur(4px);font-size:12px;line-height:1.25;word-break:break-word;text-shadow:0 1px 3px #000;animation:chatIn .22s ease-out}.chatLine .chatName{color:#39e7ff;font-weight:900;letter-spacing:.4px;text-shadow:0 0 9px #39e7ff88}.chatLine .chatSeparator{color:#7f91aa;margin:0 3px}.chatLine .chatText{color:#fff}.chatLine.new{box-shadow:0 0 18px #39e7ff33,0 5px 16px #0008}@keyframes chatIn{from{opacity:0;transform:translateX(-8px) scale(.98)}to{opacity:1;transform:translateX(0) scale(1)}}#chatToggle{position:fixed;left:10px;bottom:145px;z-index:13;min-width:108px;height:44px;border:1px solid #39e7ff;background:linear-gradient(135deg,#06101c,#0b2030);color:#dffbff;border-radius:12px;font-weight:900;letter-spacing:1.3px;font-size:12px;pointer-events:auto;overflow:hidden;box-shadow:0 0 12px #39e7ff22,0 6px 22px #000,inset 0 0 14px #39e7ff0d;transition:transform .15s ease,box-shadow .15s ease,border-color .15s ease}#chatToggle:before{content:"";position:absolute;inset:-45%;background:conic-gradient(from 0deg,transparent,#39e7ff66,transparent 22%,#a855f766,transparent 44%);animation:chatSpin 3.8s linear infinite;opacity:.7}#chatToggle:after{content:"✦ · ✧ · • · ✦";position:absolute;left:-25%;right:-25%;top:4px;color:#9ff7ff66;font-size:8px;letter-spacing:5px;animation:chatParticles 2.7s linear infinite;pointer-events:none}#chatToggle:hover{border-color:#8ff5ff;box-shadow:0 0 20px #39e7ff44,0 7px 24px #000,inset 0 0 18px #39e7ff16}#chatToggle:active{transform:scale(.95)}#chatToggle .chatLabel,#chatToggle .chatIcon{position:relative;z-index:2;text-shadow:0 0 8px #39e7ff99}#chatToggle .chatIcon{font-size:15px;margin-right:5px}@keyframes chatSpin{to{transform:rotate(360deg)}}@keyframes chatParticles{from{transform:translateX(-12%);opacity:0}25%{opacity:1}75%{opacity:1}to{transform:translateX(12%);opacity:0}}#chatBox{position:fixed;left:10px;bottom:145px;width:min(350px,calc(100vw - 20px));z-index:14;background:linear-gradient(180deg,#081423f5,#050b15f5);border:1px solid #39e7ff88;border-radius:14px;padding:9px;backdrop-filter:blur(8px);pointer-events:auto;box-shadow:0 0 22px #39e7ff22,0 12px 34px #000}.chatInputHead{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:7px;color:#dffbff;font-size:11px;font-weight:900;letter-spacing:1px}.chatInputHead span{color:#39e7ff;text-shadow:0 0 8px #39e7ff88}.chatClose{width:28px;height:28px;border:1px solid #33415d;border-radius:8px;background:#0b1424;color:#fff;font-weight:900}#chatForm{display:flex;gap:6px}#chatInput{min-width:0;flex:1;padding:10px;border:1px solid #39e7ff55;background:#091321;color:#fff;border-radius:9px;outline:none;font-size:14px;box-shadow:inset 0 0 10px #39e7ff08}#chatInput:focus{border-color:#39e7ff;box-shadow:0 0 0 2px #39e7ff18,inset 0 0 12px #39e7ff0c}#chatSend{min-width:64px;border:1px solid #39e7ff;border-radius:9px;background:linear-gradient(135deg,#183d58,#1a5b74);color:#fff;font-weight:900;letter-spacing:.5px;box-shadow:0 0 12px #39e7ff22}#chatHint{font-size:9px;color:#74839a;margin-top:5px}@media(max-width:600px){#chatFeed{left:8px;bottom:186px;width:min(330px,72vw);max-height:132px}.chatLine{font-size:11px;padding:5px 8px}#chatToggle{bottom:138px;min-width:94px;height:42px}#chatBox{bottom:138px;width:min(320px,calc(100vw - 16px))}}#connectionOverlay{position:fixed;inset:0;background:#050811e8;display:none;align-items:center;justify-content:center;z-index:30;text-align:center;padding:20px}#connectionCard{width:min(340px,100%);background:#0b1020;border:1px solid #26344e;border-radius:16px;padding:24px;display:grid;gap:9px;box-shadow:0 15px 60px #000}#connectionTitle{color:#39e7ff;letter-spacing:1px}#connectionText{color:#9ca9bd;font-size:13px;line-height:1.4}#connectionSpinner{width:28px;height:28px;border:3px solid #26344e;border-top-color:#39e7ff;border-radius:50%;margin:0 auto 5px;animation:spin .8s linear infinite}@keyframes spin{to{transform:rotate(360deg)}}#death{position:fixed;inset:0;background:#000b;display:none;align-items:center;justify-content:center;z-index:10;text-align:center}
 #deathCard{background:#0b1020;border:1px solid #26344e;border-radius:16px;padding:22px;width:min(330px,90%)}
 #deathCard h2{color:#ff5474;margin:0 0 8px}.buildBadge{display:inline-block;margin-left:6px;padding:2px 5px;border:1px solid #26344e;border-radius:5px;color:#74839a;font-size:9px;vertical-align:middle}.hitText{position:fixed;pointer-events:none;z-index:9;font-weight:900;font-size:14px;text-shadow:0 2px 4px #000;transform:translate(-50%,-50%);animation:hitFloat .65s ease-out forwards}@keyframes hitFloat{0%{opacity:1;transform:translate(-50%,-20% ) scale(1.05)}100%{opacity:0;transform:translate(-50%,-110%) scale(.9)}}
-@media(min-width:800px){#controls{display:none!important}}html.touch-controls #controls{display:flex!important;z-index:90!important;pointer-events:none}html.touch-controls #controls .joy,html.touch-controls #controls #fire{pointer-events:auto}html.touch-controls #cosmeticShop{pointer-events:none!important}html.touch-controls #cosmeticShop .cosmeticShopCard{pointer-events:none!important}html.touch-controls #cosmeticShop .cosmeticShopCard button,html.touch-controls #cosmeticShop .cosmeticShopCard input{pointer-events:auto!important}html.touch-controls #nameBox,html.touch-controls #connectionOverlay,html.touch-controls #death{z-index:200!important}html.touch-controls #controlConfigBtn{z-index:130!important}
+@media(min-width:800px){#controls{display:none!important}}html.touch-controls #controls{display:flex!important;z-index:90!important;pointer-events:none}html.touch-controls #controls .joy,html.touch-controls #controls #fire{pointer-events:auto}html.touch-controls #cosmeticShop{pointer-events:auto!important}html.touch-controls #cosmeticShop .cosmeticShopCard{pointer-events:auto!important}html.touch-controls #cosmeticShop .cosmeticShopCard button,html.touch-controls #cosmeticShop .cosmeticShopCard input{pointer-events:auto!important}html.touch-controls #nameBox,html.touch-controls #connectionOverlay,html.touch-controls #death{z-index:200!important}html.touch-controls #controlConfigBtn{z-index:130!important}
 .pcHint{display:none;position:fixed;left:50%;bottom:12px;transform:translateX(-50%);z-index:7;padding:7px 11px;border:1px solid #26344e;border-radius:9px;background:rgba(5,8,17,.82);color:#9ca9bd;font:11px Arial,sans-serif;pointer-events:none}html.pc-controls #controls{display:none!important}html.pc-controls #controlConfigBtn{display:none!important}html.pc-controls .pcHint{display:block!important}html.touch-controls .pcHint{display:none!important}
 #roomActions{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:10px}#roomActions button{width:100%;min-height:44px;border:0;border-radius:10px;background:#183d58;color:#fff;font-weight:bold}#roomCodeInput{width:100%;padding:13px;border:1px solid #33415d;background:#111a2d;color:white;border-radius:10px;font-size:16px;outline:none;margin-top:8px;text-transform:uppercase}@media(max-width:799px){#playersPanel{top:8px;right:calc(min(42vw,150px) + 14px);width:min(160px,42vw)}#controlConfigBtn{display:block}#hud{top:8px;left:8px;right:8px}.panel{padding:7px 8px;font-size:12px}#bars{min-width:0;width:min(190px,58vw)}#hud>.panel:last-child{white-space:nowrap}#gameActions{top:74px;left:8px}#gameActions button{min-height:38px;padding:0 9px;font-size:11px}#minimapWrap{top:8px;right:8px;width:min(150px,42vw);height:min(112px,32vw);padding:5px}#playersPanel{top:126px;right:8px;width:min(180px,48vw);padding:7px 8px;font-size:11px}#playersList{max-height:130px;gap:3px}#controls{padding:12px}.joy{width:100px;height:100px}.stick{width:44px;height:44px;left:28px;top:28px}#fire{width:78px;height:78px}}@media(max-width:430px){#hud>.panel:last-child{max-width:105px;overflow:hidden;text-overflow:ellipsis}#playersPanel{max-width:45vw}.onlinePlayer{font-size:10px}} .shopGrid{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin:8px 0}.shopItem{min-height:58px;border:1px solid #263b55;border-radius:9px;background:#0d1827;color:#fff;padding:6px}.shopItem strong{display:block;color:#39e7ff;font-size:11px}.shopItem small{display:block;color:#9ca9bd;font-size:9px;margin-top:3px}.shopItem:active{transform:scale(.97)}#weaponHud{margin-top:5px;color:#9ca9bd;font-size:11px;letter-spacing:1px}#weaponName{color:#39e7ff}#resourceHud{display:flex;gap:10px;margin-top:5px;color:#dffbff;font-size:12px}#resourceHud span{background:#0b1424;border:1px solid #26344e;border-radius:7px;padding:3px 6px}#ammoShop,.shopItem,#buyAmmoBtn{touch-action:manipulation;pointer-events:auto}#ammoShop{position:fixed;left:50%;bottom:112px;transform:translateX(-50%);z-index:8;display:none;min-width:min(310px,88vw);background:rgba(5,8,17,.94);border:1px solid #39e7ff;border-radius:14px;padding:12px;text-align:center;backdrop-filter:blur(6px);box-shadow:0 8px 30px #000}#ammoShop b{display:block;color:#39e7ff;font-size:13px}#ammoShop span{display:block;color:#c8d3e5;font-size:12px;margin:4px 0 8px}#buyAmmoBtn{width:100%;min-height:42px;border:0;border-radius:9px;background:#183d58;color:#fff;font-weight:bold}#shopMsg{display:block;color:#9ca9bd;margin-top:7px;font-size:11px}#fire:disabled{filter:grayscale(1);opacity:.45}html.public-room #nameBox{display:none!important}
-#cosmeticShop{position:fixed;inset:0;display:none;align-items:center;justify-content:center;padding:14px;z-index:80;background:rgba(1,4,10,.66);backdrop-filter:blur(6px);pointer-events:auto;touch-action:auto}.cosmeticShopCard{position:relative;width:min(760px,96vw);max-height:min(86vh,760px);overflow:auto;background:linear-gradient(180deg,#0b1425,#070d18);border:1px solid #39e7ff66;border-radius:20px;padding:18px;box-shadow:0 20px 80px #000}.cosmeticShopHead{display:flex;align-items:center;gap:12px}.cosmeticShopTitle{flex:1}.cosmeticShopTitle strong{display:block;color:#39e7ff;letter-spacing:2px;font-size:20px;text-shadow:0 0 18px #39e7ff66}.cosmeticShopTitle small{display:block;color:#8ea0b8;margin-top:3px}.cosmeticBalance{display:flex;flex-wrap:wrap;gap:7px;margin:12px 0}.cosmeticBalance span{background:#0a1220;border:1px solid #26344e;border-radius:9px;padding:7px 10px;color:#dffbff;font-size:12px}.shopTabs{display:grid;grid-template-columns:1fr 1fr 1fr;gap:7px;margin:10px 0}.shopTab{min-height:42px;border:1px solid #26344e;border-radius:10px;background:#111a2d;color:#9ca9bd;font-weight:900}.shopTab.active{background:#183d58;border-color:#39e7ff;color:#fff}.cosmeticGrid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:9px;align-items:stretch}.cosmeticCard{border:1px solid #26344e;border-radius:13px;background:linear-gradient(180deg,#0d192b,#09111d);color:#fff;padding:9px;text-align:left;min-height:160px;display:flex;flex-direction:column;gap:6px;box-shadow:0 8px 22px #0008;transition:transform .16s ease,box-shadow .16s ease,border-color .16s ease}.cosmeticCard:hover{border-color:#39e7ff;transform:translateY(-2px);box-shadow:0 10px 28px #000,0 0 22px #39e7ff16}.cosmeticCard.owned{border-color:#5bcb93aa}.cosmeticCard.locked{opacity:.76}.cosmeticCard:disabled{cursor:not-allowed}.skinPreview{width:66px;height:66px;border-radius:15px 15px 22px 22px;clip-path:polygon(12% 0,88% 0,100% 22%,92% 84%,50% 100%,8% 84%,0 22%);margin:1px auto 2px;border:2px solid #fff4;box-shadow:0 0 15px #000,inset 0 0 14px #fff2;position:relative}.skinPreview:after{content:"";position:absolute;inset:12px;border-radius:50%;border:2px solid #fff7;opacity:.7}.skin-core-default{background:radial-gradient(circle at 35% 28%,#dfffff,#39e7ff 42%,#12627b 78%,#09111f)}.skin-pixel-cyan{background:radial-gradient(circle at 34% 28%,#fff,#70f5ff 35%,#39e7ff 65%,#07506d)}.skin-rust-core{background:radial-gradient(circle at 33% 28%,#ffe2b1,#d97835 36%,#703112 70%,#27110a)}.skin-toxic-orb{background:radial-gradient(circle at 34% 25%,#eaffc3,#8cff66 34%,#2c972a 67%,#082a12);box-shadow:0 0 22px #72ff5d55,inset 0 0 16px #fff3}.skin-plasma-violet{background:radial-gradient(circle at 35% 25%,#fff,#e3b3ff 24%,#a855f7 54%,#3d176b 82%,#10061e);box-shadow:0 0 25px #a855f766,inset 0 0 18px #fff4}.skin-aurora{background:linear-gradient(145deg,#39e7ff,#82ffd7 42%,#a855f7 72%,#261343);box-shadow:0 0 25px #39e7ff55,inset 0 0 18px #fff4}.skin-eclipse-gold{background:radial-gradient(circle at 50% 45%,#2a2d39 0 45%,#0a0b10 64%);border-color:#ffd76a;box-shadow:0 0 20px #ffd76a66,inset 0 0 14px #ffd76a44}.skin-celestial{background:radial-gradient(circle at 35% 30%,#d6efff,#4d90ff 37%,#202a8e 68%,#090a29);box-shadow:0 0 25px #5d8dff77,inset 0 0 16px #fff4}.skin-eternal-void{background:radial-gradient(circle at 45% 45%,#25122f,#08050d 52%,#020207 74%);border-color:#e879ff;box-shadow:0 0 30px #e879ff66,0 0 50px #39e7ff2e,inset 0 0 18px #e879ff44}
+#cosmeticShop{position:fixed;inset:0;display:none;align-items:center;justify-content:center;padding:14px;z-index:220;background:rgba(1,4,10,.66);backdrop-filter:blur(6px);pointer-events:auto;touch-action:auto}.shopBackdrop{position:absolute;inset:0;background:rgba(1,4,10,.34);pointer-events:auto}.cosmeticShopCard{position:relative;z-index:1;width:min(760px,96vw);max-height:min(86vh,760px);overflow:auto;background:linear-gradient(180deg,#0b1425,#070d18);border:1px solid #39e7ff66;border-radius:20px;padding:18px;box-shadow:0 20px 80px #000}.cosmeticShopHead{display:flex;align-items:center;gap:12px}.cosmeticShopTitle{flex:1}.cosmeticShopTitle strong{display:block;color:#39e7ff;letter-spacing:2px;font-size:20px;text-shadow:0 0 18px #39e7ff66}.cosmeticShopTitle small{display:block;color:#8ea0b8;margin-top:3px}.cosmeticBalance{display:flex;flex-wrap:wrap;gap:7px;margin:12px 0}.cosmeticBalance span{background:#0a1220;border:1px solid #26344e;border-radius:9px;padding:7px 10px;color:#dffbff;font-size:12px}.shopTabs{display:grid;grid-template-columns:1fr 1fr 1fr;gap:7px;margin:10px 0}.shopTab{min-height:42px;border:1px solid #26344e;border-radius:10px;background:#111a2d;color:#9ca9bd;font-weight:900}.shopTab.active{background:#183d58;border-color:#39e7ff;color:#fff}.cosmeticGrid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:9px;align-items:stretch}.cosmeticCard{border:1px solid #26344e;border-radius:13px;background:linear-gradient(180deg,#0d192b,#09111d);color:#fff;padding:9px;text-align:left;min-height:160px;display:flex;flex-direction:column;gap:6px;box-shadow:0 8px 22px #0008;transition:transform .16s ease,box-shadow .16s ease,border-color .16s ease}.cosmeticCard:hover{border-color:#39e7ff;transform:translateY(-2px);box-shadow:0 10px 28px #000,0 0 22px #39e7ff16}.cosmeticCard.owned{border-color:#5bcb93aa}.cosmeticCard.locked{opacity:.76}.cosmeticCard:disabled{cursor:not-allowed}.skinPreview{width:66px;height:66px;border-radius:15px 15px 22px 22px;clip-path:polygon(12% 0,88% 0,100% 22%,92% 84%,50% 100%,8% 84%,0 22%);margin:1px auto 2px;border:2px solid #fff4;box-shadow:0 0 15px #000,inset 0 0 14px #fff2;position:relative}.skinPreview:after{content:"";position:absolute;inset:12px;border-radius:50%;border:2px solid #fff7;opacity:.7}.skin-core-default{background:radial-gradient(circle at 35% 28%,#dfffff,#39e7ff 42%,#12627b 78%,#09111f)}.skin-pixel-cyan{background:radial-gradient(circle at 34% 28%,#fff,#70f5ff 35%,#39e7ff 65%,#07506d)}.skin-rust-core{background:radial-gradient(circle at 33% 28%,#ffe2b1,#d97835 36%,#703112 70%,#27110a)}.skin-toxic-orb{background:radial-gradient(circle at 34% 25%,#eaffc3,#8cff66 34%,#2c972a 67%,#082a12);box-shadow:0 0 22px #72ff5d55,inset 0 0 16px #fff3}.skin-plasma-violet{background:radial-gradient(circle at 35% 25%,#fff,#e3b3ff 24%,#a855f7 54%,#3d176b 82%,#10061e);box-shadow:0 0 25px #a855f766,inset 0 0 18px #fff4}.skin-aurora{background:linear-gradient(145deg,#39e7ff,#82ffd7 42%,#a855f7 72%,#261343);box-shadow:0 0 25px #39e7ff55,inset 0 0 18px #fff4}.skin-eclipse-gold{background:radial-gradient(circle at 50% 45%,#2a2d39 0 45%,#0a0b10 64%);border-color:#ffd76a;box-shadow:0 0 20px #ffd76a66,inset 0 0 14px #ffd76a44}.skin-celestial{background:radial-gradient(circle at 35% 30%,#d6efff,#4d90ff 37%,#202a8e 68%,#090a29);box-shadow:0 0 25px #5d8dff77,inset 0 0 16px #fff4}.skin-eternal-void{background:radial-gradient(circle at 45% 45%,#25122f,#08050d 52%,#020207 74%);border-color:#e879ff;box-shadow:0 0 30px #e879ff66,0 0 50px #39e7ff2e,inset 0 0 18px #e879ff44}
 .skin-nebula-prism{background:conic-gradient(from 20deg,#ff4fd8,#6f7bff,#39e7ff,#7dff9b,#ffdb5d,#ff4fd8);box-shadow:0 0 28px #7d7bff77,inset 0 0 18px #fff5;animation:skinSpin 5s linear infinite}
 .skin-angel-seraph{background:radial-gradient(circle at 50% 38%,#fff,#fff5c2 34%,#ffe08a 55%,#b9964b 78%);border-color:#fff5bd;box-shadow:0 0 30px #fff2ad99,0 0 52px #ffffff33,inset 0 0 20px #fff8}
 .skin-demon-infernal{background:radial-gradient(circle at 50% 45%,#ffcf9e,#ff553f 28%,#8c1820 58%,#18050a 82%);border-color:#ff6d4c;box-shadow:0 0 28px #ff452f99,0 0 55px #7b0e2b55,inset 0 0 18px #ffd2a044}.skin-gm-core{background:radial-gradient(circle at 50% 35%,#fff,#ffd76a 28%,#a56e11 62%,#1a0e05 85%);border-color:#ffe27a;box-shadow:0 0 32px #ffe27a99,0 0 58px #fff5,inset 0 0 20px #fff8}.cosmeticCard.selected{border-color:#ffd76a;box-shadow:0 0 24px #ffd76a33,0 8px 22px #0008}.cosmeticCard.selected .cosmeticAction{background:#6b5420;color:#fff}
@@ -112,7 +98,7 @@
 @media(max-width:1100px){.shopUnifiedGrid{grid-template-columns:repeat(3,minmax(0,1fr))}}
 @media(max-width:700px){.shopUnifiedGrid{grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}.shopWeaponCard{min-height:188px}}
 
-</style>
+#neonUpdateOverlay{position:fixed;inset:0;display:none;align-items:center;justify-content:center;z-index:5000;background:rgba(1,4,10,.94);backdrop-filter:blur(8px);padding:20px;text-align:center;touch-action:none;pointer-events:auto}.neonUpdateCard{width:min(430px,92vw);padding:28px 22px;border:1px solid #39e7ff;border-radius:20px;background:linear-gradient(180deg,#0b1728,#050b14);box-shadow:0 0 50px #39e7ff22,0 20px 80px #000;display:grid;gap:12px}.neonUpdateCard strong{color:#39e7ff;font-size:20px;letter-spacing:1.4px}.neonUpdateCard span{color:#c8d3e5;font-size:13px;line-height:1.45}.neonUpdateCard b{width:48px;height:48px;margin:4px auto 0;display:grid;place-items:center;border:2px solid #39e7ff;border-radius:50%;color:#fff;font-size:20px}.neonUpdatePulse{width:10px;height:10px;margin:0 auto;border-radius:50%;background:#39e7ff;box-shadow:0 0 24px #39e7ff;animation:neonUpdatePulse 1s ease-in-out infinite}@keyframes neonUpdatePulse{50%{transform:scale(2);opacity:.45}}html.neon-update-lock,html.neon-update-lock body{overflow:hidden!important}html.neon-update-lock #game,html.neon-update-lock #controls,html.neon-update-lock #cosmeticShop{pointer-events:none!important}</style>
 <script>
 (function(){try{if(/\/(?:12345|67890)(?:\/|\/index\.html)?(?:$|[?#])/.test(location.pathname+location.search)){document.documentElement.classList.add("public-room");}}catch(e){}})();
 </script>
@@ -252,9 +238,9 @@
  #chatBox{left:calc(8px + min(205px,61vw))!important;top:41px;width:min(290px,calc(100vw - 8px))}
 }
 html.pc-controls #chatFeed{width:min(420px,38vw)}
-</style></head>
+</style><style>.shopCloseBtn{width:36px;height:36px;flex:0 0 36px;margin:0;border:1px solid #39e7ff66;border-radius:10px;background:#111a2d;color:#fff;font-size:24px;line-height:1;font-weight:900;pointer-events:auto}.shopCloseBtn:hover{border-color:#39e7ff;background:#183d58}.cosmeticShopHead{position:relative;z-index:2}</style></head>
 <body>
-<canvas id="game"></canvas><div id="buildDisplay">BUILD 5</div><button id="audioToggle" type="button" aria-label="Activar o silenciar audio">🔊</button>
+<canvas id="game"></canvas><div id="buildDisplay">BUILD 6</div><button id="audioToggle" type="button" aria-label="Activar o silenciar audio">🔊</button>
 
 <div id="hud">
   <div class="panel" id="bars">
@@ -267,9 +253,9 @@ html.pc-controls #chatFeed{width:min(420px,38vw)}
 
 <button id="chatToggle" type="button" aria-expanded="false" aria-controls="chatBox"><span class="chatIcon">◉</span><span class="chatLabel">CHAT</span></button>
 <div id="minimapWrap"><canvas id="minimap" width="360" height="270"></canvas><span id="minimapTitle">MINIMAPA</span></div>
-<div id="cosmeticShop" aria-hidden="true">
+<div id="cosmeticShop" aria-hidden="true"><div class="shopBackdrop"></div>
   <div class="cosmeticShopCard shopUnifiedCard">
-    <div class="cosmeticShopHead"><div class="cosmeticShopTitle"><strong>⚡ SHOP</strong><small>Arsenal, armaduras y códigos en un solo lugar. Párate sobre el SHOP para interactuar.</small></div></div>
+    <div class="cosmeticShopHead"><div class="cosmeticShopTitle"><strong>⚡ SHOP</strong><small>Arsenal, armaduras y códigos en un solo lugar. Párate sobre el SHOP para interactuar.</small></div><button id="shopCloseBtn" class="shopCloseBtn" type="button" aria-label="Cerrar SHOP">×</button></div>
     <div class="cosmeticBalance">
       <span>🪙 <b id="cosmeticGold">0</b></span>
       <span>💎 <b id="cosmeticDiamonds">0</b></span>
@@ -598,7 +584,7 @@ function stopNeonMusic(){neonProcClear();neonMusic.current="";neonMusic.desired=
 
 const world={w:6000,h:4400};
 const p={x:3000,y:2200,r:16,angle:0,hp:100,maxHp:100,xp:0,level:1,score:0,kills:0,pvpKills:0,power:100,damage:35,defense:0,speed:205,fireRate:320,lastShot:0,alive:true,gold:0,diamonds:0,ammo:60,maxAmmo:220,weapon:"blaster",equippedSkin:"core_default"};
-const shopNpc={x:3000,y:2200,r:24};
+const shopNpc={x:3250,y:2200,r:24};
 const weaponNames={
   blaster:"BLASTER · NEONSTORM",
   pulse:"PULSE · PRISMA",
@@ -787,6 +773,11 @@ function connectMultiplayer(roomMode="quick",roomCode=""){ const publicRoomAuto=
        if(multiplayerSocket!==socket)return;
       try{
         const m=JSON.parse(e.data);
+        if(m.type==="server_update_notice"){
+          const target=String(m.clientBuild||m.serverVersion||"");
+          if(target&&target!=="BUILD-6"&&typeof window.__neonForceUpdate==="function")window.__neonForceUpdate(target);
+          return;
+        }
         if(m.type==="room_joined"){
           if(m.safeZone){safeZone=m.safeZone;}
           spawnProtectionUntil=performance.now()+(Number(m.spawnProtectionMs)||5000);
@@ -1219,6 +1210,7 @@ function fire(){
   multiplayerSocket.send(JSON.stringify({type:"fire"}));
 }
 function returnToMenu(){
+  closeCosmeticShop();
   gameActive=false;
   enemies.length=0;
   document.getElementById("death").style.display="none";
@@ -1699,8 +1691,10 @@ function renderCosmeticShop(){
 
 function openCosmeticShop(){
   const box=document.getElementById("cosmeticShop");
-  if(!box)return;
+  if(!box||!gameActive||!p.alive||shopOpen)return;
   cosmeticShopDismissedUntil=0;
+  shopOpen=true;
+  resetAllControls();
   box.style.display="flex";
   box.setAttribute("aria-hidden","false");
   renderCosmeticShop();
@@ -1710,6 +1704,7 @@ function openCosmeticShop(){
 function closeCosmeticShop(){
   const box=document.getElementById("cosmeticShop");
   if(!box)return;
+  shopOpen=false;
   box.style.display="none";
   box.setAttribute("aria-hidden","true");
   cosmeticShopDismissedUntil=performance.now()+1200;
@@ -1720,7 +1715,7 @@ function updateCosmeticShop(){
   const box=document.getElementById("cosmeticShop");
   if(!near){
     cosmeticShopWasNear=false;
-    if(box)box.style.display="none";
+    if(box){shopOpen=false;box.style.display="none";box.setAttribute("aria-hidden","true");}
     return;
   }
   if(near&&!cosmeticShopWasNear&&p.alive&&performance.now()>cosmeticShopDismissedUntil)openCosmeticShop();
@@ -1748,7 +1743,7 @@ function redeemGiftCode(){
   const input=document.getElementById("redeemCode");if(input)input.value="";
 }
 
-document.querySelectorAll(".shopTab").forEach(btn=>btn.addEventListener("click",e=>{
+const shopCloseBtn=document.getElementById("shopCloseBtn");if(shopCloseBtn)shopCloseBtn.addEventListener("click",e=>{e.preventDefault();e.stopPropagation();closeCosmeticShop();});const shopBackdrop=document.querySelector("#cosmeticShop .shopBackdrop");if(shopBackdrop)shopBackdrop.addEventListener("click",e=>{e.preventDefault();e.stopPropagation();closeCosmeticShop();});document.addEventListener("keydown",e=>{if(e.key==="Escape"&&shopOpen){e.preventDefault();closeCosmeticShop();}});document.querySelectorAll(".shopTab").forEach(btn=>btn.addEventListener("click",e=>{
   e.preventDefault();e.stopPropagation();
   setShopSection(btn.dataset.shopSection);
 }));
@@ -1888,18 +1883,9 @@ function draw(){
   if(controlMode==="mouse"&&gameActive){ctx.save();ctx.strokeStyle="rgba(57,231,255,.95)";ctx.lineWidth=1.5;ctx.beginPath();ctx.arc(pointer.x,pointer.y,10,0,Math.PI*2);ctx.moveTo(pointer.x-16,pointer.y);ctx.lineTo(pointer.x+16,pointer.y);ctx.moveTo(pointer.x,pointer.y-16);ctx.lineTo(pointer.x,pointer.y+16);ctx.stroke();ctx.restore();}
   drawMinimap();updateCosmeticShop();updateResourceHud();
 
-  document.getElementById("hp").textContent=Math.ceil(p.hp);
-  document.getElementById("maxHp").textContent=p.maxHp;
-  document.getElementById("level").textContent="Nv. "+p.level;
-  document.getElementById("pvpKills").textContent=p.pvpKills;
-  document.getElementById("kills").textContent=p.kills;
-  const need=Math.max(1,serverXpNeed);
-  document.getElementById("xp").textContent=p.xp;
-  document.getElementById("xpNeed").textContent=need;
-  document.getElementById("powerValue").textContent=Math.round(serverPower);
-  document.getElementById("defenseValue").textContent=Math.round(serverDefense);
-  document.getElementById("hpFill").style.width=clamp(p.hp/p.maxHp*100,0,100)+"%";
-  document.getElementById("xpFill").style.width=clamp(p.xp/need*100,0,100)+"%";
+  updateHud();
+  const hpFill=document.getElementById("hpFill");
+  if(hpFill)hpFill.style.width=clamp(p.hp/p.maxHp*100,0,100)+"%";
   
 }
 
