@@ -727,6 +727,17 @@ function allGlobalSourcesReady(state,target){
   );
 }
 
+function chooseGlobalUpdateTarget(state,localRelease){
+  const candidates=[
+    state.manifestRelease,
+    state.serverRelease,
+    state.databaseRelease
+  ].filter(Boolean).filter(value=>value!==localRelease);
+  if(!candidates.length)return localRelease;
+  candidates.sort((a,b)=>String(a).localeCompare(String(b)));
+  return candidates[candidates.length-1];
+}
+
 async function runGlobalReleaseCheck(){
   const [manifest,health]=await Promise.all([fetchReleaseManifest(),fetchRenderHealth()]);
   const state=readGlobalReleaseState(manifest,health);
@@ -767,11 +778,7 @@ async function runGlobalReleaseCheck(){
 
   if(updateDetected && !globalUpdateInProgress){
     globalUpdateInProgress=true;
-    globalUpdateTargetRelease=
-      state.manifestRelease ||
-      state.serverRelease ||
-      state.databaseRelease ||
-      localRelease;
+    globalUpdateTargetRelease=chooseGlobalUpdateTarget(state,localRelease);
 
     showServerUpdateNotice(
       state.serverRelease && state.serverRelease!==localRelease
@@ -787,7 +794,7 @@ async function runGlobalReleaseCheck(){
 
   if(globalUpdateInProgress){
     const target=globalUpdateTargetRelease;
-    const ready=allGlobalSourcesReady(state,target) && localRelease===target;
+    const ready=allGlobalSourcesReady(state,target);
 
     const tx=document.querySelector("#serverUpdateNotice .text");
     if(ready){
@@ -1228,13 +1235,14 @@ function connectMultiplayer(roomMode="quick",roomCode=""){ const publicRoomAuto=
         if(multiplayerSocket!==socket)return;
        if(multiplayerConnectTimer){clearTimeout(multiplayerConnectTimer);multiplayerConnectTimer=null;}
        multiplayerSocket=null;
+       if(globalUpdateInProgress)return;
        if(currentRoom){
          const reconnectMode=currentRoom==="OPEN"?"quick":"join";
          const reconnectCode=currentRoom==="OPEN"?"":currentRoom;
          setConnectionStatus("RECONEXIÓN","La conexión se perdió. Intentando volver a entrar…",true);
          if(!publicRoomAuto) nameBox.style.display="none";
          multiplayerConnectTimer=setTimeout(()=>{
-           if(multiplayerSocket===null && currentRoom){
+           if(!globalUpdateInProgress && multiplayerSocket===null && currentRoom){
              connectMultiplayer(reconnectMode,reconnectCode);
            }
          },1800);
@@ -1309,6 +1317,7 @@ function enemyExplosion(e){
 }
 
 function fire(){
+  if(globalUpdateInProgress)return;
   if(!p.alive)return;
   if((p.ammo||0)<=0){audioTone(220,.08,"square",.045,-100);showShopMsg("Sin munición. Ve con el vendedor.");return;}
   const now=performance.now();
@@ -1385,7 +1394,7 @@ function hitWall(b){
 }
 
 function update(dt){
-  if(!gameActive)return;
+  if(!gameActive || globalUpdateInProgress)return;
   // Guardia de movimiento: una respuesta incompleta del servidor nunca puede
   // dejar la velocidad local en 0/NaN.
   if(!Number.isFinite(p.speed) || p.speed<=0) p.speed=205;
