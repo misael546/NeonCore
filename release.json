@@ -1,7 +1,7 @@
 {
   "game": "Neon Core",
-  "releaseId": "20261003-032-dead-player-render-fix",
-  "clientBuild": "20261003-032-dead-player-render-fix",
-  "serverBuild": "20261003-032-dead-player-render-fix",
+  "releaseId": "20261003-033-mobile-respawn-fix",
+  "clientBuild": "20261003-033-mobile-respawn-fix",
+  "serverBuild": "20261003-033-mobile-respawn-fix",
   "databaseSchema": 1
 }
