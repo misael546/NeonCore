@@ -1554,160 +1554,72 @@ function buyAmmo(ws) {
 
 function handleShot(ws) {
   const shooter = clients.get(ws);
-
   if (!shooter || !shooter.room || !shooter.alive) return;
-
-  if (inSafeZone(shooter.x, shooter.y, 24)) {
-    send(ws, { type: 'shot_result', ok: false, reason: 'safe_zone', ammo: shooter.ammo || 0 });
-    return;
-  }
-
-  if ((shooter.ammo || 0) <= 0) {
-    send(ws, { type: 'ammo_empty' });
-    return;
-  }
+  if (inSafeZone(shooter.x, shooter.y, 24)) return send(ws, { type: 'shot_result', ok: false, reason: 'safe_zone', ammo: shooter.ammo || 0 });
+  if ((shooter.ammo || 0) <= 0) return send(ws, { type: 'ammo_empty' });
 
   const now = Date.now();
   const cooldown = Math.max(100, Math.min(1000, Number(shooter.fireRate) || 350));
-
-  if (now - shooter.lastShot < cooldown) {
-    send(ws, { type: 'shot_result', ok: false, reason: 'cooldown', ammo: shooter.ammo || 0 });
-    return;
-  }
-
+  if (now - shooter.lastShot < cooldown) return send(ws, { type: 'shot_result', ok: false, reason: 'cooldown', ammo: shooter.ammo || 0 });
   shooter.lastShot = now;
 
   const room = rooms.get(shooter.room);
   if (!room) return;
 
   const weapon = WEAPONS[shooter.weapon];
-  if (!weapon) {
-    send(ws, { type: 'shot_result', ok: false, reason: 'no_weapon', ammo: 0, maxAmmo: 0 });
-    return;
-  }
+  if (!weapon) return send(ws, { type: 'shot_result', ok: false, reason: 'no_weapon', ammo: 0, maxAmmo: 0 });
 
   const damage = clamp(Number(shooter.damage) || weapon.damage, 10, 1000);
   const maxRange = Number(weapon.range) || 760;
-
-  let targetPlayer = null;
-  let targetEnemy = null;
-  let best = Infinity;
-
-  const dirX = Math.cos(shooter.angle);
-  const dirY = Math.sin(shooter.angle);
-
+  const shotX = Number(shooter.x) || 0, shotY = Number(shooter.y) || 0;
+  const shotAngle = Number(shooter.angle) || 0;
+  const dirX = Math.cos(shotAngle), dirY = Math.sin(shotAngle);
   const enemies = ensureRoomEnemies(shooter.room);
-
-  // La bala tiene una trayectoria física server-authoritative:
-  // el primer jugador/enemigo que toque detiene el disparo.
-  for (const otherWs of room) {
-    const targetPlayerData = clients.get(otherWs);
-
-    if (
-      !targetPlayerData ||
-      targetPlayerData === shooter ||
-      !targetPlayerData.alive ||
-      inSafeZone(targetPlayerData.x, targetPlayerData.y, 24)
-    ) {
-      continue;
-    }
-
-    const hitDistance = rayCircleDistance(
-      shooter.x,
-      shooter.y,
-      dirX,
-      dirY,
-      targetPlayerData.x,
-      targetPlayerData.y,
-      28
-    );
-
-    if (hitDistance <= maxRange && hitDistance < best) {
-      best = hitDistance;
-      targetPlayer = { ws: otherWs, p: targetPlayerData };
-      targetEnemy = null;
-    }
-  }
-
-  for (const enemy of enemies) {
-    const hitDistance = rayCircleDistance(
-      shooter.x,
-      shooter.y,
-      dirX,
-      dirY,
-      enemy.x,
-      enemy.y,
-      Math.max(18, Number(enemy.r) || 22) + 4
-    );
-
-    if (hitDistance <= maxRange && hitDistance < best) {
-      best = hitDistance;
-      targetEnemy = enemy;
-      targetPlayer = null;
-    }
-  }
-
   const walls = ensureRoomWalls(shooter.room);
-  let nearestWall = null;
-  let nearestWallDistance = Infinity;
 
-  for (const wall of walls) {
-    const distance = rayAabbDistance(shooter.x, shooter.y, dirX, dirY, wall);
-    if (distance >= 0 && distance <= maxRange && distance < nearestWallDistance) {
-      nearestWallDistance = distance;
-      nearestWall = wall;
-    }
+  let targetPlayer = null, targetEnemy = null, best = Infinity;
+
+  for (const otherWs of room) {
+    const target = clients.get(otherWs);
+    if (!target || target === shooter || !target.alive || inSafeZone(target.x, target.y, 24)) continue;
+    const d = rayCircleDistance(shotX, shotY, dirX, dirY, target.x, target.y, 28);
+    if (d <= maxRange && d < best) { best=d; targetPlayer={ws:otherWs,p:target}; targetEnemy=null; }
+  }
+  for (const enemy of enemies) {
+    const d = rayCircleDistance(shotX, shotY, dirX, dirY, enemy.x, enemy.y, Math.max(18, Number(enemy.r)||22)+4);
+    if (d <= maxRange && d < best) { best=d; targetEnemy=enemy; targetPlayer=null; }
   }
 
-  const impactDistance = Math.min(maxRange, nearestWallDistance, best);
-  const impactX = shooter.x + dirX * impactDistance;
-  const impactY = shooter.y + dirY * impactDistance;
-  const hitKind = nearestWall && nearestWallDistance <= best
-    ? 'wall'
-    : targetPlayer
-      ? 'player'
-      : targetEnemy
-        ? 'enemy'
-        : 'range';
-  const hitTarget = targetPlayer?.p?.id || targetEnemy?.id || '';
+  let nearestWall=null, nearestWallDistance=Infinity;
+  for (const wall of walls) {
+    const d=rayAabbDistance(shotX,shotY,dirX,dirY,wall);
+    if(d>=0&&d<=maxRange&&d<nearestWallDistance){nearestWallDistance=d;nearestWall=wall;}
+  }
 
-  shooter.ammo = Math.max(0, (shooter.ammo || 0) - 1);
+  const impactDistance=Math.min(maxRange,nearestWallDistance,best);
+  const impactX=shotX+dirX*impactDistance, impactY=shotY+dirY*impactDistance;
+  const blockedByWall=!!(nearestWall&&nearestWallDistance<=best);
+  const hitKind=blockedByWall?'wall':targetPlayer?'player':targetEnemy?'enemy':'range';
+  const hitTarget=targetPlayer?.p?.id||targetEnemy?.id||'';
+  const travelSpeed=900;
+  const travelMs=Math.max(45,Math.round((impactDistance/travelSpeed)*1000));
 
-  send(ws, {
-    type: 'shot_result',
-    ok: true,
-    ammo: shooter.ammo,
-    maxAmmo: maxRange > 0 ? maxAmmoForWeapon(shooter.weapon) : 0,
-    x: shooter.x,
-    y: shooter.y,
-    angle: shooter.angle,
-    damage,
-    range: maxRange,
-    travelDistance: impactDistance,
-    impactX,
-    impactY,
-    hitKind,
-    hitTarget
-  });
-
+  shooter.ammo=Math.max(0,(shooter.ammo||0)-1);
+  send(ws,{type:'shot_result',ok:true,ammo:shooter.ammo,maxAmmo:maxAmmoForWeapon(shooter.weapon),x:shotX,y:shotY,angle:shotAngle,damage,range:maxRange,travelDistance:impactDistance,impactX,impactY,hitKind,hitTarget,travelMs});
   sendStats(shooter);
+  broadcastRoom(shooter.room,{type:'player_shot',shotId:'s_'+Math.random().toString(36).slice(2,10),id:shooter.id,x:shotX,y:shotY,angle:shotAngle,weapon:shooter.weapon,range:maxRange,travelDistance:impactDistance,impactX,impactY,hitKind,hitTarget,travelMs});
 
-  broadcastRoom(shooter.room, {
-    type: 'player_shot',
-    id: shooter.id,
-    x: shooter.x,
-    y: shooter.y,
-    angle: shooter.angle,
-    weapon: shooter.weapon,
-    range: maxRange,
-    travelDistance: impactDistance,
-    impactX,
-    impactY,
-    hitKind,
-    hitTarget
-  });
-
-  if (nearestWall && nearestWallDistance <= best) {
+  // La bala YA NO hace daño al instante. Viaja durante travelMs y el objetivo
+  // puede apartarse antes del impacto.
+  setTimeout(()=>{
+    try{
+      if(!clients.has(ws)||!shooter.room||!shooter.alive)return;
+      const tolerance=targetPlayer?34:targetEnemy?Math.max(24,Number(targetEnemy.r||22)+8):0;
+      const liveTargetPlayer=targetPlayer?clients.get(targetPlayer.ws):null;
+      const liveTargetEnemy=targetEnemy?enemies.find(e=>e.id===targetEnemy.id):null;
+      if(!blockedByWall && hitKind==="player" && (!liveTargetPlayer||!liveTargetPlayer.alive||inSafeZone(liveTargetPlayer.x,liveTargetPlayer.y,24)||Math.hypot(liveTargetPlayer.x-impactX,liveTargetPlayer.y-impactY)>tolerance))return;
+      if(!blockedByWall && hitKind==="enemy" && (!liveTargetEnemy||Math.hypot(liveTargetEnemy.x-impactX,liveTargetEnemy.y-impactY)>tolerance))return;
+        if (nearestWall && nearestWallDistance <= best) {
     nearestWall.hp = clamp(nearestWall.hp - damage * 0.8, 0, nearestWall.maxHp);
 
     broadcastRoom(shooter.room, {
@@ -1907,6 +1819,10 @@ function handleShot(ws) {
       });
     }
   }
+}
+
+    }catch(error){ console.error('[PROJECTILE HIT]',error?.message||error); }
+  },travelMs);
 }
 
 function createPlayer(ws) {
