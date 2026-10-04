@@ -1,6 +1,6 @@
 services:
   - type: web
-    name: neon-core-multiplayer
+    name: NeonCore
     runtime: node
     rootDir: server
     buildCommand: npm install
