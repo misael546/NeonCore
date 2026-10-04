@@ -9,7 +9,7 @@
 <script>
 (function(){
   try{
-    var v="BUILD-20",checking=false,updating=false,timer=null,base=new URL("../../../",location.href),manifestUrl=new URL("release.json",base);
+    var v="BUILD-21",checking=false,updating=false,timer=null,base=new URL("../../../",location.href),manifestUrl=new URL("release.json",base);
     window.NEON_CORE_BUILD=v;localStorage.setItem("neon_core_build",v);
     function notice(remote){
       if(updating)return;updating=true;
@@ -33,7 +33,7 @@
   }catch(e){}
 })();
 </script>
-<title>Neon Core · Build 20</title>
+<title>Neon Core · Build 21</title>
 <style>
 *{box-sizing:border-box}html,body{margin:0;width:100%;height:100%;overflow:hidden;background:#050811;color:#fff;font-family:Arial,sans-serif;touch-action:none}
 #game{display:block;width:100vw;height:100vh}
@@ -281,10 +281,10 @@ html.pc-controls #controlConfigBtn,html.touch-controls #controlConfigBtn{display
 .aimCross{position:absolute;inset:0;display:grid;place-items:center;color:#ffdbe1;font-size:18px;pointer-events:none;text-shadow:0 0 9px #ff607f}
 #pickupBtn{display:none;right:18px;bottom:142px}
 @media(max-width:799px){.aimJoy{display:block}#pickupBtn{right:18px;bottom:142px;width:50px;height:50px}}
-@media(min-width:800px){.aimJoy{display:none!important}}
+html.pc-controls .aimJoy{display:none!important}html.touch-controls .aimJoy{display:block!important}
 </style></head>
 <body>
-<canvas id="game"></canvas><div id="buildDisplay">BUILD 20</div><button id="audioToggle" type="button" aria-label="Activar o silenciar audio">🔊</button>
+<canvas id="game"></canvas><div id="buildDisplay">BUILD 21</div><button id="audioToggle" type="button" aria-label="Activar o silenciar audio">🔊</button>
 
 <div id="hud">
   <div class="panel" id="bars">
@@ -423,7 +423,7 @@ let neonAudio={
   enabled:true,ready:false
 };
 const NEON_MUSIC_BASE="https://opengameart.org/sites/default/files/";
-const NEON_MUSIC_CREDIT="MUSIC · tricksntraps · OpenGameArt · CC0 · BUILD-20";
+const NEON_MUSIC_CREDIT="MUSIC · tricksntraps · OpenGameArt · CC0 · BUILD-21";
 const neonMusic={
   tracks:{
     menu:{file:"Currents.ogg",name:"NEON CORE"}, exploration:{file:"Currents.ogg",name:"NEON CORE"}, tension:{file:"Currents.ogg",name:"NEON CORE"}, combat:{file:"Currents.ogg",name:"NEON CORE"}, boss:{file:"Currents.ogg",name:"NEON CORE"}, bonus:{file:"Currents.ogg",name:"NEON CORE"}
@@ -912,7 +912,7 @@ function connectMultiplayer(roomMode="quick",roomCode=""){ const publicRoomAuto=
         const m=JSON.parse(e.data);
         if(m.type==="server_update_notice"){
           const target=String(m.clientBuild||m.serverVersion||"");
-          if(target&&target!=="BUILD-20"&&typeof window.__neonForceUpdate==="function"){if(m.clientPath){window.__NEON_RELEASE_MANIFEST={clientPath:String(m.clientPath)}}window.__neonForceUpdate(target);}
+          if(target&&target!=="BUILD-21"&&typeof window.__neonForceUpdate==="function"){if(m.clientPath){window.__NEON_RELEASE_MANIFEST={clientPath:String(m.clientPath)}}window.__neonForceUpdate(target);}
           return;
         }
         if(m.type==="room_joined"){
@@ -1485,7 +1485,7 @@ function update(dt){
   const visualMoving=actualSpeed>7;
   if(visualMoving){
     if(!movementTelemetry.inputSince)movementTelemetry.inputSince=performance.now();
-    if(controlMode!=="mouse"&&!aimJoyActive)p.angle=Math.atan2(moveVelocity.y,moveVelocity.x);
+    // BUILD-21: el joystick izquierdo solo mueve; el derecho controla la mira.
   }else{
     movementTelemetry.inputSince=0;
   }

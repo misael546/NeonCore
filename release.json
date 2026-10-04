@@ -4,5 +4,5 @@
   "clientBuild": "BUILD-21",
   "serverBuild": "BUILD-21",
   "databaseSchema": 1,
-  "clientPath": "neoncore/12345/v1/build21.html"
+  "clientPath": "neoncore/12345/v1/index.html"
 }
