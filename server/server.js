@@ -1,4 +1,4 @@
-/* BUILD-12 · HUD limpia y configuraciones generales */
+/* BUILD-13 · HUD limpia y configuraciones generales */
 'use strict';
 
 const http = require('http');
@@ -136,11 +136,13 @@ function clamp(value, min, max) {
 }
 
 function maxHpForLevel(level) {
-  return 100 + Math.max(0, Number(level || 1) - 1) * 15;
+  const lv=clamp(Number(level)||1,1,1000);
+  return 150+Math.floor((lv-1)*18);
 }
 
 function speedForLevel(level) {
-  return 205 + Math.max(0, Number(level || 1) - 1) * 4;
+  const lv=clamp(Number(level)||1,1,1000);
+  return 225+Math.min(180,Math.floor((lv-1)*4.5));
 }
 
 function xpToNextLevel(level) {
@@ -258,7 +260,8 @@ function publicPlayer(p) {
     powerAttackBonus: weaponPowerAttackBonus(p.power),
     pistoleroLevel: pistoleroLevelFromXp(p.pistoleroXp),
     pistoleroXp: Math.max(0, Number(p.pistoleroXp) || 0),
-    equippedSkin: cosmetics.getSkin(p.equippedSkin) ? p.equippedSkin : ''
+    equippedSkin: cosmetics.getSkin(p.equippedSkin) ? p.equippedSkin : 'core_default',
+    equippedArmor: cosmetics.getArmor(p.equippedArmor) ? p.equippedArmor : ''
   };
 }
 
@@ -296,6 +299,10 @@ function sendStats(p) {
     pistoleroXpIntoLevel: pistoleroXpIntoLevel(p.pistoleroXp),
     pistoleroXpNeed: pistoleroXpToNextLevel(pistoleroLevelFromXp(p.pistoleroXp)),
     defense: Number(p.defense) || 0,
+    defenseLevel: masteryLevelFromXp(p.defenseXp),
+    defenseXp: Math.max(0,Number(p.defenseXp)||0),
+    defenseXpIntoLevel: masteryXpIntoLevel(p.defenseXp),
+    defenseXpNeed: masteryXpToNextLevel(masteryLevelFromXp(p.defenseXp)),
     fireRate: p.fireRate,
     speed: p.speed,
     maxHp: maxHpForLevel(p.level),
@@ -309,12 +316,12 @@ function sendStats(p) {
     ownedWeapons: normalizeOwnedWeapons(p.ownedWeapons, p.weapon || ''),
     shopNpc: SHOP_NPC,
     bankEnabled: BANK_ENABLED,
-    equippedSkin: cosmetics.getSkin(p.equippedSkin) ? p.equippedSkin : '',
-    equippedArmor: cosmetics.getSkin(p.equippedSkin) ? p.equippedSkin : '',
+    equippedSkin: cosmetics.getSkin(p.equippedSkin) ? p.equippedSkin : 'core_default',
+    equippedArmor: cosmetics.getArmor(p.equippedArmor) ? p.equippedArmor : '',
     ownedSkins: cosmetics.normalizeOwnedSkins(p.ownedSkins),
-    ownedArmors: cosmetics.normalizeOwnedSkins(p.ownedSkins),
+    ownedArmors: cosmetics.normalizeOwnedArmors(p.ownedArmors),
     redeemedCodes: cosmetics.normalizeRedeemedCodes(p.redeemedCodes),
-    skinDefense: skinDefenseBonus(p)
+    armorRating: Number(cosmetics.getArmor(p.equippedArmor)?.armorRating)||0
   });
 }
 function capturePlayerData(p) {
@@ -344,7 +351,9 @@ function capturePlayerData(p) {
     damagePenalty: Math.max(0, Number(p.damagePenalty) || 0),
     defensePenalty: Math.max(0, Number(p.defensePenalty) || 0),
     ownedSkins: cosmetics.normalizeOwnedSkins(p.ownedSkins),
-    equippedSkin: cosmetics.getSkin(p.equippedSkin) ? p.equippedSkin : '',
+    equippedSkin: cosmetics.getSkin(p.equippedSkin) ? p.equippedSkin : 'core_default',
+    ownedArmors: cosmetics.normalizeOwnedArmors(p.ownedArmors),
+    equippedArmor: cosmetics.getArmor(p.equippedArmor) ? p.equippedArmor : '',
     redeemedCodes: cosmetics.normalizeRedeemedCodes(p.redeemedCodes)
   };
 }
@@ -429,10 +438,9 @@ function weaponSkinAttackBonus(p) {
 }
 
 
-function skinDefenseBonus(p) {
-  const skin = cosmetics.getSkin(p?.equippedSkin);
-  return Math.max(0, Number(skin?.defenseBonus) || 0);
-}
+function skinDefenseBonus(){return 0;}
+function defenseLevelFromXp(xp){return masteryLevelFromXp(xp);}
+function defenseXpIntoCurrentLevel(xp){return masteryXpIntoLevel(xp);}
 
 function applyCombatStats(p) {
   const item = WEAPONS[p.weapon] || null;
@@ -453,9 +461,7 @@ function applyCombatStats(p) {
     p.fireRate = 999999;
   }
 
-  p.defense = Math.max(0, Math.round(
-    skinDefenseBonus(p) - (Number(p.defensePenalty) || 0)
-  ));
+  p.defense=Math.max(0,defenseLevelFromXp(p.defenseXp)-1);
   p.speed = speedForLevel(p.level);
 
   const maxAmmo = maxAmmoForWeapon();
@@ -468,9 +474,9 @@ function addDamageXp(p, amount) {
   applyCombatStats(p);
 }
 
-function addDefenseXp(p, amount) {
-  // Compatibilidad con saves antiguos: defensa no sube al recibir golpes.
-  void amount;
+function addDefenseXp(p,amount){
+  if(!p)return;
+  p.defenseXp=Math.max(0,Number(p.defenseXp)||0)+Math.max(0,Math.floor(Number(amount)||0));
   applyCombatStats(p);
 }
 
@@ -1295,104 +1301,56 @@ function cosmeticShopNearby(p) {
   return !!p && Math.hypot(p.x - SHOP_NPC.x, p.y - SHOP_NPC.y) <= SHOP_INTERACTION_RADIUS;
 }
 
-function sendCosmeticState(p, message = 'Tienda lista.', unlockedSkin = '', unlockedWeapon = '', unlockedWeaponSkin = '') {
-  if (!p?.ws) return;
-  send(p.ws, {
-    type: 'cosmetic_state',
-    message,
-    unlockedSkin: cosmetics.getSkin(unlockedSkin) ? unlockedSkin : '',
-    unlockedWeapon: WEAPONS[unlockedWeapon] ? unlockedWeapon : '',
-    unlockedWeaponSkin: cosmetics.getWeaponSkin(unlockedWeaponSkin) ? unlockedWeaponSkin : '',
-    ownedSkins: cosmetics.normalizeOwnedSkins(p.ownedSkins),
-    equippedSkin: cosmetics.getSkin(p.equippedSkin) ? p.equippedSkin : '',
-    ownedWeapons: normalizeOwnedWeapons(p.ownedWeapons, p.weapon || ''),
-    weapon: p.weapon,
-    weaponSkinCatalog: cosmetics.publicWeaponCatalog(),
-    shopNpc: SHOP_NPC,
-    catalog: cosmetics.publicCatalog(),
-    realMoneyOffers: cosmetics.publicRealMoneyOffers(),
-    realMoneyEnabled: false
-  });
+function sendCosmeticState(p,message='Tienda lista.',unlockedSkin='',unlockedWeapon='',unlockedWeaponSkin='',unlockedArmor=''){
+  if(!p?.ws)return;
+  send(p.ws,{type:'cosmetic_state',message,
+    unlockedSkin:cosmetics.getSkin(unlockedSkin)?unlockedSkin:'',
+    unlockedArmor:cosmetics.getArmor(unlockedArmor)?unlockedArmor:'',
+    unlockedWeapon:WEAPONS[unlockedWeapon]?unlockedWeapon:'',
+    unlockedWeaponSkin:cosmetics.getWeaponSkin(unlockedWeaponSkin)?unlockedWeaponSkin:'',
+    ownedSkins:cosmetics.normalizeOwnedSkins(p.ownedSkins),
+    equippedSkin:cosmetics.getSkin(p.equippedSkin)?p.equippedSkin:'core_default',
+    ownedArmors:cosmetics.normalizeOwnedArmors(p.ownedArmors),
+    equippedArmor:cosmetics.getArmor(p.equippedArmor)?p.equippedArmor:'',
+    ownedWeapons:normalizeOwnedWeapons(p.ownedWeapons,p.weapon||''),weapon:p.weapon,
+    weaponSkinCatalog:cosmetics.publicWeaponCatalog(),shopNpc:SHOP_NPC,
+    catalog:cosmetics.publicCatalog(),armorCatalog:cosmetics.publicArmorCatalog(),
+    realMoneyOffers:cosmetics.publicRealMoneyOffers(),realMoneyEnabled:false});
 }
-
-function cosmeticShopError(ws, message) {
-  send(ws, { type: 'cosmetic_result', ok: false, message: String(message || 'No se pudo completar la operación.') });
+function cosmeticShopError(ws,message){send(ws,{type:'cosmetic_result',ok:false,message:String(message||'No se pudo completar la operación.')});}
+function buyCosmeticArmor(ws,armorId){
+  const p=clients.get(ws);if(!p)return;
+  if(!p.room||!p.alive)return cosmeticShopError(ws,'No puedes usar armaduras ahora.');
+  if(!cosmeticShopNearby(p))return cosmeticShopError(ws,'Párate sobre el SHOP.');
+  const armor=cosmetics.getArmor(armorId);if(!armor)return cosmeticShopError(ws,'Armadura no disponible.');
+  p.ownedArmors=cosmetics.normalizeOwnedArmors(p.ownedArmors);
+  if(p.ownedArmors.includes(armor.id)){p.equippedArmor=armor.id;void persistPlayer(p);sendCosmeticState(p,'Armadura equipada: '+armor.name,'','','',armor.id);sendStats(p);sendPlayerList(p.room);return;}
+  const gold=Math.max(0,Number(p.gold)||0),diamonds=Math.max(0,Number(p.diamonds)||0);
+  if(armor.priceDiamonds>0){if(diamonds<armor.priceDiamonds)return cosmeticShopError(ws,'Necesitas '+armor.priceDiamonds+' diamantes.');p.diamonds=diamonds-armor.priceDiamonds;}
+  else if(armor.priceGold>0){if(gold<armor.priceGold)return cosmeticShopError(ws,'Necesitas '+armor.priceGold+' de oro.');p.gold=gold-armor.priceGold;}
+  else return cosmeticShopError(ws,'Esta armadura no tiene precio válido.');
+  p.ownedArmors.push(armor.id);p.ownedArmors=cosmetics.normalizeOwnedArmors(p.ownedArmors);p.equippedArmor=armor.id;void persistPlayer(p);
+  sendCosmeticState(p,'¡Compraste la armadura '+armor.name+' y quedó equipada!','','','',armor.id);sendStats(p);sendPlayerList(p.room);
 }
-function buyCosmeticSkin(ws, skinId) {
-  const p = clients.get(ws);
-  if (!p) return;
-  if (!p.room || !p.alive) return cosmeticShopError(ws, 'No puedes usar el SHOP ahora.');
-  if (!cosmeticShopNearby(p)) return cosmeticShopError(ws, 'Párate sobre el SHOP.');
-  const skin = cosmetics.getSkin(skinId);
-  if (!skin || skin.id === 'core_default' || skin.rarity === 'Código') return cosmeticShopError(ws, 'Esa armadura no se puede comprar aquí.');
-
-  p.ownedSkins = cosmetics.normalizeOwnedSkins(p.ownedSkins);
-  if (p.ownedSkins.includes(skin.id)) {
-    p.equippedSkin = skin.id;
-    applyCombatStats(p);
-    void persistPlayer(p);
-    sendCosmeticState(p, 'Armadura equipada: ' + skin.name + ' · DEFENSA +' + skin.defenseBonus + '.');
-    sendStats(p);
-    sendPlayerList(p.room);
-    return;
-  }
-
-  const gold = Math.max(0, Number(p.gold) || 0);
-  const diamonds = Math.max(0, Number(p.diamonds) || 0);
-
-  if (skin.realMoney) {
-    return cosmeticShopError(ws, 'SOBERANO DEL NÚCLEO cuesta $1 USD y actualmente se prueba con un código de regalo.');
-  }
-
-  if (skin.priceDiamonds > 0) {
-    if (diamonds < skin.priceDiamonds) return cosmeticShopError(ws, 'Necesitas ' + skin.priceDiamonds + ' diamantes.');
-    p.diamonds = diamonds - skin.priceDiamonds;
-  } else if (skin.priceGold > 0) {
-    if (gold < skin.priceGold) return cosmeticShopError(ws, 'Necesitas ' + skin.priceGold + ' de oro.');
-    p.gold = gold - skin.priceGold;
-  } else {
-    return cosmeticShopError(ws, 'Esta armadura no tiene precio válido.');
-  }
-
-  p.ownedSkins.push(skin.id);
-  p.ownedSkins = cosmetics.normalizeOwnedSkins(p.ownedSkins);
-  p.equippedSkin = skin.id;
-  applyCombatStats(p);
-  void persistPlayer(p);
-  sendCosmeticState(p, '¡Compraste la armadura ' + skin.name + ' y quedó equipada!');
-  sendStats(p);
-  sendPlayerList(p.room);
+function equipCosmeticArmor(ws,armorId){
+  const p=clients.get(ws);if(!p)return;
+  if(!p.room||!p.alive)return cosmeticShopError(ws,'No puedes cambiar de armadura ahora.');
+  if(!cosmeticShopNearby(p))return cosmeticShopError(ws,'Acércate al SHOP.');
+  const id=String(armorId||'');p.ownedArmors=cosmetics.normalizeOwnedArmors(p.ownedArmors);
+  if(!id||!cosmetics.getArmor(id)||!p.ownedArmors.includes(id))return cosmeticShopError(ws,'Armadura bloqueada.');
+  p.equippedArmor=p.equippedArmor===id?'':id;void persistPlayer(p);
+  sendCosmeticState(p,p.equippedArmor?'Armadura equipada: '+cosmetics.getArmor(id).name+'.':'Armadura retirada.','','','',p.equippedArmor);sendStats(p);sendPlayerList(p.room);
 }
-
-function equipCosmeticSkin(ws, skinId) {
-  const p = clients.get(ws);
-  if (!p) return;
-  if (!p.room || !p.alive) return cosmeticShopError(ws, 'No puedes cambiar de armadura ahora.');
-  if (!cosmeticShopNearby(p)) return cosmeticShopError(ws, 'Acércate al SHOP.');
-
-  const id = String(skinId || '');
-  p.ownedSkins = cosmetics.normalizeOwnedSkins(p.ownedSkins);
-  if (id === '') {
-    return cosmeticShopError(ws, 'Selecciona una armadura para alternar su equipamiento.');
-  }
-
-  if (!cosmetics.getSkin(id) || !p.ownedSkins.includes(id)) return cosmeticShopError(ws, 'Armadura bloqueada.');
-
-  if (p.equippedSkin === id) {
-    p.equippedSkin = '';
-    applyCombatStats(p);
-    void persistPlayer(p);
-    sendCosmeticState(p, 'Armadura desequipada · DEFENSA retirada.');
-  } else {
-    p.equippedSkin = id;
-    applyCombatStats(p);
-    void persistPlayer(p);
-    sendCosmeticState(p, 'Armadura equipada: ' + cosmetics.getSkin(id).name + '.');
-  }
-
-  sendStats(p);
-  sendPlayerList(p.room);
+function buyCosmeticSkin(ws,skinId){
+  const p=clients.get(ws);if(!p)return;
+  const id=String(skinId||'');if(!p.room||!p.alive)return cosmeticShopError(ws,'No puedes cambiar tu skin ahora.');
+  if(!cosmeticShopNearby(p))return cosmeticShopError(ws,'Acércate al SHOP.');
+  if(!cosmetics.getSkin(id)||!cosmetics.STARTER_SKINS.includes(id))return cosmeticShopError(ws,'Skin base no disponible.');
+  p.ownedSkins=cosmetics.normalizeOwnedSkins(p.ownedSkins);p.equippedSkin=id;void persistPlayer(p);
+  sendCosmeticState(p,'Skin base equipada: '+cosmetics.getSkin(id).name+'.');sendStats(p);sendPlayerList(p.room);
 }
+function equipCosmeticSkin(ws,skinId){return buyCosmeticSkin(ws,skinId);}
+
 async function redeemCosmeticCode(ws, rawCode) {
   const p = clients.get(ws);
   if (!p) return;
@@ -1411,8 +1369,9 @@ async function redeemCosmeticCode(ws, rawCode) {
     return cosmeticShopError(ws, 'Ese código ya fue usado en esta cuenta.');
   }
 
-  p.ownedSkins = cosmetics.normalizeOwnedSkins(p.ownedSkins);
-  p.ownedWeapons = normalizeOwnedWeapons(p.ownedWeapons, p.weapon || '');
+  p.ownedSkins=cosmetics.normalizeOwnedSkins(p.ownedSkins);
+  p.ownedArmors=cosmetics.normalizeOwnedArmors(p.ownedArmors);
+  p.ownedWeapons=normalizeOwnedWeapons(p.ownedWeapons,p.weapon||'');
   p.ownedWeaponSkins = cosmetics.normalizeOwnedWeaponSkins(p.ownedWeaponSkins);
 
   let unlockedSkin = '', unlockedWeapon = '', unlockedWeaponSkin = '';
@@ -1420,16 +1379,9 @@ async function redeemCosmeticCode(ws, rawCode) {
   const unlockedWeapons = [];
 
   if (reward.allSkins) {
-    for (const skinId of Object.keys(cosmetics.SKINS)) {
-      if (skinId === 'core_default') continue;
-      if (!p.ownedSkins.includes(skinId)) p.ownedSkins.push(skinId);
-      unlockedSkins.push(skinId);
-    }
-    const preferredSkin = cosmetics.getSkin(p.equippedSkin) ? p.equippedSkin : 'gm_core';
-    if (preferredSkin) {
-      p.equippedSkin = preferredSkin;
-      unlockedSkin = preferredSkin;
-    }
+    p.ownedSkins=cosmetics.normalizeOwnedSkins(p.ownedSkins);
+    p.ownedArmors=cosmetics.normalizeOwnedArmors(p.ownedArmors);
+    for(const armorId of Object.keys(cosmetics.ARMORS)){if(!p.ownedArmors.includes(armorId))p.ownedArmors.push(armorId);unlockedArmors.push(armorId);}
   }
 
   if (reward.allWeapons) {
@@ -1442,12 +1394,9 @@ async function redeemCosmeticCode(ws, rawCode) {
     unlockedWeapon = preferredWeapon;
   }
 
-  if (reward.skinId) {
-    const skin = cosmetics.getSkin(reward.skinId);
-    if (!skin) return cosmeticShopError(ws, 'Código sin recompensa de armadura válida.');
-    unlockedSkin = skin.id;
-    if (!p.ownedSkins.includes(skin.id)) p.ownedSkins.push(skin.id);
-    p.equippedSkin = skin.id;
+  if(reward.skinId){
+    const armor=cosmetics.getArmor(reward.skinId);if(!armor)return cosmeticShopError(ws,'Código sin recompensa de armadura válida.');
+    unlockedArmor=armor.id;if(!p.ownedArmors.includes(armor.id))p.ownedArmors.push(armor.id);p.equippedArmor=armor.id;
   }
 
   if (reward.weaponId) {
@@ -1468,7 +1417,7 @@ async function redeemCosmeticCode(ws, rawCode) {
     p.equippedWeaponSkin = weaponSkin.id;
   }
 
-  if (!reward.allSkins && !reward.allWeapons && !unlockedSkin && !unlockedWeapon && !unlockedWeaponSkin) {
+  if (!reward.allSkins && !reward.allWeapons && !unlockedSkin && !unlockedArmor && !unlockedWeapon && !unlockedWeaponSkin) {
     return cosmeticShopError(ws, 'El código no tiene una recompensa válida.');
   }
 
@@ -1480,12 +1429,9 @@ async function redeemCosmeticCode(ws, rawCode) {
   applyCombatStats(p);
   await persistPlayer(p);
 
-  const totalUnlocked = unlockedSkins.length + unlockedWeapons.length;
-  const message = reward.allSkins || reward.allWeapons
-    ? reward.message + ' (' + totalUnlocked + ' objetos disponibles para probar).'
-    : reward.message;
-
-  sendCosmeticState(p, message, unlockedSkin, unlockedWeapon, unlockedWeaponSkin);
+  const totalUnlocked=unlockedSkins.length+unlockedArmors.length+unlockedWeapons.length;
+  const message=reward.allSkins||reward.allWeapons?reward.message+' ('+totalUnlocked+' objetos disponibles para probar).':reward.message;
+  sendCosmeticState(p,message,unlockedSkin,unlockedWeapon,unlockedWeaponSkin,unlockedArmor);
   sendStats(p);
   sendPlayerList(p.room);
 }
@@ -1674,18 +1620,14 @@ function handleShot(ws) {
     const targetMaxHp = maxHpForLevel(target.level);
 
     const actualDamage = Math.max(1, damage - (target.defense || 0));
-    addPistoleroXp(shooter, PISTOLERO_XP_PER_HIT);
-    applyCombatStats(shooter);
+applyCombatStats(shooter);
 
     target.hp = clamp(
       target.hp - actualDamage,
       0,
       targetMaxHp
     );
-
-    addDefenseXp(target, Math.max(1, Math.round(actualDamage * 8)));
-
-    send(targetPlayer.ws, {
+send(targetPlayer.ws, {
       type: 'pvp_damage',
       from: shooter.id,
       amount: damage,
@@ -1734,8 +1676,7 @@ function handleShot(ws) {
       shooter.score = (shooter.score || 0) + 25;
       shooter.xp = (shooter.xp || 0) + 40;
       addDamageXp(shooter, 20);
-      addPistoleroXp(shooter, PISTOLERO_XP_PER_KILL);
-      applyCombatStats(shooter);
+applyCombatStats(shooter);
 
       levelUpIfNeeded(shooter);
 
@@ -1891,8 +1832,10 @@ function createPlayer(ws) {
     diamonds: 0,
     bankedGold: 0,
     bankedDiamonds: 0,
-    ownedSkins: ['core_default'],
+    ownedSkins: cosmetics.normalizeOwnedSkins([]),
     equippedSkin: 'core_default',
+    ownedArmors: [],
+    equippedArmor: '',
     ownedWeapons: ['blaster'],
     equippedWeaponSkin: '',
     ownedWeaponSkins: [],
@@ -1907,7 +1850,7 @@ function createPlayer(ws) {
     alive: true,
     frozen: false,
     lastShot: 0,
-    speed: 205,
+    speed: 225,
     lastStateAt: Date.now(),
     stateViolations: 0,
     lastChatAt: 0,
@@ -2106,8 +2049,12 @@ wss.on('connection', async (ws) => {
           p.pistoleroLevel = pistoleroLevelFromXp(p.pistoleroXp);
           p.bankedGold = Math.max(0, Number(saved.bankedGold) || 0);
           p.bankedDiamonds = Math.max(0, Number(saved.bankedDiamonds) || 0);
-          p.ownedSkins = cosmetics.normalizeOwnedSkins(saved.ownedSkins);
-          p.equippedSkin = saved.equippedSkin === '' ? '' : (cosmetics.getSkin(saved.equippedSkin) && p.ownedSkins.includes(saved.equippedSkin) ? saved.equippedSkin : 'core_default');
+          const legacyOwnedSkins=Array.isArray(saved.ownedSkins)?saved.ownedSkins:[];
+          const legacyArmorIds=legacyOwnedSkins.filter(id=>cosmetics.getArmor(id));
+          p.ownedSkins=cosmetics.normalizeOwnedSkins(legacyOwnedSkins);
+          p.equippedSkin=(cosmetics.getSkin(saved.equippedSkin)&&p.ownedSkins.includes(saved.equippedSkin))?saved.equippedSkin:'core_default';
+          p.ownedArmors=cosmetics.normalizeOwnedArmors([...(Array.isArray(saved.ownedArmors)?saved.ownedArmors:[]),...legacyArmorIds]);
+          p.equippedArmor=cosmetics.getArmor(saved.equippedArmor)?.id||(cosmetics.getArmor(saved.equippedSkin)?.id||'');
           p.redeemedCodes = cosmetics.normalizeRedeemedCodes(saved.redeemedCodes);
           p.ownedWeapons = normalizeOwnedWeapons(saved.ownedWeapons, saved.weapon || '');
           p.weapon = WEAPONS[saved.weapon] ? saved.weapon : null;
@@ -2333,6 +2280,16 @@ wss.on('connection', async (ws) => {
 
       if (msg.type === 'equip_skin') {
         if (!p.frozen) equipCosmeticSkin(ws, msg.skinId);
+        return;
+      }
+
+      if (msg.type === 'buy_armor') {
+        if (!p.frozen) buyCosmeticArmor(ws, msg.armorId);
+        return;
+      }
+
+      if (msg.type === 'equip_armor') {
+        if (!p.frozen) equipCosmeticArmor(ws, msg.armorId);
         return;
       }
 
@@ -2571,6 +2528,7 @@ setInterval(() => {
             );
 
             pl.hp = clamp(pl.hp - actualDamage, 0, maxHpForLevel(pl.level));
+            addDefenseXp(pl,Math.max(8,Math.round(actualDamage*4)));
 
             const found = findPlayer(pl.id, room);
             if (found) {
@@ -2712,6 +2670,7 @@ setInterval(() => {
         );
 
         pl.hp = clamp(pl.hp - actualDamage, 0, maxHpForLevel(pl.level));
+        addDefenseXp(pl,Math.max(8,Math.round(actualDamage*4)));
         const found = findPlayer(pl.id, room);
 
         if (found) {
@@ -2812,6 +2771,7 @@ setInterval(() => {
           );
 
           target.hp = clamp(target.hp - actualDamage, 0, maxHpForLevel(target.level));
+          addDefenseXp(target,Math.max(4,Math.round(actualDamage*5)));
 
           const found = findPlayer(target.id, room);
           if (found) {

@@ -20,6 +20,22 @@ const SKINS = Object.freeze({
   gm_core: { id:'gm_core', name:'SOBERANO DEL NÚCLEO', rarity:'Supremo', type:'armor', priceGold:0, priceDiamonds:50000, priceUsd:0, style:'gm', defenseBonus:1250 }
 });
 
+const ARMORS=Object.freeze({
+  pixel_cyan:{...SKINS.pixel_cyan,name:'PLACA PIXEL',type:'armor',armorRating:10},
+  rust_core:{...SKINS.rust_core,name:'CORAZA OXIDADA',type:'armor',armorRating:20},
+  toxic_orb:{...SKINS.toxic_orb,name:'TRAJE TÓXICO',type:'armor',armorRating:35},
+  plasma_violet:{...SKINS.plasma_violet,name:'ARMADURA PLASMA',type:'armor',armorRating:60},
+  aurora:{...SKINS.aurora,name:'CORAZA AURORA',type:'armor',armorRating:90},
+  nebula_prism:{...SKINS.nebula_prism,name:'ARMADURA NEBULOSA',type:'armor',armorRating:140},
+  eclipse_gold:{...SKINS.eclipse_gold,name:'CORAZA ECLIPSE',type:'armor',armorRating:220},
+  celestial:{...SKINS.celestial,name:'ARMADURA CELESTE',type:'armor',armorRating:320},
+  angel_seraph:{...SKINS.angel_seraph,name:'ARMADURA SERAFÍN',type:'armor',armorRating:500},
+  demon_infernal:{...SKINS.demon_infernal,name:'ARMADURA INFERNAL',type:'armor',armorRating:700},
+  eternal_void:{...SKINS.eternal_void,name:'ARMADURA VACÍO',type:'armor',armorRating:950},
+  gm_core:{...SKINS.gm_core,name:'ARMADURA SOBERANA',type:'armor',armorRating:1250}
+});
+function getArmor(id){return ARMORS[String(id||'')];}
+
 const WEAPON_SKINS = Object.freeze({});
 
 const REAL_MONEY_OFFERS = Object.freeze([
@@ -72,23 +88,27 @@ const REDEEM_CODES = Object.freeze({
 function getSkin(id) { return SKINS[String(id || '')]; }
 function getWeaponSkin(id) { return WEAPON_SKINS[String(id || '')]; }
 
-const STARTER_SKINS = Object.freeze(['core_default','neon_runner','signal_amber','pulse_guard','shadow_scout']);
+const STARTER_SKINS=Object.freeze(['core_default','neon_runner','signal_amber','pulse_guard','shadow_scout']);
 
-function normalizeOwnedSkins(value) {
-  const input = Array.isArray(value) ? value : [];
-  const out = [];
-  const seen = new Set();
-  for (const raw of input) {
-    const id = String(raw || '');
-    if (!SKINS[id] || seen.has(id)) continue;
-    seen.add(id);
-    out.push(id);
+function normalizeOwnedSkins(value){
+  const input=Array.isArray(value)?value:[],out=[],seen=new Set();
+  for(const raw of input){
+    const id=String(raw||'');
+    if(!STARTER_SKINS.includes(id)||seen.has(id))continue;
+    seen.add(id);out.push(id);
   }
-  for (const starterId of STARTER_SKINS) {
-    if (!seen.has(starterId)) {
-      seen.add(starterId);
-      out.unshift(starterId);
-    }
+  for(const starterId of STARTER_SKINS){
+    if(!seen.has(starterId)){seen.add(starterId);out.push(starterId);}
+  }
+  return out;
+}
+
+function normalizeOwnedArmors(value){
+  const input=Array.isArray(value)?value:[],out=[],seen=new Set();
+  for(const raw of input){
+    const id=String(raw||'');
+    if(!ARMORS[id]||seen.has(id))continue;
+    seen.add(id);out.push(id);
   }
   return out;
 }
@@ -119,15 +139,19 @@ function normalizeRedeemedCodes(value) {
   return out;
 }
 
-function publicCatalog() {
-  return Object.values(SKINS).map(skin => ({
-    id:skin.id, name:skin.name, rarity:skin.rarity, type:skin.type,
-    priceGold:skin.priceGold, priceDiamonds:skin.priceDiamonds, priceUsd:skin.priceUsd,
-    style:skin.style, defenseBonus:skin.defenseBonus, realMoney:!!skin.realMoney,
-    redeemable:Object.values(REDEEM_CODES).some(x=>x.skinId===skin.id || x.allSkins)
+function publicCatalog(){
+  return Object.values(SKINS)
+    .filter(s=>STARTER_SKINS.includes(s.id))
+    .map(s=>({id:s.id,name:s.name,rarity:s.rarity,type:s.type,style:s.style}));
+}
+function publicArmorCatalog(){
+  return Object.values(ARMORS).map(a=>({
+    id:a.id,name:a.name,rarity:a.rarity,type:a.type,
+    priceGold:Number(a.priceGold)||0,priceDiamonds:Number(a.priceDiamonds)||0,priceUsd:Number(a.priceUsd)||0,
+    style:a.style,armorRating:Number(a.armorRating)||0,
+    redeemable:Object.values(REDEEM_CODES).some(x=>x.skinId===a.id||x.allSkins)
   }));
 }
-
 function publicWeaponCatalog() {
   return [];
 }
@@ -135,7 +159,7 @@ function publicWeaponCatalog() {
 function publicRealMoneyOffers() { return REAL_MONEY_OFFERS.map(offer => ({...offer})); }
 
 module.exports = {
-  SKINS, STARTER_SKINS, WEAPON_SKINS, REAL_MONEY_OFFERS, REDEEM_CODES,
-  getSkin, getWeaponSkin, normalizeOwnedSkins, normalizeOwnedWeaponSkins,
-  normalizeRedeemedCodes, publicCatalog, publicWeaponCatalog, publicRealMoneyOffers
+  SKINS, STARTER_SKINS, ARMORS, WEAPON_SKINS, REAL_MONEY_OFFERS, REDEEM_CODES,
+  getSkin, getArmor, getWeaponSkin, normalizeOwnedSkins, normalizeOwnedArmors, normalizeOwnedWeaponSkins,
+  normalizeRedeemedCodes, publicCatalog, publicArmorCatalog, publicWeaponCatalog, publicRealMoneyOffers
 };

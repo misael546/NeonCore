@@ -9,7 +9,7 @@
 <script>
 (function(){
   try{
-    var v="BUILD-12",checking=false,updating=false,timer=null,base=new URL("../../../",location.href),manifestUrl=new URL("release.json",base);
+    var v="BUILD-13",checking=false,updating=false,timer=null,base=new URL("../../../",location.href),manifestUrl=new URL("release.json",base);
     window.NEON_CORE_BUILD=v;localStorage.setItem("neon_core_build",v);
     function notice(remote){
       if(updating)return;updating=true;
@@ -33,7 +33,7 @@
   }catch(e){}
 })();
 </script>
-<title>Neon Core · Build 12</title>
+<title>Neon Core · Build 13</title>
 <style>
 *{box-sizing:border-box}html,body{margin:0;width:100%;height:100%;overflow:hidden;background:#050811;color:#fff;font-family:Arial,sans-serif;touch-action:none}
 #game{display:block;width:100vw;height:100vh}
@@ -263,9 +263,15 @@ html.pc-controls #controlConfigBtn,html.touch-controls #controlConfigBtn{display
 .skin-signal-amber{background:radial-gradient(circle at 34% 28%,#fff4cf,#d88935 42%,#6d3512 76%,#241006);border-color:#ffd76a}
 .skin-pulse-guard{background:radial-gradient(circle at 34% 28%,#f4edff,#8d68e8 43%,#3d246e 76%,#120a23);border-color:#c58cff}
 .skin-shadow-scout{background:radial-gradient(circle at 34% 28%,#e5efff,#52637f 42%,#253449 76%,#0b111c);border-color:#8da2c1}
+</style><style id="neonHudV13">
+#bars{width:min(480px,calc(100vw - 20px));padding:7px 9px}.hudResources{display:flex;gap:6px;margin-top:5px;pointer-events:none}.hudResources span{display:inline-flex;align-items:center;gap:3px;padding:3px 8px;border:1px solid #26344e;border-radius:7px;background:#0a1422;color:#dffbff;font-size:10px;font-weight:900}.hudResources b{color:#fff}
+#chatFeed{left:10px!important;right:auto!important;top:86px!important;bottom:auto!important;width:min(330px,calc(100vw - 20px))!important;max-height:150px!important}
+#chatBox{left:10px!important;right:auto!important;top:86px!important;bottom:auto!important;width:min(350px,calc(100vw - 20px))!important}
+.armorPreviewWrap{position:relative;width:68px;height:68px;margin:0 auto}.armorPreviewWrap .skinPreview{position:absolute;inset:7px}.armorPreview{position:absolute;inset:0;border:2px solid #fff3;border-radius:16px;pointer-events:none}
+@media(max-width:600px){#bars{width:min(380px,calc(100vw - 16px));padding:6px 7px}.hudResources span{padding:3px 7px;font-size:9px}#chatFeed{left:8px!important;top:82px!important;width:min(300px,calc(100vw - 16px))!important}#chatBox{left:8px!important;top:82px!important;width:min(310px,calc(100vw - 16px))!important}}
 </style></head>
 <body>
-<canvas id="game"></canvas><div id="buildDisplay">BUILD 12</div><button id="audioToggle" type="button" aria-label="Activar o silenciar audio">🔊</button>
+<canvas id="game"></canvas><div id="buildDisplay">BUILD 13</div><button id="audioToggle" type="button" aria-label="Activar o silenciar audio">🔊</button>
 
 <div id="hud">
   <div class="panel" id="bars">
@@ -277,6 +283,7 @@ html.pc-controls #controlConfigBtn,html.touch-controls #controlConfigBtn{display
         <button id="proximityVoiceBtn" type="button" aria-label="Chat de voz por proximidad próximamente" title="Chat de voz por proximidad · Próximamente">🎙</button>
       </div>
     </div>
+    <div class="hudResources"><span>🪙 <b id="gold">0</b></span><span>🔸 <b id="ammo">0</b>/<b id="maxAmmo">220</b></span></div>
   </div>
 </div>
 <div id="minimapWrap"><canvas id="minimap" width="360" height="270"></canvas><span id="minimapTitle">MINIMAPA</span></div>
@@ -305,9 +312,10 @@ html.pc-controls #controlConfigBtn,html.touch-controls #controlConfigBtn{display
       <small id="shopMsg" class="shopUnifiedMsg">Las armas otorgan PODER. Cuanto más PODER tengas, más daño haces. Los SKINS otorgan DEFENSA.</small>
     </section>
 
-    <section id="shopSkinsSection" class="shopSection" style="display:none"><div class="shopSubTitle arsenalCompleteTitle">🧬 SKINS · DEFENSA Y DISEÑOS DEL TANQUE</div>
-      <div id="skinShopGrid" class="cosmeticGrid"></div>
-    </section>
+    <section id="shopSkinsSection" class="shopSection" style="display:none">
+<div class="shopSubTitle">🧬 SKINS BASE · GRATIS</div><div id="baseSkinShopGrid" class="cosmeticGrid"></div>
+<div class="shopSubTitle" style="margin-top:10px">🛡 ARMADURAS · SOLO VENTA POR AHORA</div><div id="armorShopGrid" class="cosmeticGrid"></div>
+</section>
 
     <section id="shopRedeemSection" class="shopSection" style="display:none">
       <div class="codeBox">
@@ -355,9 +363,17 @@ html.pc-controls #controlConfigBtn,html.touch-controls #controlConfigBtn{display
 <div class="controlRow"><label>Arriba</label><button class="bindKey" data-bind="up" type="button">W</button></div><div class="controlRow"><label>Izquierda</label><button class="bindKey" data-bind="left" type="button">A</button></div><div class="controlRow"><label>Abajo</label><button class="bindKey" data-bind="down" type="button">S</button></div><div class="controlRow"><label>Derecha</label><button class="bindKey" data-bind="right" type="button">D</button></div><div class="controlRow"><label>Disparo teclado</label><button class="bindKey" data-bind="fire" type="button">ESPACIO</button></div><div id="bindMsg" style="min-height:18px;margin:-2px 0 8px;color:#39e7ff;font-size:11px;text-align:center"></div>
 <div class="controlRow"><label for="joySize">Joystick</label><input id="joySize" type="range" min="80" max="170" value="112"></div><div class="controlRow"><label for="fireSize">Disparo</label><input id="fireSize" type="range" min="60" max="130" value="86"></div><div class="controlRow"><label for="joyX">Joystick X</label><input id="joyX" type="range" min="0" max="100" value="8"></div><div class="controlRow"><label for="joyY">Joystick Y</label><input id="joyY" type="range" min="0" max="100" value="8"></div><div class="controlRow"><label for="fireX">Disparo X</label><input id="fireX" type="range" min="0" max="100" value="8"></div><div class="controlRow"><label for="fireY">Disparo Y</label><input id="fireY" type="range" min="0" max="100" value="8"></div>
 <div class="controlActions"><button id="controlReset" type="button">Restablecer</button><button id="controlDone" type="button">Listo</button></div></section>
-<section id="statsView" class="utilityView"><div class="statsHero"><span>LV<b id="statsPlayerLevel">1</b></span><strong>PISTOLERO</strong><span>LV<b id="statsPistoleroLevel">1</b></span></div>
-<div class="statsGrid"><div class="statBox"><small>ATAQUE</small><b id="statsAttack">1</b><span>Daño real por impacto</span></div><div class="statBox"><small>PODER ARMA</small><b id="statsPowerBonus">+0 ATK</b><span id="statsPowerRaw">PODER 0</span></div><div class="statBox"><small>DEFENSA</small><b id="statsDefense">0</b><span>Reducción recibida</span></div><div class="statBox"><small>ARMAMENTO</small><b id="statsWeapon">SIN ARMA</b><span>Arma equipada</span></div><div class="statBox"><small>👾 KILLS</small><b id="statsKills">0</b><span>Enemigos destruidos</span></div><div class="statBox"><small>⚔ PVP</small><b id="statsPvpKills">0</b><span>Jugadores destruidos</span></div><div class="statBox"><small>🪙 ORO</small><b id="statsGold">0</b><span>Recursos del jugador</span></div><div class="statBox"><small>🔸 MUNICIÓN</small><b id="statsAmmo">0/220</b><span>Reserva universal</span></div></div>
-<div class="statsXp"><div class="statsXpHead"><span>PROGRESO PISTOLERO</span><b><span id="statsPistoleroXp">0</span> / <span id="statsPistoleroNeed">100</span> XP</b></div><div class="statsXpTrack"><i id="statsPistoleroXpFill"></i></div></div></section>
+<section id="statsView" class="utilityView">
+<div class="statsHero"><span>LV<b id="statsPlayerLevel">1</b></span><strong>PROGRESIÓN</strong><span>PISTOLERO LV<b id="statsPistoleroLevel">1</b></span></div>
+<div class="statsGrid">
+<div class="statBox"><small>ATAQUE</small><b id="statsAttack">1</b><span>PISTOLERO + PODER DEL ARMA</span></div>
+<div class="statBox"><small>DEFENSA</small><b id="statsDefense">0</b><span id="statsDefenseMeta">LV 1 · 0/100 XP</span></div>
+<div class="statBox"><small>VIDA MÁXIMA</small><b id="statsMaxHp">150</b><span>Crece con tu LV</span></div>
+<div class="statBox"><small>VELOCIDAD</small><b id="statsSpeed">225</b><span>Crece con tu LV</span></div>
+</div>
+<div class="statsXp"><div class="statsXpHead"><span>PROGRESO PISTOLERO</span><b><span id="statsPistoleroXp">0</span> / <span id="statsPistoleroNeed">100</span> XP</b></div><div class="statsXpTrack"><i id="statsPistoleroXpFill"></i></div></div>
+<div class="statsXp defenseXpPanel"><div class="statsXpHead"><span>PROGRESO DEFENSA</span><b><span id="statsDefenseXp">0</span> / <span id="statsDefenseNeed">100</span> XP</b></div><div class="statsXpTrack"><i id="statsDefenseXpFill"></i></div></div>
+</section>
 </div></div>
 <div id="controls">
   <div class="joy" id="moveJoy"><div class="stick"></div></div>
@@ -387,7 +403,7 @@ let neonAudio={
   enabled:true,ready:false
 };
 const NEON_MUSIC_BASE="https://opengameart.org/sites/default/files/";
-const NEON_MUSIC_CREDIT="MUSIC · tricksntraps · OpenGameArt · CC0 · BUILD-12";
+const NEON_MUSIC_CREDIT="MUSIC · tricksntraps · OpenGameArt · CC0 · BUILD-13";
 const neonMusic={
   tracks:{
     menu:{file:"Currents.ogg",name:"NEON CORE"}, exploration:{file:"Currents.ogg",name:"NEON CORE"}, tension:{file:"Currents.ogg",name:"NEON CORE"}, combat:{file:"Currents.ogg",name:"NEON CORE"}, boss:{file:"Currents.ogg",name:"NEON CORE"}, bonus:{file:"Currents.ogg",name:"NEON CORE"}
@@ -661,7 +677,7 @@ function drawNeonProjectiles(){
   }
 }
 const world={w:6000,h:4400};
-const p={x:3000,y:2200,r:16,angle:0,hp:100,maxHp:100,xp:0,level:1,score:0,kills:0,pvpKills:0,power:100,damage:35,defense:0,speed:205,fireRate:320,lastShot:0,alive:true,gold:0,diamonds:0,ammo:0,maxAmmo:220,weapon:"blaster",equippedSkin:"core_default"};
+const p={x:3000,y:2200,r:16,angle:0,hp:150,maxHp:150,xp:0,level:1,score:0,kills:0,pvpKills:0,power:100,damage:35,defense:0,speed:205,fireRate:320,lastShot:0,alive:true,gold:0,diamonds:0,ammo:0,maxAmmo:220,weapon:"blaster",equippedSkin:"core_default"};
 const shopNpc={x:3250,y:2200,r:24};
 const weaponNames={
   blaster:"BLASTER · NEONSTORM",
@@ -688,32 +704,35 @@ const weaponStats={
   omega:{name:"OMEGA · ASCENSION",power:8000,fireRate:900,maxAmmo:220,cost:2000000,range:1440}
 };let shopOpen=false,shopSection="arsenal";
 const SHOP_INTERACTION_RADIUS_CLIENT=48;
-const COSMETIC_SKINS=[
-{id:"core_default",name:"NÚCLEO ORIGINAL",rarity:"Común",currency:"free",price:0,priceUsd:0,defenseBonus:0,desc:"El núcleo base de Neon Core."},
-{id:"neon_runner",name:"CORREDOR NEÓN",rarity:"Común",currency:"free",price:0,priceUsd:0,defenseBonus:0,desc:"Skin inicial ligera basada en el Núcleo Original."},
-{id:"signal_amber",name:"SEÑAL ÁMBAR",rarity:"Común",currency:"free",price:0,priceUsd:0,defenseBonus:0,desc:"Skin inicial de energía cálida."},
-{id:"pulse_guard",name:"GUARDIÁN PULSO",rarity:"Común",currency:"free",price:0,priceUsd:0,defenseBonus:0,desc:"Skin inicial con núcleo de pulso."},
-{id:"shadow_scout",name:"EXPLORADOR SOMBRA",rarity:"Común",currency:"free",price:0,priceUsd:0,defenseBonus:0,desc:"Skin inicial oscura y compacta."},
-{id:"pixel_cyan",name:"PIXEL CYAN",rarity:"Raro",currency:"gold",price:5000,priceUsd:0,defenseBonus:10,desc:"Núcleo pixelado para el tanque."},
-{id:"rust_core",name:"NÚCLEO OXIDADO",rarity:"Raro",currency:"gold",price:1500,priceUsd:0,defenseBonus:20,desc:"Metal viejo con chispas de energía."},
-{id:"toxic_orb",name:"ORBE TÓXICO",rarity:"Épico",currency:"gold",price:12000,priceUsd:0,defenseBonus:35,desc:"Aura verde con residuos radiactivos."},
-{id:"plasma_violet",name:"PLASMA VIOLETA",rarity:"Mítico",currency:"gold",price:60000,priceUsd:0,defenseBonus:60,desc:"Plasma inestable alrededor del núcleo."},
-{id:"aurora",name:"AURORA",rarity:"Épico",currency:"diamonds",price:250,priceUsd:0,defenseBonus:90,desc:"Flujo polar de energía."},
-{id:"nebula_prism",name:"NEBULOSA PRISMA",rarity:"Mítico",currency:"diamonds",price:4500,priceUsd:0,defenseBonus:140,desc:"Partículas como una galaxia."},
-{id:"eclipse_gold",name:"ECLIPSE DORADO",rarity:"Legendario",currency:"diamonds",price:2000,priceUsd:0,defenseBonus:220,desc:"Anillo solar y núcleo oscuro."},
-{id:"celestial",name:"CIELO CELESTE",rarity:"Legendario",currency:"diamonds",price:7500,priceUsd:0,defenseBonus:320,desc:"Estrellas y energía celeste."},
-{id:"angel_seraph",name:"ÁNGEL SERAFÍN",rarity:"Legendario",currency:"diamonds",price:12000,priceUsd:0,defenseBonus:500,desc:"Halo, alas de luz y plumas."},
-{id:"demon_infernal",name:"DEMONIO INFERNAL",rarity:"Supremo",currency:"diamonds",price:25000,priceUsd:0,defenseBonus:700,desc:"Cuernos, alas y brasas demoníacas."},
-{id:"eternal_void",name:"VACÍO ETERNO",rarity:"Supremo",currency:"diamonds",price:30000,priceUsd:0,defenseBonus:950,desc:"Vórtice oscuro de energía."},
-{id:"gm_core",name:"SOBERANO DEL NÚCLEO",rarity:"Supremo",currency:"diamonds",price:50000,priceUsd:0,defenseBonus:1250,desc:"Núcleo soberano para el tanque."}
+const BASE_SKINS=[
+{id:"core_default",name:"NÚCLEO ORIGINAL",rarity:"Común",currency:"free",price:0,desc:"Skin base del jugador."},
+{id:"neon_runner",name:"CORREDOR NEÓN",rarity:"Común",currency:"free",price:0,desc:"Skin base sencilla de energía verde."},
+{id:"signal_amber",name:"SEÑAL ÁMBAR",rarity:"Común",currency:"free",price:0,desc:"Skin base de energía ámbar."},
+{id:"pulse_guard",name:"GUARDIÁN PULSO",rarity:"Común",currency:"free",price:0,desc:"Skin base de pulso violeta."},
+{id:"shadow_scout",name:"EXPLORADOR SOMBRA",rarity:"Común",currency:"free",price:0,desc:"Skin base oscura."}
+];
+const ARMOR_CATALOG=[
+{id:"pixel_cyan",name:"PLACA PIXEL",rarity:"Raro",currency:"gold",price:5000,armorRating:10,desc:"Exoesqueleto ligero y maniobrable."},
+{id:"rust_core",name:"CORAZA OXIDADA",rarity:"Raro",currency:"gold",price:1500,armorRating:20,desc:"Placas remendadas de combate."},
+{id:"toxic_orb",name:"TRAJE TÓXICO",rarity:"Épico",currency:"gold",price:12000,armorRating:35,desc:"Blindaje químico con depósitos verdes."},
+{id:"plasma_violet",name:"ARMADURA PLASMA",rarity:"Mítico",currency:"gold",price:60000,armorRating:60,desc:"Placas de plasma de alta energía."},
+{id:"aurora",name:"CORAZA AURORA",rarity:"Épico",currency:"diamonds",price:250,armorRating:90,desc:"Coraza polar luminosa."},
+{id:"nebula_prism",name:"ARMADURA NEBULOSA",rarity:"Mítico",currency:"diamonds",price:4500,armorRating:140,desc:"Blindaje prismático orbital."},
+{id:"eclipse_gold",name:"CORAZA ECLIPSE",rarity:"Legendario",currency:"diamonds",price:2000,armorRating:220,desc:"Exoesqueleto oscuro con aro solar."},
+{id:"celestial",name:"ARMADURA CELESTE",rarity:"Legendario",currency:"diamonds",price:7500,armorRating:320,desc:"Placas celestes con estrellas."},
+{id:"angel_seraph",name:"ARMADURA SERAFÍN",rarity:"Legendario",currency:"diamonds",price:12000,armorRating:500,desc:"Blindaje angelical con halo y alas."},
+{id:"demon_infernal",name:"ARMADURA INFERNAL",rarity:"Supremo",currency:"diamonds",price:25000,armorRating:700,desc:"Coraza infernal con cuernos y alas."},
+{id:"eternal_void",name:"ARMADURA VACÍO",rarity:"Supremo",currency:"diamonds",price:30000,armorRating:950,desc:"Blindaje de vacío oscuro."},
+{id:"gm_core",name:"ARMADURA SOBERANA",rarity:"Supremo",currency:"diamonds",price:50000,armorRating:1250,desc:"Armadura soberana de prueba."}
 ];
 let cosmeticShopNpc={...shopNpc};
-let ownedSkins=["core_default"],equippedSkin="core_default";
+let ownedSkins=["core_default","neon_runner","signal_amber","pulse_guard","shadow_scout"],equippedSkin="core_default";
+let ownedArmors=[],equippedArmor="";
 let ownedWeapons=["blaster"],equippedWeaponSkin="",ownedWeaponSkins=[];
 let weaponSkinCatalog=[];
 let cosmeticShopWasNear=false,cosmeticShopDismissedUntil=0;
 let bullets=[],enemies=[],drops=[],particles=[],walls=[],hitTexts=[],bossProjectiles=[],bossWarnings=[];
-let serverXpNeed=100,serverKillsToLevel=5,serverPower=100,serverDefense=0,serverPistoleroLevel=1,serverPistoleroXp=0,serverPistoleroXpIntoLevel=0,serverPistoleroXpNeed=100,serverPowerAttackBonus=0;
+let serverXpNeed=100,serverKillsToLevel=5,serverPower=100,serverDefense=0,serverDefenseLevel=1,serverDefenseXp=0,serverDefenseXpIntoLevel=0,serverDefenseXpNeed=100,serverPistoleroLevel=1,serverPistoleroXp=0,serverPistoleroXpIntoLevel=0,serverPistoleroXpNeed=100,serverPowerAttackBonus=0;
 let gameActive=false;
 let camera={x:p.x,y:p.y},last=performance.now(),playerName="";
 let safeZone={x:3000,y:2200,r:300};
@@ -859,7 +878,7 @@ function connectMultiplayer(roomMode="quick",roomCode=""){ const publicRoomAuto=
         const m=JSON.parse(e.data);
         if(m.type==="server_update_notice"){
           const target=String(m.clientBuild||m.serverVersion||"");
-          if(target&&target!=="BUILD-12"&&typeof window.__neonForceUpdate==="function")window.__neonForceUpdate(target);
+          if(target&&target!=="BUILD-13"&&typeof window.__neonForceUpdate==="function")window.__neonForceUpdate(target);
           return;
         }
         if(m.type==="room_joined"){
@@ -880,7 +899,7 @@ function connectMultiplayer(roomMode="quick",roomCode=""){ const publicRoomAuto=
             if(Number.isFinite(me.defense))p.defense=me.defense;
             if(Number.isFinite(me.maxHp))p.maxHp=me.maxHp;else p.maxHp=100+(p.level-1)*15;
             if(Number.isFinite(me.speed))p.speed=me.speed;else p.speed=205+(p.level-1)*4;
-            if(me.weapon)p.weapon=me.weapon;if(me.equippedSkin)p.equippedSkin=me.equippedSkin;
+            if(me.weapon)p.weapon=me.weapon;if(me.equippedSkin){p.equippedSkin=me.equippedSkin;equippedSkin=me.equippedSkin;}if(Object.prototype.hasOwnProperty.call(me,"equippedArmor")){p.equippedArmor=me.equippedArmor||"";equippedArmor=me.equippedArmor||"";}
           }
           enemies.length=0;
           for(const e of (m.enemies||[])){e.targetX=e.x;e.targetY=e.y;e.shape=e.shape||"triangle";enemies.push(e);}
@@ -946,12 +965,12 @@ function connectMultiplayer(roomMode="quick",roomCode=""){ const publicRoomAuto=
             if(old){
               old.targetX=m.player.x;old.targetY=m.player.y;old.targetAngle=m.player.angle;
               old.targetHp=m.player.hp;old.targetAlive=m.player.alive;
-              old.name=m.player.name;old.level=m.player.level;old.score=m.player.score;old.kills=m.player.kills;old.color=m.player.color;old.weapon=m.player.weapon;old.equippedSkin=m.player.equippedSkin||"core_default";old.maxHp=m.player.maxHp;old.speed=m.player.speed;
+              old.name=m.player.name;old.level=m.player.level;old.score=m.player.score;old.kills=m.player.kills;old.color=m.player.color;old.weapon=m.player.weapon;old.equippedSkin=m.player.equippedSkin||"core_default";old.equippedArmor=m.player.equippedArmor||"";old.maxHp=m.player.maxHp;old.speed=m.player.speed;
             }else{
               m.player.targetX=m.player.x;m.player.targetY=m.player.y;m.player.targetAngle=m.player.angle;
               m.player.targetHp=m.player.hp;m.player.targetAlive=m.player.alive;
               m.player.walkPhase=0;m.player.walkBlend=0;m.player.shootPulse=0;
-              m.player.weapon=m.player.weapon||"blaster";m.player.equippedSkin=m.player.equippedSkin||"core_default";m.player.maxHp=m.player.maxHp||100;m.player.speed=m.player.speed||205;
+              m.player.weapon=m.player.weapon||"blaster";m.player.equippedSkin=m.player.equippedSkin||"core_default";m.player.equippedArmor=m.player.equippedArmor||"";m.player.maxHp=m.player.maxHp||150;m.player.speed=m.player.speed||225;
               remotePlayers.set(m.player.id,m.player);
             }
           }
@@ -1088,12 +1107,18 @@ function connectMultiplayer(roomMode="quick",roomCode=""){ const publicRoomAuto=
           if(Number.isFinite(m.pistoleroXpNeed))serverPistoleroXpNeed=Math.max(1,Number(m.pistoleroXpNeed));
           if(Number.isFinite(m.powerAttackBonus))serverPowerAttackBonus=Math.max(0,Number(m.powerAttackBonus));
           if(Number.isFinite(m.defense))p.defense=m.defense;
+          if(Number.isFinite(m.defenseLevel))serverDefenseLevel=Math.max(1,Math.round(Number(m.defenseLevel)));
+          if(Number.isFinite(m.defenseXp))serverDefenseXp=Math.max(0,Number(m.defenseXp));
+          if(Number.isFinite(m.defenseXpIntoLevel))serverDefenseXpIntoLevel=Math.max(0,Number(m.defenseXpIntoLevel));
+          if(Number.isFinite(m.defenseXpNeed))serverDefenseXpNeed=Math.max(1,Number(m.defenseXpNeed));
           if(Number.isFinite(m.fireRate))p.fireRate=m.fireRate;
           if(Number.isFinite(m.speed))p.speed=m.speed;
           if(Number.isFinite(m.maxHp))p.maxHp=m.maxHp;
           if(Object.prototype.hasOwnProperty.call(m,"weapon"))p.weapon=m.weapon;
-           if(Object.prototype.hasOwnProperty.call(m,"equippedSkin")){equippedSkin=m.equippedSkin||"";p.equippedSkin=equippedSkin;}
+           if(Object.prototype.hasOwnProperty.call(m,"equippedSkin")){equippedSkin=m.equippedSkin||"core_default";p.equippedSkin=equippedSkin;}
+          if(Object.prototype.hasOwnProperty.call(m,"equippedArmor")){equippedArmor=m.equippedArmor||"";p.equippedArmor=equippedArmor;}
            if(Array.isArray(m.ownedSkins))ownedSkins=m.ownedSkins;
+           if(Array.isArray(m.ownedArmors))ownedArmors=m.ownedArmors;
            if(Array.isArray(m.ownedWeapons))ownedWeapons=m.ownedWeapons;
           if(Number.isFinite(m.xpNeed))serverXpNeed=m.xpNeed;
           if(Number.isFinite(m.power))serverPower=Math.max(0,Number(m.power));
@@ -1112,6 +1137,8 @@ function connectMultiplayer(roomMode="quick",roomCode=""){ const publicRoomAuto=
           equippedSkin=m.equippedSkin||"";p.equippedSkin=equippedSkin;
           if(equippedSkin&&!ownedSkins.includes(equippedSkin))ownedSkins=[...ownedSkins,equippedSkin];
           if(m.unlockedSkin&&!ownedSkins.includes(m.unlockedSkin))ownedSkins=[...ownedSkins,m.unlockedSkin];
+          if(Array.isArray(m.ownedArmors))ownedArmors=m.ownedArmors;
+          if(Object.prototype.hasOwnProperty.call(m,"equippedArmor")){equippedArmor=m.equippedArmor||"";p.equippedArmor=equippedArmor;}
           if(Array.isArray(m.ownedWeapons))ownedWeapons=m.ownedWeapons;
           if(Object.prototype.hasOwnProperty.call(m,"weapon"))p.weapon=m.weapon;
           if(m.unlockedWeapon&&!ownedWeapons.includes(m.unlockedWeapon))ownedWeapons=[...ownedWeapons,m.unlockedWeapon];
@@ -1523,7 +1550,9 @@ function drawSkinEffects(skin,r){
   }
   ctx.restore();
 }
-function drawTank(x,y,angle,color="#39e7ff",r=24,weapon="",skinId="",weaponSkinId="",anim={}){
+function drawArmorOverlay(armorId,r,walkPhase=0,walkBlend=0){const id=String(armorId||"");if(!id)return;const t=performance.now()/1000,s=Math.sin(walkPhase)*r*.08*walkBlend,pal={pixel_cyan:["#39e7ff","#dfffff","#0b3348"],rust_core:["#d97835","#ffcf96","#5f2b15"],toxic_orb:["#74ff62","#d9ffd0","#1f6f2c"],plasma_violet:["#b67cff","#f1dcff","#4b227c"],aurora:["#82ffd7","#ecffff","#2c6f69"],nebula_prism:["#6f7bff","#fff","#442f8a"],eclipse_gold:["#ffd76a","#fff2a8","#5f4714"],celestial:["#5fa4ff","#e5f5ff","#263b95"],angel_seraph:["#fff1b8","#fff9df","#b48b2f"],demon_infernal:["#9b2430","#ffd1ba","#4f0b14"],eternal_void:["#9d53c8","#f0d1ff","#25122f"],gm_core:["#ffd76a","#fff","#493a0f"]}[id]||["#39e7ff","#dfffff","#0b3348"];ctx.save();ctx.fillStyle=pal[2];ctx.strokeStyle=pal[0];ctx.lineWidth=Math.max(1.5,r*.075);ctx.beginPath();ctx.roundRect(-r*.68,-r*.36+s,r*1.36,r*.82,r*.18);ctx.fill();ctx.stroke();ctx.fillStyle=pal[1];ctx.globalAlpha=.9;ctx.beginPath();ctx.ellipse(r*.08,-r*.02+s,r*.28,r*.17,0,0,Math.PI*2);ctx.fill();ctx.globalAlpha=1;for(const side of [-1,1]){ctx.fillStyle=pal[2];ctx.strokeStyle=pal[0];ctx.beginPath();ctx.ellipse(side*r*.73,s*.4,r*.25,r*.3,0,0,Math.PI*2);ctx.fill();ctx.stroke();ctx.fillStyle=pal[1];ctx.beginPath();ctx.arc(side*r*.99,r*.28+side*s*.5,r*.13,0,Math.PI*2);ctx.fill();}ctx.fillStyle=pal[0];ctx.globalAlpha=.75;ctx.fillRect(-r*.58,r*.42+s,r*1.16,r*.1);ctx.globalAlpha=1;if(id==="pixel_cyan"){ctx.lineWidth=2;ctx.strokeStyle=pal[1];for(let i=-1;i<=1;i++)ctx.strokeRect(i*r*.3-r*.1,-r*.1+s,r*.2,r*.34);}else if(id==="rust_core"){ctx.strokeStyle="#ffad63";ctx.lineWidth=2;ctx.beginPath();ctx.moveTo(-r*.58,-r*.3+s);ctx.lineTo(-r*.22,r*.36+s);ctx.moveTo(r*.16,-r*.28+s);ctx.lineTo(r*.58,r*.36+s);ctx.stroke();}else if(id==="toxic_orb"){ctx.strokeStyle="#c8ffad";ctx.lineWidth=2;ctx.beginPath();ctx.arc(0,0,r*.55,0,Math.PI*2);ctx.stroke();}else if(id==="plasma_violet"){ctx.strokeStyle="#eed5ff";ctx.lineWidth=2.4;ctx.beginPath();ctx.arc(0,-r*.03+s,r*.6,-2.7,.55);ctx.stroke();}else if(id==="aurora"){ctx.strokeStyle="#d9ffff";ctx.lineWidth=2;ctx.beginPath();ctx.arc(0,0,r*.6,-2.8,.5);ctx.stroke();ctx.strokeStyle="#caa2ff";ctx.beginPath();ctx.arc(0,0,r*.48,.7,2.85);ctx.stroke();}else if(id==="nebula_prism"){ctx.strokeStyle="#fff";ctx.lineWidth=2;ctx.beginPath();ctx.arc(0,0,r*.62,0,Math.PI*2);ctx.stroke();}else if(id==="eclipse_gold"){ctx.strokeStyle="#ffd76a";ctx.lineWidth=3;ctx.beginPath();ctx.arc(0,0,r*.65,0,Math.PI*2);ctx.stroke();}else if(id==="celestial"){ctx.strokeStyle="#b9ddff";ctx.lineWidth=2;ctx.beginPath();ctx.arc(0,0,r*.64,-t*.5,t*.6+4.2);ctx.stroke();}else if(id==="angel_seraph"){ctx.strokeStyle="#fff4bf";ctx.lineWidth=3;ctx.beginPath();ctx.arc(0,-r*.55,r*.44,-Math.PI*.95,-Math.PI*.05);ctx.stroke();for(const side of [-1,1]){ctx.strokeStyle="#fff7dc";ctx.lineWidth=3;ctx.beginPath();ctx.moveTo(side*r*.42,0);ctx.bezierCurveTo(side*r*1.05,-r*.62,side*r*1.38,-r*.55,side*r,r*.38);ctx.stroke();}}else if(id==="demon_infernal"){for(const side of [-1,1]){ctx.strokeStyle="#ff694e";ctx.lineWidth=3;ctx.beginPath();ctx.moveTo(side*r*.42,0);ctx.bezierCurveTo(side*r*1.08,-r*.66,side*r*1.38,-r*.45,side*r*1.03,r*.36);ctx.stroke();ctx.fillStyle="#ffcf83";ctx.beginPath();ctx.moveTo(side*r*.38,-r*.38);ctx.lineTo(side*r*.58,-r*.95);ctx.lineTo(side*r*.74,-r*.42);ctx.closePath();ctx.fill();}}else if(id==="eternal_void"){ctx.strokeStyle="#e879ff";ctx.lineWidth=2.5;ctx.beginPath();ctx.arc(0,0,r*.68,t,t+4.5);ctx.stroke();ctx.strokeStyle="#39e7ff";ctx.lineWidth=2;ctx.beginPath();ctx.arc(0,0,r*.54,-t*.8,-t*.8+3.5);ctx.stroke();}else if(id==="gm_core"){ctx.strokeStyle="#ffe27a";ctx.lineWidth=3;ctx.beginPath();ctx.arc(0,0,r*.72,t*.2,t*.2+5.3);ctx.stroke();}ctx.restore();}
+function drawWeaponModel(id,r,v,shoot,angle){const recoil=shoot*5;ctx.save();ctx.rotate(Number(angle)||0);ctx.translate(-recoil,0);ctx.globalCompositeOperation="lighter";ctx.shadowBlur=12;ctx.shadowColor=v.glow;const d="#071019";const grip=(x,w,h)=>{ctx.fillStyle=d;ctx.strokeStyle=v.glow;ctx.lineWidth=1.2;ctx.beginPath();ctx.roundRect(x,v.thick*.4,w,h,h*.18);ctx.fill();ctx.stroke();};const barrel=(x,l,t)=>{ctx.fillStyle=d;ctx.fillRect(x,-t/2,l,t);ctx.fillStyle=v.base;ctx.fillRect(x+2,-Math.max(1,t*.24),Math.max(2,l-4),Math.max(2,t*.5));};if(id==="blaster"){ctx.fillStyle=d;ctx.beginPath();ctx.roundRect(r,-7,15,11,3);ctx.fill();grip(r+5,7,11);barrel(r+13,14,5);}else if(id==="pulse"){ctx.fillStyle=d;ctx.beginPath();ctx.roundRect(r,-8,17,13,4);ctx.fill();grip(r+6,7,12);barrel(r+15,16,6);ctx.fillStyle=v.glow;ctx.fillRect(r+4,-5,9,2);ctx.fillRect(r+6,1,8,2);}else if(id==="cannon"){ctx.fillStyle=d;ctx.beginPath();ctx.roundRect(r,-10,19,17,4);ctx.fill();grip(r+5,8,14);barrel(r+18,18,11);}else if(id==="railgun"){ctx.fillStyle=d;ctx.beginPath();ctx.roundRect(r,-8,24,13,4);ctx.fill();grip(r+7,8,13);barrel(r+19,33,5);ctx.fillStyle=v.accent;ctx.fillRect(r+12,-13,8,4);}else if(id==="nova"){ctx.fillStyle=d;ctx.beginPath();ctx.roundRect(r,-8,16,13,4);ctx.fill();grip(r+5,8,12);barrel(r+14,20,5);ctx.save();ctx.translate(0,7);barrel(r+14,20,5);ctx.restore();}else if(id==="plasma"){ctx.fillStyle=d;ctx.beginPath();ctx.roundRect(r,-8,23,14,4);ctx.fill();grip(r+8,8,12);barrel(r+21,23,7);}else if(id==="vortex"){ctx.fillStyle=d;ctx.beginPath();ctx.roundRect(r,-9,22,15,5);ctx.fill();grip(r+7,8,13);barrel(r+21,19,8);ctx.strokeStyle=v.base;ctx.lineWidth=3;ctx.beginPath();ctx.arc(r+13,-2,8,0,Math.PI*1.65);ctx.stroke();}else if(id==="quasar"){ctx.fillStyle=d;ctx.beginPath();ctx.roundRect(r,-7,24,11,4);ctx.fill();grip(r+8,7,13);barrel(r+20,38,4);ctx.fillStyle=v.accent;ctx.fillRect(r+14,-13,8,5);}else if(id==="singularity"){ctx.fillStyle=d;ctx.beginPath();ctx.roundRect(r,-12,25,19,5);ctx.fill();grip(r+8,10,15);barrel(r+24,16,13);ctx.strokeStyle=v.base;ctx.lineWidth=3;ctx.beginPath();ctx.arc(r+15,-2,7,0,Math.PI*2);ctx.stroke();}else if(id==="omega"){ctx.fillStyle=d;ctx.beginPath();ctx.roundRect(r,-10,29,16,4);ctx.fill();grip(r+9,9,14);barrel(r+28,28,6);ctx.strokeStyle=v.base;ctx.lineWidth=2.2;ctx.beginPath();ctx.moveTo(r+2,-7);ctx.lineTo(r+11,-13);ctx.lineTo(r+22,-8);ctx.stroke();}else{barrel(r,18,v.thick+1);grip(r+4,7,11);}if(shoot){ctx.fillStyle="#fff8cf";ctx.globalAlpha=.9;ctx.beginPath();ctx.arc(r+(id==="omega"?58:37),0,4+shoot*6,0,Math.PI*2);ctx.fill();}ctx.globalAlpha=1;ctx.shadowBlur=0;ctx.restore();}
+function drawTank(x,y,angle,color="#39e7ff",r=24,weapon="",skinId="",armorId="",anim={}){
   const t=performance.now()/1000;
   const walkBlend=clamp(Number(anim?.walkBlend)||0,0,1);
   const walkPhase=Number(anim?.walkPhase)||0;
@@ -1604,34 +1633,13 @@ function drawTank(x,y,angle,color="#39e7ff",r=24,weapon="",skinId="",weaponSkinI
 
   drawSkinEffects(skin,r);
   ctx.restore();
+  if(armorId)drawArmorOverlay(armorId,r,walkPhase,walkBlend);
 
   if(!weapon)return ctx.restore();
 
-  const wt=performance.now()/1000;
-  const weaponId=String(weapon||"blaster");
-  const weaponVisuals={
-    blaster:{base:"#39e7ff",accent:"#dfffff",glow:"#39e7ff",len:17,thick:4},
-    pulse:{base:"#c58cff",accent:"#f7eaff",glow:"#9c5dff",len:18,thick:4},
-    cannon:{base:"#ffd76a",accent:"#fff4c7",glow:"#ff9f43",len:20,thick:5},
-    railgun:{base:"#a4b6ff",accent:"#e8ecff",glow:"#7d8fff",len:21,thick:4},
-    nova:{base:"#fff1b8",accent:"#ffffff",glow:"#ff9b3f",len:21,thick:5},
-    plasma:{base:"#ff5b61",accent:"#ffd5d8",glow:"#ff3d59",len:20,thick:4},
-    vortex:{base:"#6ff3b0",accent:"#ddffef",glow:"#36e49a",len:19,thick:4},
-    quasar:{base:"#65c7ff",accent:"#e2f6ff",glow:"#4cb6ff",len:21,thick:4},
-    singularity:{base:"#b67cff",accent:"#f2e7ff",glow:"#8b4dff",len:22,thick:5},
-    omega:{base:"#ffffff",accent:"#ffe38a",glow:"#ffb02e",len:23,thick:5}
-  };
-  const v=weaponVisuals[weaponId]||weaponVisuals.blaster;
-  const recoil=shoot*5;
-  ctx.save();ctx.rotate(Number(angle)||0);ctx.globalCompositeOperation="lighter";ctx.shadowBlur=14;ctx.shadowColor=v.glow;ctx.translate(-recoil,0);
-  ctx.fillStyle="#0a1322";ctx.fillRect(r,-v.thick/2,v.len,v.thick);
-  ctx.fillStyle=v.base;ctx.fillRect(r+2,-v.thick/2+1,v.len-5,Math.max(2,v.thick-2));
-  ctx.fillStyle=v.accent;ctx.fillRect(r+v.len-5,-1.5,5,3);
-  ctx.fillStyle="#111827";ctx.fillRect(r+v.len*.28,v.thick/2-1,Math.max(3,v.len*.22),8);
-  ctx.fillStyle=v.glow;ctx.globalAlpha=.72;ctx.fillRect(r+v.len*.42,-1,Math.max(3,v.len*.22),2);ctx.globalAlpha=1;
-  for(let i=0;i<7;i++){const phase=wt*(1.2+i*.14)+i*1.63;const forward=r+v.len-2+Math.sin(phase)*5;const side=Math.cos(phase*1.31+i)*Math.min(9,r*.38);ctx.fillStyle=i%2?v.accent:v.base;ctx.globalAlpha=.3+.09*(i%4);ctx.beginPath();ctx.arc(forward,side,1.3+(i%3)*.5,0,Math.PI*2);ctx.fill();}
-  if(shoot>0){ctx.globalAlpha=.9;ctx.fillStyle="#fff8cf";ctx.beginPath();ctx.arc(r+v.len+2,0,4+shoot*6,0,Math.PI*2);ctx.fill();}
-  ctx.globalAlpha=1;ctx.shadowBlur=0;ctx.restore();
+  const weaponVisuals={blaster:{base:"#39e7ff",accent:"#dfffff",glow:"#39e7ff",thick:4},pulse:{base:"#c58cff",accent:"#f7eaff",glow:"#9c5dff",thick:4},cannon:{base:"#ffd76a",accent:"#fff4c7",glow:"#ff9f43",thick:5},railgun:{base:"#a4b6ff",accent:"#e8ecff",glow:"#7d8fff",thick:4},nova:{base:"#fff1b8",accent:"#fff",glow:"#ff9b3f",thick:5},plasma:{base:"#ff5b61",accent:"#ffd5d8",glow:"#ff3d59",thick:4},vortex:{base:"#6ff3b0",accent:"#ddffef",glow:"#36e49a",thick:4},quasar:{base:"#65c7ff",accent:"#e2f6ff",glow:"#4cb6ff",thick:4},singularity:{base:"#b67cff",accent:"#f2e7ff",glow:"#8b4dff",thick:5},omega:{base:"#fff",accent:"#ffe38a",glow:"#ffb02e",thick:5}};
+  drawWeaponModel(String(weapon),r,weaponVisuals[String(weapon)]||weaponVisuals.blaster,shoot,angle);
+  ctx.restore();
   ctx.restore();
 }
 function drawEnemy(e){
@@ -1765,10 +1773,8 @@ function updateResourceHud(){
   if(def)def.textContent=Math.round(serverDefense);
   updateStatsPanel();
 }
-function updateStatsPanel(){
-  const lv=document.getElementById("statsPlayerLevel"),plv=document.getElementById("statsPistoleroLevel"),atk=document.getElementById("statsAttack"),pb=document.getElementById("statsPowerBonus"),pr=document.getElementById("statsPowerRaw"),def=document.getElementById("statsDefense"),weapon=document.getElementById("statsWeapon"),kills=document.getElementById("statsKills"),pvp=document.getElementById("statsPvpKills"),gold=document.getElementById("statsGold"),ammo=document.getElementById("statsAmmo"),xp=document.getElementById("statsPistoleroXp"),need=document.getElementById("statsPistoleroNeed"),fill=document.getElementById("statsPistoleroXpFill");
-  if(lv)lv.textContent=String(p.level||1);if(plv)plv.textContent=String(serverPistoleroLevel||1);if(atk)atk.textContent=Math.max(0,Math.round(Number(p.damage)||0));if(pb)pb.textContent="+"+Math.max(0,Math.round(Number(serverPowerAttackBonus)||0))+" ATK";if(pr)pr.textContent="PODER "+Math.max(0,Math.round(Number(serverPower)||0));if(def)def.textContent=Math.max(0,Math.round(Number(serverDefense)||0));if(weapon)weapon.textContent=weaponNames[p.weapon]||"SIN ARMA";if(kills)kills.textContent=String(p.kills||0);if(pvp)pvp.textContent=String(p.pvpKills||0);if(gold)gold.textContent=Math.max(0,Number(p.gold)||0).toLocaleString("es-MX");if(ammo)ammo.textContent=Math.max(0,Number(p.ammo)||0)+"/"+Math.max(1,Number(p.maxAmmo)||220);if(xp)xp.textContent=Math.max(0,Math.round(Number(serverPistoleroXpIntoLevel)||0));if(need)need.textContent=Math.max(1,Math.round(Number(serverPistoleroXpNeed)||100));if(fill){const n=Math.max(1,Number(serverPistoleroXpNeed)||100),cur=Math.max(0,Math.min(n,Number(serverPistoleroXpIntoLevel)||0));fill.style.width=(cur/n*100).toFixed(2)+"%";}
-}
+function updateStatsPanel(){const lv=document.getElementById("statsPlayerLevel"),plv=document.getElementById("statsPistoleroLevel"),atk=document.getElementById("statsAttack"),def=document.getElementById("statsDefense"),meta=document.getElementById("statsDefenseMeta"),maxHp=document.getElementById("statsMaxHp"),speed=document.getElementById("statsSpeed"),px=document.getElementById("statsPistoleroXp"),pn=document.getElementById("statsPistoleroNeed"),pf=document.getElementById("statsPistoleroXpFill"),dx=document.getElementById("statsDefenseXp"),dn=document.getElementById("statsDefenseNeed"),df=document.getElementById("statsDefenseXpFill");if(lv)lv.textContent=String(p.level||1);if(plv)plv.textContent=String(serverPistoleroLevel||1);if(atk)atk.textContent=Math.max(0,Math.round(Number(p.damage)||0));if(def)def.textContent=Math.max(0,Math.round(Number(serverDefense)||0));if(meta)meta.textContent="LV "+String(serverDefenseLevel||1)+" · "+Math.round(Number(serverDefenseXpIntoLevel)||0)+"/"+Math.max(1,Math.round(Number(serverDefenseXpNeed)||100))+" XP";if(maxHp)maxHp.textContent=Math.max(1,Math.round(Number(p.maxHp)||150));if(speed)speed.textContent=Math.max(1,Math.round(Number(p.speed)||225));if(px)px.textContent=Math.max(0,Math.round(Number(serverPistoleroXpIntoLevel)||0));if(pn)pn.textContent=Math.max(1,Math.round(Number(serverPistoleroXpNeed)||100));if(pf){const n=Math.max(1,Number(serverPistoleroXpNeed)||100);pf.style.width=(Math.min(n,Number(serverPistoleroXpIntoLevel)||0)/n*100).toFixed(2)+"%";}if(dx)dx.textContent=Math.max(0,Math.round(Number(serverDefenseXpIntoLevel)||0));if(dn)dn.textContent=Math.max(1,Math.round(Number(serverDefenseXpNeed)||100));if(df){const n=Math.max(1,Number(serverDefenseXpNeed)||100);df.style.width=(Math.min(n,Number(serverDefenseXpIntoLevel)||0)/n*100).toFixed(2)+"%";}}
+
 
 function skinCostText(item){
   if(item.currency==="gold")return "🪙 "+item.price.toLocaleString("es-MX");
@@ -1814,22 +1820,9 @@ function renderArsenal(){
     ? "Toca un arma para equiparla; vuelve a tocarla para desequiparla. PISTOLERO es la base del daño; PODER solo añade un bono de ataque."
     : "Arsenal desequipado · PODER 0 y sin munición.";
 }
-function renderSkinShop(){
-  const grid=document.getElementById("skinShopGrid");if(!grid)return;
-  grid.innerHTML=COSMETIC_SKINS.map(item=>{
-    const owned=ownedSkins.includes(item.id),selected=equippedSkin===item.id;
-    const action=selected?"✓ EQUIPADA · TOCA PARA DESEQUIPAR":owned?"TOCA PARA EQUIPAR":item.currency==="code"?"🎁 CANJEAR":"COMPRAR";
-    const cost=item.currency==="code"?"🎁 Código de regalo":skinCostText(item);
-    return '<button type="button" class="cosmeticCard '+(owned?"owned ":"")+(selected?"selected ":"")+'" data-skin-id="'+item.id+'"><div class="skinPreview '+skinClass(item.id)+'"></div><strong>'+item.name+'</strong><small>ARMADURA · '+item.rarity+'<br>'+item.desc+'</small><span class="armorDefense">🛡 DEFENSA +'+Number(item.defenseBonus||0)+'</span><span class="cosmeticCost">'+cost+'</span><span class="cosmeticAction">'+action+'</span></button>';
-  }).join("");
-  grid.querySelectorAll(".cosmeticCard").forEach(btn=>btn.addEventListener("click",e=>{
-    e.preventDefault();e.stopPropagation();
-    const id=btn.dataset.skinId,item=COSMETIC_SKINS.find(x=>x.id===id);if(!id)return;
-    if(ownedSkins.includes(id))sendCosmeticCommand("equip_skin",id);
-    else if(item?.currency==="gold"||item?.currency==="diamonds")sendCosmeticCommand("buy_skin",id);
-    else if(item?.currency==="code"){setShopSection("redeem");showCosmeticMsg("Usa CENTRO DE CÓDIGOS para desbloquear esta armadura.");}
-  }));
-}
+function renderBaseSkinShop(){const grid=document.getElementById("baseSkinShopGrid");if(!grid)return;grid.innerHTML=BASE_SKINS.map(item=>{const selected=equippedSkin===item.id;return '<button type="button" class="cosmeticCard owned '+(selected?"selected":"")+'" data-base-skin-id="'+item.id+'"><div class="skinPreview '+skinClass(item.id)+'"></div><strong>'+item.name+'</strong><small>SKIN BASE · '+item.rarity+'<br>'+item.desc+'</small><span class="cosmeticCost">GRATIS</span><span class="cosmeticAction">'+(selected?"✓ EQUIPADO":"EQUIPAR")+'</span></button>';}).join("");grid.querySelectorAll("[data-base-skin-id]").forEach(btn=>btn.addEventListener("click",e=>{e.preventDefault();e.stopPropagation();sendCosmeticCommand("equip_skin",btn.dataset.baseSkinId);}));}
+function renderArmorShop(){const grid=document.getElementById("armorShopGrid");if(!grid)return;grid.innerHTML=ARMOR_CATALOG.map(item=>{const owned=ownedArmors.includes(item.id),selected=equippedArmor===item.id;const action=selected?"✓ EQUIPADA · TOCA PARA QUITAR":owned?"EQUIPAR":"COMPRAR";const price=item.currency==="gold"?"🪙 "+Number(item.price).toLocaleString("es-MX"):item.currency==="diamonds"?"💎 "+Number(item.price).toLocaleString("es-MX"):"GRATIS";return '<button type="button" class="cosmeticCard '+(owned?"owned ":"")+(selected?"selected ":"")+'" data-armor-id="'+item.id+'"><div class="armorPreviewWrap"><div class="skinPreview skin-core-default"></div><div class="armorPreview armor-'+item.id+'"></div></div><strong>'+item.name+'</strong><small>ARMADURA · '+item.rarity+'<br>'+item.desc+'</small><span class="armorDefense">⚙ VALOR EQUIPO '+Number(item.armorRating||0)+'</span><span class="cosmeticCost">'+price+'</span><span class="cosmeticAction">'+action+'</span></button>';}).join("");grid.querySelectorAll("[data-armor-id]").forEach(btn=>btn.addEventListener("click",e=>{e.preventDefault();e.stopPropagation();const id=btn.dataset.armorId;sendCosmeticCommand(ownedArmors.includes(id)?"equip_armor":"buy_armor",id);}));}
+function renderSkinShop(){renderBaseSkinShop();renderArmorShop();}
 function setShopSection(section){
   shopSection=["arsenal","skins","redeem"].includes(section)?section:"arsenal";
   const sections={
@@ -1842,11 +1835,11 @@ function setShopSection(section){
     btn.classList.toggle("active",btn.dataset.shopSection===shopSection);
   });
   if(shopSection==="arsenal")renderArsenal();
-  if(shopSection==="skins")renderSkinShop();
+  if(shopSection==="skins"){renderBaseSkinShop();renderArmorShop();}
 }
 
 function renderCosmeticShop(){
-  renderSkinShop();
+  renderBaseSkinShop();renderArmorShop();
   setShopSection(shopSection);
   const gold=document.getElementById("cosmeticGold"),diamonds=document.getElementById("cosmeticDiamonds"),owned=document.getElementById("cosmeticOwned");
   if(gold)gold.textContent=Math.max(0,Number(p.gold)||0).toLocaleString("es-MX");
@@ -2017,7 +2010,7 @@ function draw(){
     ctx.restore();
   }
   for(const other of remotePlayers.values()){
-    drawTank(other.x,other.y,other.angle,other.color||"#7cff72",24,other.weapon||"",other.equippedSkin||"",other.equippedWeaponSkin||"",{walkPhase:other.walkPhase||0,walkBlend:other.walkBlend||0,shoot:other.shootPulse||0});
+    drawTank(other.x,other.y,other.angle,other.color||"#7cff72",24,other.weapon||"",other.equippedSkin||"",other.equippedArmor||"",{walkPhase:other.walkPhase||0,walkBlend:other.walkBlend||0,shoot:other.shootPulse||0});
     drawNameTag(other.name||"Jugador",other.x,other.y,24,"#7cff72",other.level||1);
     const ox=sx(other.x),oy=sy(other.y)-31;
     ctx.fillStyle="#101827";ctx.fillRect(ox-24,oy,48,4);
@@ -2044,7 +2037,7 @@ function draw(){
     }
     ctx.globalAlpha=1;
   }
-  drawTank(p.x,p.y,p.angle,"#39e7ff",p.r,p.weapon||"",p.equippedSkin||"",equippedWeaponSkin||"",localVisual);
+  drawTank(p.x,p.y,p.angle,"#39e7ff",p.r,p.weapon||"",p.equippedSkin||"",equippedArmor||"",localVisual);
   drawNameTag(playerName,p.x,p.y,p.r,"#39e7ff",p.level||1);
   if(controlMode==="mouse"&&gameActive){ctx.save();ctx.strokeStyle="rgba(57,231,255,.95)";ctx.lineWidth=1.5;ctx.beginPath();ctx.arc(pointer.x,pointer.y,10,0,Math.PI*2);ctx.moveTo(pointer.x-16,pointer.y);ctx.lineTo(pointer.x+16,pointer.y);ctx.moveTo(pointer.x,pointer.y-16);ctx.lineTo(pointer.x,pointer.y+16);ctx.stroke();ctx.restore();}
   drawMinimap();updateCosmeticShop();updateResourceHud();
