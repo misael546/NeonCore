@@ -9,7 +9,7 @@
 <script>
 (function(){
   try{
-    var v="20261003-040-backward-compatible-auto-respawn";
+    var v="20261003-041-global-autoinstaller-hard-fix";
     window.NEON_CORE_BUILD=v;
     window.NEON_RELEASE_MONITOR="global-1";
     try{localStorage.setItem("neon_core_build",v);}catch(e){}
@@ -20,6 +20,39 @@
       }
     }catch(e){}
   }catch(e){}
+})();
+</script>
+<script>
+(function(){
+  // Cargador de emergencia: se ejecuta incluso cuando GitHub Pages entrega
+  // una copia vieja en caché. Descarga release.json + el cliente real desde
+  // raw.githubusercontent.com y reemplaza el documento completo.
+  var rawRoot="https://raw.githubusercontent.com/misael546/NeonCore/main/";
+  var rawManifest=rawRoot+"release.json?boot="+Date.now();
+  var rawClient=rawRoot+"neoncore/12345/v172/index.html?boot="+Date.now();
+  var localBuild=String(window.NEON_CORE_BUILD||"");
+  try{
+    var inProgress=sessionStorage.getItem("neon_boot_update");
+    if(inProgress==="1") sessionStorage.removeItem("neon_boot_update");
+  }catch(e){}
+  Promise.resolve().then(async function(){
+    try{
+      var mr=await fetch(rawManifest,{cache:"no-store"});
+      if(!mr.ok)return;
+      var manifest=await mr.json();
+      var target=String(manifest.releaseId||manifest.clientBuild||"");
+      if(!target||target===localBuild)return;
+      var cr=await fetch(rawClient,{cache:"no-store"});
+      if(!cr.ok)return;
+      var html=await cr.text();
+      var m=html.match(/window\.NEON_CORE_BUILD\s*=\s*"([^"]+)"/);
+      if(!m||String(m[1])!==target)return;
+      try{sessionStorage.setItem("neon_boot_update","1");}catch(e){}
+      document.open();
+      document.write(html);
+      document.close();
+    }catch(e){}
+  });
 })();
 </script>
 <title>Neon Core · Build 172</title>
@@ -771,8 +804,6 @@ async function applyLatestClientSource(target){
   const latest=await fetchLatestClientSource();
   if(!latest || latest.release!==target || !latest.html)return false;
 
-  // En móvil usamos una navegación real con cache-bust. Es más fiable que
-  // reconstruir el documento con document.write() y conserva el nombre/sala.
   try{
     sessionStorage.setItem("neon_pending_release",target);
   }catch{}
@@ -784,11 +815,20 @@ async function applyLatestClientSource(target){
     }
   }catch{}
 
-  const url=new URL(location.href);
-  url.searchParams.set("neon_release",target);
-  url.searchParams.set("neon_cache",String(Date.now()));
-  location.replace(url.toString());
-  return true;
+  // No dependemos de la caché de GitHub Pages: el HTML nuevo ya viene de
+  // raw.githubusercontent.com y se carga directamente en este documento.
+  try{
+    document.open();
+    document.write(latest.html);
+    document.close();
+    return true;
+  }catch(e){
+    const url=new URL(location.href);
+    url.searchParams.set("neon_release",target);
+    url.searchParams.set("neon_cache",String(Date.now()));
+    location.replace(url.toString());
+    return true;
+  }
 }
 
 async function runGlobalReleaseCheck(){
@@ -1015,6 +1055,22 @@ function connectMultiplayer(roomMode="quick",roomCode=""){ const publicRoomAuto=
           multiplayerId=m.id;
           websocketRelease=String(m.releaseId||m.version||"");
           websocketDatabaseRelease=String(m.databaseReleaseId||"");
+
+          // El saludo del servidor es la ruta de actualización más fiable.
+          // Si el servidor ya tiene una versión superior a la página en caché,
+          // iniciamos la actualización aunque /health o release.json no hayan
+          // sido accesibles desde el navegador.
+          const localBuildNow=String(window.NEON_CORE_BUILD||"");
+          if(websocketRelease && localBuildNow && websocketRelease!==localBuildNow && !globalUpdateInProgress){
+            globalUpdateInProgress=true;
+            globalUpdateTargetRelease=websocketRelease;
+            showServerUpdateNotice("ACTUALIZANDO SERVIDOR · Cargando la versión nueva…");
+            await saveBeforeGlobalUpdate();
+            const applied=await applyLatestClientSource(websocketRelease);
+            if(applied)return;
+            showServerUpdateNotice("ACTUALIZANDO SERVIDOR · Esperando el archivo nuevo…");
+          }
+
           if(globalUpdateInProgress){
             const target=globalUpdateTargetRelease;
             if(websocketRelease!==target || websocketDatabaseRelease!==target){
