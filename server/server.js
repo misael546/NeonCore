@@ -2405,6 +2405,8 @@ wss.on('connection', async (ws) => {
   });
 });
 
+startServerUpdateHeartbeat();
+
 const storageReady = storage.initStorage(RELEASE_ID, DATABASE_SCHEMA_VERSION).catch((error) => {
   console.error('[STORAGE INIT]', error?.stack || error);
   return false;
@@ -2895,6 +2897,17 @@ function announceServerUpdate() {
   for (const p of clients.values()) {
     send(p.ws, payload);
   }
+}
+
+let serverUpdateHeartbeat = null;
+function startServerUpdateHeartbeat() {
+  if (serverUpdateHeartbeat) clearInterval(serverUpdateHeartbeat);
+  // Old clients may already be inside a room when a new build goes live.
+  // Keep announcing the current build so those clients can migrate without
+  // a manual refresh. Current clients ignore notices for their own build.
+  serverUpdateHeartbeat = setInterval(() => {
+    if (clients.size > 0) announceServerUpdate();
+  }, 5000);
 }
 
 async function gracefulShutdown(signal) {
