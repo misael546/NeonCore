@@ -1,4 +1,4 @@
-/* BUILD-19 · HUD limpia y configuraciones generales */
+/* BUILD-20 · HUD limpia y configuraciones generales */
 'use strict';
 
 const http = require('http');
@@ -2892,7 +2892,9 @@ function announceServerUpdate() {
     clientBuild: String(UNIFIED_RELEASE_MANIFEST.clientBuild || RELEASE_ID),
     releaseId: RELEASE_ID,
     serverStartedAt: SERVER_STARTED_AT,
-    message: SERVER_UPDATE_MESSAGE
+    message: SERVER_UPDATE_MESSAGE,
+    required: true,
+    clientPath: String(UNIFIED_RELEASE_MANIFEST.clientPath || 'neoncore/12345/v1/index.html')
   };
   for (const p of clients.values()) {
     send(p.ws, payload);
