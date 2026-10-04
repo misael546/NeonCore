@@ -2014,7 +2014,12 @@ wss.on('connection', (ws) => {
 
   send(ws, {
     type: 'connected',
-    id: player.id
+    id: player.id,
+    releaseId: RELEASE_ID,
+    clientBuild: String(UNIFIED_RELEASE_MANIFEST.clientBuild || RELEASE_ID),
+    databaseReleaseId: String(storage.releaseInfo?.releaseId || ''),
+    databaseSchema: Number(storage.releaseInfo?.schemaVersion) || DATABASE_SCHEMA_VERSION,
+    startedAt: SERVER_STARTED_AT
   });
 
   ws.on('message', async (raw) => {
