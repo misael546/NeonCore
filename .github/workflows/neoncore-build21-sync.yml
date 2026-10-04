@@ -25,7 +25,7 @@ jobs:
 
           release_path = Path("release.json")
           release = json.loads(release_path.read_text(encoding="utf-8"))
-          build = str(release.get("clientBuild") or release.get("releaseId") or "BUILD-21")
+          build = "BUILD-22"
 
           # The official game entry remains the real game page. Pages publishes
           # the patched source from the repository, so old clients can migrate
@@ -40,15 +40,57 @@ jobs:
               Path("index.html"),
               Path("sessions/index.html"),
               Path("neoncore/12345/v1/index.html"),
+              Path("server/server.js"),
           ]
 
           for path in targets:
               text = path.read_text(encoding="utf-8")
               text = text.replace('var v="BUILD-20"', f'var v="{build}"')
               text = text.replace("BUILD-20", build)
+              text = text.replace("BUILD-21", build)
+              text = text.replace("Build 21", "Build 22")
+              text = text.replace("BUILD 21", "BUILD 22")
               text = text.replace("Build 20", build.replace("BUILD-", "Build "))
               text = text.replace("BUILD 20", build.replace("BUILD-", "BUILD "))
+              if path.name == "server.js":
+                  text = text.replace("const WEAPON_FIRE_RATE = 420;", "const WEAPON_FIRE_RATE = 650;")
+                  text = text.replace("fireRate: 420", "fireRate: 650")
               if path.name == "index.html" and "neoncore/12345/v1" in path.as_posix():
+                  text = text.replace("fireRate:420", "fireRate:650")
+                  text = text.replace("p.fireRate=420", "p.fireRate=650")
+                  text = text.replace("fireRate:420,lastShot:0", "fireRate:650,lastShot:0")
+                  if "function setFireHeld(held)" not in text:
+                      needle = 'const pointer={x:W/2,y:H/2,down:false}; let moveX=0,moveY=0;'
+                      block = needle + '''
+const FIRST_SHOT_DELAY=180;
+let fireHoldStartedAt=0,fireTriggerActive=false;
+function setFireHeld(held){
+  const next=!!held;
+  if(next&&!pointer.down){
+    fireTriggerActive=true;
+    fireHoldStartedAt=performance.now();
+  }
+  if(!next){
+    fireTriggerActive=false;
+    fireHoldStartedAt=0;
+  }
+  pointer.down=next;
+}'''
+                      if needle not in text:
+                          raise SystemExit("client pointer anchor not found")
+                      text = text.replace(needle, block, 1)
+                  text = text.replace("pointer.down=true;", "setFireHeld(true);")
+                  text = text.replace("pointer.down=false;", "setFireHeld(false);")
+                  old_fire = '''const now=performance.now();
+  if(now-p.lastShot<p.fireRate)return;'''
+                  new_fire = '''const now=performance.now();
+  if(fireTriggerActive&&now-fireHoldStartedAt<FIRST_SHOT_DELAY)return;
+  if(now-p.lastShot<p.fireRate)return;'''
+                  if old_fire not in text:
+                      raise SystemExit("client fire block not found")
+                  text = text.replace(old_fire, new_fire, 1)
+                  text = text.replace("p.fireRate=420;", "p.fireRate=650;")
+                  text = text.replace('@media(min-width:800px){.aimJoy{display:none!important}}','html.pc-controls .aimJoy{display:none!important}html.touch-controls .aimJoy{display:block!important}')
                   text = text.replace(
                       'if(controlMode!=="mouse"&&!aimJoyActive)p.angle=Math.atan2(moveVelocity.y,moveVelocity.x);',
                       '// BUILD-21: el joystick izquierdo solo mueve; el derecho controla la mira.'
@@ -72,10 +114,10 @@ jobs:
         run: |
           git config user.name "neon-core-sync[bot]"
           git config user.email "neon-core-sync[bot]@users.noreply.github.com"
-          git add index.html sessions/index.html neoncore/12345/v1/index.html release.json neoncore/12345/v1/build21.html
+          git add index.html sessions/index.html neoncore/12345/v1/index.html release.json server/server.js neoncore/12345/v1/build21.html .github/workflows/neoncore-validation.yml
           if git diff --cached --quiet; then
             echo "No synchronization changes needed."
             exit 0
           fi
-          git commit -m "BUILD-21: sincronizar cliente y controles móviles [skip ci]"
+          git commit -m "BUILD-22: cadencia global y primer disparo controlado [skip ci]"
           git push
