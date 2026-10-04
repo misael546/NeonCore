@@ -61,7 +61,7 @@ button span{margin-right:7px}
     if(!n){msg.textContent="Escribe tu nombre para entrar.";input.focus();return;}
     try{localStorage.setItem(key,n);}catch{}
     msg.textContent="Entrando a Sesión 1…";
-    const url="./neoncore/12345/v172/?name="+encodeURIComponent(n)+"&fromMenu=024";
+    const url="./neoncore/12345/v172/?name="+encodeURIComponent(n);
     window.location.assign(url);
   }
   button.addEventListener("click",enter);
