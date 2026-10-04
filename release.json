@@ -1,7 +1,7 @@
 {
   "game": "Neon Core",
-  "releaseId": "20261003-040-backward-compatible-auto-respawn",
-  "clientBuild": "20261003-040-backward-compatible-auto-respawn",
-  "serverBuild": "20261003-040-backward-compatible-auto-respawn",
+  "releaseId": "20261003-041-global-autoinstaller-hard-fix",
+  "clientBuild": "20261003-041-global-autoinstaller-hard-fix",
+  "serverBuild": "20261003-041-global-autoinstaller-hard-fix",
   "databaseSchema": 1
 }
