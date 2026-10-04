@@ -9,7 +9,7 @@
 <script>
 (function(){
   try{
-    var v="BUILD-18",checking=false,updating=false,timer=null,base=new URL("../../../",location.href),manifestUrl=new URL("release.json",base);
+    var v="BUILD-19",checking=false,updating=false,timer=null,base=new URL("../../../",location.href),manifestUrl=new URL("release.json",base);
     window.NEON_CORE_BUILD=v;localStorage.setItem("neon_core_build",v);
     function notice(remote){
       if(updating)return;updating=true;
@@ -420,7 +420,7 @@ let neonAudio={
   enabled:true,ready:false
 };
 const NEON_MUSIC_BASE="https://opengameart.org/sites/default/files/";
-const NEON_MUSIC_CREDIT="MUSIC · tricksntraps · OpenGameArt · CC0 · BUILD-18";
+const NEON_MUSIC_CREDIT="MUSIC · tricksntraps · OpenGameArt · CC0 · BUILD-19";
 const neonMusic={
   tracks:{
     menu:{file:"Currents.ogg",name:"NEON CORE"}, exploration:{file:"Currents.ogg",name:"NEON CORE"}, tension:{file:"Currents.ogg",name:"NEON CORE"}, combat:{file:"Currents.ogg",name:"NEON CORE"}, boss:{file:"Currents.ogg",name:"NEON CORE"}, bonus:{file:"Currents.ogg",name:"NEON CORE"}
@@ -909,7 +909,7 @@ function connectMultiplayer(roomMode="quick",roomCode=""){ const publicRoomAuto=
         const m=JSON.parse(e.data);
         if(m.type==="server_update_notice"){
           const target=String(m.clientBuild||m.serverVersion||"");
-          if(target&&target!=="BUILD-18"&&typeof window.__neonForceUpdate==="function")window.__neonForceUpdate(target);
+          if(target&&target!=="BUILD-19"&&typeof window.__neonForceUpdate==="function")window.__neonForceUpdate(target);
           return;
         }
         if(m.type==="room_joined"){
@@ -1682,9 +1682,7 @@ function drawTank(x,y,angle,color="#39e7ff",r=24,weapon="",skinId="",armorId="",
   if(!weapon)return ctx.restore();
 
   const weaponVisuals={blaster:{base:"#39e7ff",accent:"#dfffff",glow:"#39e7ff",thick:4},pulse:{base:"#c58cff",accent:"#f7eaff",glow:"#9c5dff",thick:4},cannon:{base:"#ffd76a",accent:"#fff4c7",glow:"#ff9f43",thick:5},railgun:{base:"#a4b6ff",accent:"#e8ecff",glow:"#7d8fff",thick:4},nova:{base:"#fff1b8",accent:"#fff",glow:"#ff9b3f",thick:5},plasma:{base:"#ff5b61",accent:"#ffd5d8",glow:"#ff3d59",thick:4},vortex:{base:"#6ff3b0",accent:"#ddffef",glow:"#36e49a",thick:4},quasar:{base:"#65c7ff",accent:"#e2f6ff",glow:"#4cb6ff",thick:4},singularity:{base:"#b67cff",accent:"#f2e7ff",glow:"#8b4dff",thick:5},omega:{base:"#fff",accent:"#ffe38a",glow:"#ffb02e",thick:5}};
-  const worldAngle=Number(angle)||0;
-  const weaponFacing=Math.cos(worldAngle)>=0?1:-1;
-  const weaponAngle=weaponFacing<0?Math.PI-worldAngle:worldAngle;
+  const weaponAngle=Number(angle)||0;
   drawWeaponModel(String(weapon),r,weaponVisuals[String(weapon)]||weaponVisuals.blaster,shoot,weaponAngle);
   ctx.restore();
   ctx.restore();
