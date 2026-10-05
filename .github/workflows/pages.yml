@@ -34,7 +34,7 @@ jobs:
           import re, subprocess, tempfile, json
 
           targets = [
-              Path(json.loads(Path("release.json").read_text(encoding="utf-8"))["clientPath"].lstrip("/")),
+              Path(json.loads(Path("release.json").read_text(encoding="utf-8"))["clientPath"].removeprefix("/NeonCore/")),
               Path("index.html"),
               Path("neoncore/index.html"),
           ]
@@ -96,7 +96,7 @@ jobs:
         run: |
           set -euo pipefail
           expected_release="$(python3 -c 'import json; print(json.load(open("release.json", encoding="utf-8"))["clientBuild"])')"
-          expected_path="$(python3 -c 'import json; print(json.load(open("release.json", encoding="utf-8"))["clientPath"].lstrip("/"))')"
+          expected_path="$(python3 -c 'import json; print(json.load(open("release.json", encoding="utf-8"))["clientPath"].removeprefix("/NeonCore/"))')"
           url="https://misael546.github.io/NeonCore/?livecheck=$(date +%s%N)"
           echo "[PAGES] Expected release: $expected_release"
           echo "[PAGES] Checking live URL: $url"
