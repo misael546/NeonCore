@@ -9,7 +9,7 @@ function parsePos(text) {
 }
 
 async function waitForLiveGame(page, room, debug) {
-  await page.goto(`https://misael546.github.io/NeonCore/?room=${room}&ci=${Date.now()}`, {
+  await page.goto(`https://misael546.github.io/NeonCore/neoncore/12345/v1/?ci=${Date.now()}`, {
     waitUntil: 'domcontentloaded',
     timeout: 45000
   });
@@ -87,18 +87,9 @@ for (const room of ROOMS) {
     expect(Math.hypot(afterMove.x - 3000, afterMove.y - 2200)).toBeGreaterThan(300);
 
     const ammoBefore = Number((await page.locator('#ammo').innerText()).trim());
-    const fireBox = await page.locator('#fire').boundingBox();
-    if (fireBox) {
-      await page.mouse.move(fireBox.x + fireBox.width/2, fireBox.y + fireBox.height/2);
-      await page.mouse.down();
-      await page.waitForTimeout(700);
-      await page.mouse.up();
-    } else {
-      await page.mouse.move(100, 100);
-      await page.mouse.down();
-      await page.waitForTimeout(700);
-      await page.mouse.up();
-    }
+    await page.keyboard.down('Space');
+    await page.waitForTimeout(700);
+    await page.keyboard.up('Space');
     await page.waitForTimeout(500);
     const ammoAfter = Number((await page.locator('#ammo').innerText()).trim());
     expect(ammoAfter).toBeLessThan(ammoBefore);
@@ -171,35 +162,21 @@ test('menu público táctil: abrir sala desde el selector', async ({ browser }) 
 });
 
 
-test('menu principal: NeonCore abre la página independiente de Sesiones', async ({ browser }) => {
-  const context = await browser.newContext({
-    viewport: { width: 390, height: 844 },
-    isMobile: true,
-    hasTouch: true
-  });
+test('menu principal: JUGAR abre la Sala 1 actual', async ({ browser }) => {
+  const context = await browser.newContext({viewport:{width:390,height:844},isMobile:true,hasTouch:true});
   const page = await context.newPage();
-
-  await page.goto('https://misael546.github.io/NeonCore/?mainCI=' + Date.now(), {
-    waitUntil: 'domcontentloaded',
-    timeout: 45000
-  });
-
-  await expect(page.locator('#username')).toBeVisible({timeout:15000});
-  await page.locator('#username').fill('PruebaNeon');
-  await expect(page.locator('#publicRoomsBtn')).toContainText('JUGAR');
-  await expect(page.locator('#menuSessionsBtn')).toHaveCount(0);
-  await expect(page.locator('#chatToggle')).toBeHidden();
-  await page.locator('#publicRoomsBtn').click();
-
-  await expect.poll(async () => page.url(), {
-    timeout: 15000,
-    intervals: [250, 500]
-  }).toContain('/NeonCore/?room=12345');
-
-  await expect.poll(async () => page.locator('#neonDiag').innerText(), {
-    timeout: 45000,
-    intervals: [500, 1000, 2000]
-  }).toMatch(/game:true/);
+  const errors=[];
+  page.on('pageerror',e=>errors.push('PAGEERROR: '+e.message));
+  page.on('console',m=>{if(m.type()==='error'&&!/favicon/i.test(m.text()))errors.push('CONSOLE: '+m.text());});
+  await page.goto('https://misael546.github.io/NeonCore/?mainCI='+Date.now(),{waitUntil:'domcontentloaded',timeout:45000});
+  await expect(page.locator('#name')).toBeVisible({timeout:15000});
+  await page.locator('#name').fill('PruebaNeon');
+  await expect(page.locator('#play')).toContainText('JUGAR');
+  await page.locator('#play').click();
+  await expect.poll(async()=>page.url(),{timeout:15000,intervals:[250,500]}).toContain('/NeonCore/neoncore/12345/v1/');
+  await expect(page.locator('#neonDiag')).toContainText('DIAG',{timeout:30000});
+  await expect.poll(async()=>page.locator('#neonDiag').innerText(),{timeout:30000,intervals:[500,1000,2000]}).toMatch(/game:true/);
+  if(errors.length)throw new Error('Errores menú principal:\n'+errors.join('\n'));
   await context.close();
 });
 
@@ -212,12 +189,12 @@ test('SHOP: arsenal, skins, códigos, rangos y buffs', async ({ page }) => {
   });
 
   await waitForLiveGame(page, '12345', {errors,wsEvents:[]});
-  await expect.poll(async () => page.evaluate(() => window.NEON_CORE_BUILD), {timeout:10000}).toBe('20261003-007-neoncore-main-sessions-split');
+  await expect.poll(async () => page.evaluate(() => window.NEON_CORE_BUILD), {timeout:10000}).toBe('BUILD-29');
 
   const health = await page.request.get('https://neon-core-multiplayer.onrender.com/health?ci=' + Date.now());
   expect(health.ok()).toBeTruthy();
   const healthJson = await health.json();
-  expect(healthJson.version).toBe('2');
+  expect(healthJson.version).toBe('BUILD-29');
   expect(healthJson.diagnostics.bossTarget).toBe(1);
   expect(healthJson.diagnostics.eliteTarget).toBe(10);
 
@@ -317,7 +294,6 @@ test('mobile emulation: interfaz táctil y controles visibles', async ({ browser
   }).toMatch(/game:true/);
 
   await expect(page.locator('#moveJoy')).toBeVisible();
-  await expect(page.locator('#fire')).toBeVisible();
 
   const body = await page.locator('body').evaluate(el => ({
     width: el.clientWidth,

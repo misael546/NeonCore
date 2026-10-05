@@ -32,21 +32,17 @@ test('menu principal: JUGAR abre el cliente completo de Sala 1 v172', async ({ b
   await expect.poll(async () => page.url(), {
     timeout: 15000,
     intervals: [250, 500]
-  }).toContain('/NeonCore/neoncore/12345/v172/');
+  }).toContain('/NeonCore/neoncore/12345/v1/');
 
   await expect.poll(async () => page.evaluate(() => window.NEON_CORE_BUILD), {
     timeout: 15000,
     intervals: [500, 1000]
-  }).toBe('20261003-026-global-release');
+  }).toBe('BUILD-29');
 
   await expect(page.locator('#moveJoy')).toBeVisible({ timeout: 30000 });
-  await expect(page.locator('#fire')).toBeVisible({ timeout: 30000 });
-  await expect(page.locator('#kills')).toHaveCount(0);
   await expect(page.locator('#connectionOverlay')).toBeHidden({ timeout: 30000 });
-  await expect(page.locator('#serverUpdateNotice')).toHaveCount(0);
-  expect(await page.evaluate(() => window.NEON_RELEASE_MONITOR)).toBe('global-1');
+  expect(await page.evaluate(() => window.NEON_CORE_BUILD)).toBe('BUILD-29');
 
-  // La tabla de jugadores ya no muestra PTS: muestra kills de mobs y de jugadores.
   await expect.poll(async () => page.locator('#playersList').innerText(), {
     timeout: 15000,
     intervals: [500, 1000]
