@@ -57,14 +57,14 @@ small{display:block;margin-top:10px;color:#71819a;font-size:10px}
     let installed="";
     try{installed=String(localStorage.getItem(versionKey)||"").trim();}catch{}
 
-    // Si el cliente ya conoce exactamente la misma build, NO se vuelve a instalar.
+    // Si el cliente ya conoce exactamente la misma versión, NO se vuelve a instalar.
     if(installed===target){
       status("V" + target+" ya está instalada. Entrando…");
       goDirect(clientPath,savedName(),target);
       return;
     }
 
-    status("Verificando la build "+target+"…");
+    status("Verificando la versión "+target+"…");
     const html=await (await get(RAW+clientPath)).text();
     const m=html.match(/window\.NEON_CORE_VERSION\s*=\s*["']([^"']+)["']/);
     if(!m||String(m[1]).trim()!==target)throw new Error("cliente desfasado");
