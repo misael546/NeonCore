@@ -383,7 +383,7 @@ function sendStats(p) {
   if (!p?.ws) return;
 
   const nextKills = p.kills % 5 === 0 ? 5 : 5 - (p.kills % 5);
-  const maxAmmo = maxAmmoForWeapon(p.weapon);
+  const maxAmmo = maxAmmoForPlayer(p);
 
   send(p.ws, {
     type: 'server_stats',
@@ -656,10 +656,6 @@ function pickupNearby(ws){
   sendInventoryState(p,'Recogiste '+added+' '+drop.name+'.');
   sendDropState(p.room);
 }
-function maxAmmoForWeapon(p) {
-  return maxAmmoForPlayer(p);
-}
-
 function normalizeOwnedWeapons(value, fallbackWeapon = '') {
   const input = Array.isArray(value) ? value : [];
   const out = [];
@@ -708,7 +704,6 @@ function applyCombatStats(p) {
   p.defense=Math.max(0,defenseLevelFromXp(p.defenseXp)-1);
   p.speed = speedForLevel(p.level);
 
-  const maxAmmo = maxAmmoForWeapon();
   syncAmmoFromInventory(p);
 }
 
@@ -808,7 +803,7 @@ function markPlayerDead(p) {
   applyDeathPenalty(p);
 
   // Al reaparecer conserva exactamente la munición que ya tenía.
-  p.ammo = clamp(Number(p.ammo) || 0, 0, MAX_AMMO);
+  p.ammo = clamp(Number(p.ammo) || 0, 0, maxAmmoForPlayer(p));
   p.hp = maxHpForLevel(p.level);
   p.alive = true;
   p.frozen = false;
@@ -1495,7 +1490,7 @@ function shopBuy(ws, requestedWeapon) {
       damage: p.damage,
       defense: p.defense,
       fireRate: p.fireRate,
-      maxAmmo: MAX_AMMO,
+      maxAmmo: maxAmmoForPlayer(p),
       ammo: p.ammo,
       gold: p.gold || 0
     });
@@ -1525,7 +1520,7 @@ function shopBuy(ws, requestedWeapon) {
     equippedWeaponSkin: '',
     gold: p.gold,
     ammo: p.ammo,
-    maxAmmo: maxAmmoForWeapon(p.weapon),
+    maxAmmo: maxAmmoForPlayer(p),
     damage: p.damage,
     defense: p.defense,
     fireRate: p.fireRate,
@@ -2363,8 +2358,8 @@ wss.on('connection', async (ws) => {
           p.pvpKills = Number(saved.pvpKills) || 0;
           p.gold = Math.max(0, Number(saved.gold) || 0);
           p.diamonds = Math.max(0, Number(saved.diamonds) || 0);
-          if(Array.isArray(saved.inventory)){p.inventory=normalizeInventory(saved.inventory,BASE_INVENTORY_SLOTS);}else{p.inventory=emptyInventory(BASE_INVENTORY_SLOTS);addInventoryItem(p,'ammo',Math.max(0,Number(saved.ammo)||0));}syncAmmoFromInventory(p);
           p.equippedBackpack = saved.equippedBackpack===BACKPACK_ITEM_ID ? BACKPACK_ITEM_ID : '';
+          if(Array.isArray(saved.inventory)){p.inventory=normalizeInventory(saved.inventory,inventoryCapacity(p));}else{p.inventory=emptyInventory(inventoryCapacity(p));addInventoryItem(p,'ammo',Math.max(0,Number(saved.ammo)||0));}syncAmmoFromInventory(p);
           p.pistoleroXp = Math.max(0, Number(saved.pistoleroXp) || 0);
           p.pistoleroLevel = pistoleroLevelFromXp(p.pistoleroXp);
           p.bankedGold = Math.max(0, Number(saved.bankedGold) || 0);
@@ -2723,7 +2718,7 @@ wss.on('connection', async (ws) => {
           p.weapon = WEAPONS[checkpoint.weapon] ? checkpoint.weapon : 'blaster';
         } else {
           p.hp = maxHpForLevel(p.level);
-          p.ammo = clamp(Number(p.ammo) || 0, 0, MAX_AMMO);
+          p.ammo = clamp(Number(p.ammo) || 0, 0, maxAmmoForPlayer(p));
         }
 
         p.lastShot = 0;
