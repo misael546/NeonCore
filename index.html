@@ -8,7 +8,7 @@
 <meta http-equiv="Expires" content="0">
 <script>
 (function(){
-  window.NEON_CORE_BUILD="BUILD-32";
+  window.NEON_CORE_BUILD="MENU";
   window.__NEON_CORE_OFFICIAL_ENTRY="/NeonCore/";
 })();
 </script>
@@ -54,7 +54,7 @@ button span{margin-right:7px}
   <button id="play" type="button"><span>▶</span>JUGAR</button>
   <button id="accountRecoveryOpen" type="button" style="margin-top:8px;background:#0d1727;border:1px solid #33415d;color:#9fb0c7">RECUPERAR CUENTA</button>
   <div id="accountRecoveryPanel" style="display:none;margin-top:8px"><input id="accountRecoveryInput" maxlength="32" autocomplete="off" placeholder="CÓDIGO DE RECUPERACIÓN"><button id="accountRecoverySubmit" type="button" style="margin-top:8px">RECUPERAR CUENTA</button><div id="accountRecoveryMsg" class="msg"></div></div>
-  <div class="foot"><span>SESIÓN 1</span><span>•</span><span>BUILD 33</span></div>
+  <div class="foot"><span>SESIÓN 1</span><span>•</span><span id="menuBuild">COMPROBANDO BUILD…</span></div>
 </main>
 <script>
 (function(){
@@ -82,7 +82,7 @@ button span{margin-right:7px}
         localStorage.removeItem("neon_core_save_key");
       }catch{}
       if(recoveryMsg)recoveryMsg.textContent="Cuenta recuperada. Entrando…";
-      window.location.assign("./neoncore/12345/v2/?name="+encodeURIComponent(String(data.name||"Jugador"))+"&neon_cache="+Date.now());
+      launchLatest(String(data.name||"Jugador"));
     }catch(error){if(recoveryMsg)recoveryMsg.textContent=error?.message||"No se pudo recuperar la cuenta.";}
     finally{if(recoverySubmit)recoverySubmit.disabled=false;}
   }
@@ -93,6 +93,33 @@ button span{margin-right:7px}
   const nameField=input.parentElement;
   const key="neon_core_player_name";
   const lockKey="neon_core_name_locked";
+  const menuBuild=document.getElementById("menuBuild");
+  async function launchLatest(n){
+    try{
+      const url="/NeonCore/release.json?neon_menu="+Date.now()+"-"+Math.random().toString(36).slice(2);
+      const res=await fetch(url,{cache:"no-store",headers:{"Cache-Control":"no-cache"}});
+      if(!res.ok)throw new Error("release "+res.status);
+      const manifest=await res.json();
+      const target=String(manifest.clientBuild||manifest.releaseId||"").trim();
+      const clientPath=String(manifest.clientPath||"").replace(/^\/+?/,"");
+      if(!target||!clientPath)throw new Error("release inválida");
+      if(menuBuild)menuBuild.textContent=target;
+      try{localStorage.setItem("neon_core_build",target);}catch{}
+      const finalUrl="/NeonCore/"+clientPath.replace(/^NeonCore\//,"")+"?name="+encodeURIComponent(n)+"&neon_cache="+Date.now()+"-"+Math.random().toString(36).slice(2);
+      window.location.assign(finalUrl);
+    }catch(error){
+      msg.textContent="No se pudo comprobar la versión. Reintentando…";
+      setTimeout(()=>launchLatest(n),700);
+    }
+  }
+  (async()=>{
+    try{
+      const res=await fetch("/NeonCore/release.json?neon_menu_init="+Date.now(),{cache:"no-store",headers:{"Cache-Control":"no-cache"}});
+      const m=await res.json();
+      const target=String(m.clientBuild||m.releaseId||"").trim();
+      if(menuBuild&&target)menuBuild.textContent=target;
+    }catch{}
+  })();
   function applyLock(){
     let savedName="";
     let locked=false;
@@ -117,9 +144,8 @@ button span{margin-right:7px}
     input.readOnly=true;
     nameField.classList.add("locked");
     if(restriction)restriction.style.display="block";
-    msg.textContent="Entrando a Sesión 1…";
-    const url="./neoncore/12345/v2/?name="+encodeURIComponent(n)+"&neon_cache="+Date.now();
-    window.location.assign(url);
+    msg.textContent="Comprobando la versión…";
+    launchLatest(n);
   }
   button.addEventListener("click",enter);
   input.addEventListener("keydown",e=>{if(e.key==="Enter"){e.preventDefault();enter();}});
