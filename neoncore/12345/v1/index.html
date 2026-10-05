@@ -284,7 +284,7 @@ html.pc-controls #controlConfigBtn,html.touch-controls #controlConfigBtn{display
 html.pc-controls .aimJoy{display:none!important}html.touch-controls .aimJoy{display:block!important}
 </style></head>
 <body>
-<canvas id="game"></canvas><div id="buildDisplay">BUILD 22</div><button id="audioToggle" type="button" aria-label="Activar o silenciar audio">🔊</button>
+<canvas id="game"></canvas><div id="buildDisplay">BUILD 27</div><button id="audioToggle" type="button" aria-label="Activar o silenciar audio">🔊</button>
 
 <div id="hud">
   <div class="panel" id="bars">
@@ -974,7 +974,15 @@ function connectMultiplayer(roomMode="quick",roomCode=""){ const publicRoomAuto=
           }
         }else if(m.type==="room_error"){
           const msg=document.getElementById("nameMsg"); if(msg)msg.textContent=m.message||"No se pudo entrar a la sala.";
-          if(publicRoomAuto){
+          if(m.reason==="name_taken"){
+            nameBox.style.display="flex";
+            username.readOnly=false;
+            username.classList.remove("nameLocked");
+            const lockEl=document.getElementById("gameNameLock"),restriction=document.getElementById("gameNameRestriction");
+            if(lockEl)lockEl.style.display="none";
+            if(restriction)restriction.style.display="none";
+            setConnectionStatus("NOMBRE NO DISPONIBLE","Ese nombre ya pertenece a otro perfil.",true);
+          }else if(publicRoomAuto){
             nameBox.style.display="none";
             setConnectionStatus("SALA NO DISPONIBLE",m.message||"Reintentando automáticamente…",true);
             multiplayerConnectTimer=setTimeout(()=>connectMultiplayer("join",PUBLIC_ROOM_CODE),1800);
