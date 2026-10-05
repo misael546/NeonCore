@@ -2,7 +2,7 @@ const { test, expect } = require('@playwright/test');
 const fs = require('fs');
 const RELEASE = JSON.parse(fs.readFileSync('release.json','utf8'));
 const GAME_PATH = String(RELEASE.clientPath||'').replace(/^\/+/, '');
-const CURRENT_BUILD = String(RELEASE.clientBuild||RELEASE.releaseId||'');
+const CURRENT_VERSION = String(RELEASE.clientVersion||RELEASE.releaseId||'');
 
 const GAME_URL='https://misael546.github.io/NeonCore/'+GAME_PATH+'?ci=';
 const SESSIONS_URL='https://misael546.github.io/NeonCore/sessions/?ci=';
@@ -11,7 +11,7 @@ const ROOT_URL='https://misael546.github.io/NeonCore/?ci=';
 async function waitForLiveGame(page, errors) {
   await expect(page.locator('#game')).toBeVisible({timeout:30000});
   await expect(page.locator('#connectionOverlay')).toBeHidden({timeout:45000});
-  await expect.poll(async()=>page.evaluate(()=>window.NEON_CORE_BUILD),{timeout:15000,intervals:[500,1000]}).toBe(CURRENT_BUILD);
+  await expect.poll(async()=>page.evaluate(()=>window.NEON_CORE_VERSION),{timeout:15000,intervals:[500,1000]}).toBe(CURRENT_VERSION);
   await expect(page.locator('#moveJoy')).toBeVisible({timeout:30000});
   await expect(page.locator('#aimJoy')).toBeVisible({timeout:10000});
   if(errors.length)throw new Error('Errores de navegador: '+errors.join(' | '));
@@ -96,7 +96,7 @@ test('SHOP: interfaz principal disponible',async({page})=>{
   const health=await page.request.get('https://neon-core-multiplayer.onrender.com/health?ci='+Date.now());
   expect(health.ok()).toBeTruthy();
   const h=await health.json();
-  expect(h.version).toBe(CURRENT_BUILD);
+  expect(h.version).toBe(CURRENT_VERSION);
   expect(h.diagnostics.bossTarget).toBe(1);
   expect(h.diagnostics.eliteTarget).toBe(10);
   await expect(page.locator('.shopTab[data-shop-section="arsenal"]')).toBeVisible({timeout:15000});
