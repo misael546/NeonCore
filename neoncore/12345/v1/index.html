@@ -9,7 +9,7 @@
 <script>
 (function(){
   try{
-    var v="BUILD-27",checking=false,updating=false,timer=null,base=new URL("../../../",location.href),manifestUrl=new URL("/NeonCore/release.json",location.origin);
+    var v="BUILD-28",checking=false,updating=false,timer=null,base=new URL("../../../",location.href),manifestUrl=new URL("/NeonCore/release.json",location.origin);
     window.NEON_CORE_BUILD=v;localStorage.setItem("neon_core_build",v);
     function notice(remote){
       if(updating)return;updating=true;
@@ -284,7 +284,7 @@ html.pc-controls #controlConfigBtn,html.touch-controls #controlConfigBtn{display
 html.pc-controls .aimJoy{display:none!important}html.touch-controls .aimJoy{display:block!important}
 </style></head>
 <body>
-<canvas id="game"></canvas><div id="buildDisplay">BUILD 27</div><button id="audioToggle" type="button" aria-label="Activar o silenciar audio">🔊</button>
+<canvas id="game"></canvas><div id="buildDisplay">BUILD 28</div><button id="audioToggle" type="button" aria-label="Activar o silenciar audio">🔊</button>
 
 <div id="hud">
   <div class="panel" id="bars">
@@ -424,7 +424,7 @@ let neonAudio={
   enabled:true,ready:false
 };
 const NEON_MUSIC_BASE="https://opengameart.org/sites/default/files/";
-const NEON_MUSIC_CREDIT="MUSIC · tricksntraps · OpenGameArt · CC0 · BUILD-27";
+const NEON_MUSIC_CREDIT="MUSIC · tricksntraps · OpenGameArt · CC0 · BUILD-28";
 const neonMusic={
   tracks:{
     menu:{file:"Currents.ogg",name:"NEON CORE"}, exploration:{file:"Currents.ogg",name:"NEON CORE"}, tension:{file:"Currents.ogg",name:"NEON CORE"}, combat:{file:"Currents.ogg",name:"NEON CORE"}, boss:{file:"Currents.ogg",name:"NEON CORE"}, bonus:{file:"Currents.ogg",name:"NEON CORE"}
@@ -693,19 +693,49 @@ function drawNeonProjectiles(){
   const now=performance.now();
   for(let i=neonProjectiles.length-1;i>=0;i--){
     const q=neonProjectiles[i];
-    const duration=Math.max(90,Number(q.duration)||160);
+    const duration=Math.max(180,Number(q.duration)||760);
     const t=Math.max(0,Math.min(1,(now-q.startAt)/duration));
-    const x=q.x+(q.tx-q.x)*t,y=q.y+(q.ty-q.y)*t;
-    const trailT=Math.max(0,t-.16),tx=q.x+(q.tx-q.x)*trailT,ty=q.y+(q.ty-q.y)*trailT;
+    const x=q.x+(q.tx-q.x)*t;
+    const y=q.y+(q.ty-q.y)*t;
+    const trailT=Math.max(0,t-(q.pending?.20:.14));
+    const tx=q.x+(q.tx-q.x)*trailT;
+    const ty=q.y+(q.ty-q.y)*trailT;
     const color=q.color||"#39e7ff";
-    ctx.save();ctx.globalCompositeOperation="lighter";
-    ctx.strokeStyle=color;ctx.globalAlpha=.72;ctx.shadowBlur=24;ctx.shadowColor=color;
-    ctx.lineWidth=10;ctx.lineCap="round";ctx.beginPath();ctx.moveTo(sx(tx),sy(ty));ctx.lineTo(sx(x),sy(y));ctx.stroke();
-    ctx.translate(sx(x),sy(y));ctx.rotate(q.angle||0);ctx.globalAlpha=1;ctx.shadowBlur=26;ctx.fillStyle=color;
-    ctx.beginPath();ctx.roundRect(-13,-5,26,10,5);ctx.fill();
-    ctx.fillStyle="#fff";ctx.beginPath();ctx.roundRect(-6,-2.2,13,4.4,2.2);ctx.fill();
-    ctx.beginPath();ctx.arc(8,0,2.5,0,Math.PI*2);ctx.fill();
+    const head=Math.max(8,Number(q.size)||13);
+
+    ctx.save();
+    ctx.globalCompositeOperation="lighter";
+    ctx.strokeStyle=color;
+    ctx.lineCap="round";
+    ctx.globalAlpha=q.pending?.95:.9;
+    ctx.shadowBlur=q.pending?34:28;
+    ctx.shadowColor=color;
+    ctx.lineWidth=q.pending?13:10;
+    ctx.beginPath();
+    ctx.moveTo(sx(tx),sy(ty));
+    ctx.lineTo(sx(x),sy(y));
+    ctx.stroke();
+
+    ctx.globalAlpha=1;
+    ctx.translate(sx(x),sy(y));
+    ctx.rotate(Number(q.angle)||0);
+    ctx.shadowBlur=34;
+    ctx.fillStyle=color;
+    ctx.beginPath();
+    ctx.moveTo(head*1.55,0);
+    ctx.lineTo(-head*.75,-head*.52);
+    ctx.lineTo(-head*.15,0);
+    ctx.lineTo(-head*.75,head*.52);
+    ctx.closePath();
+    ctx.fill();
+
+    ctx.fillStyle="#fff";
+    ctx.shadowBlur=18;
+    ctx.beginPath();
+    ctx.arc(head*.28,0,Math.max(2.5,head*.22),0,Math.PI*2);
+    ctx.fill();
     ctx.restore();
+
     if(t>=1)neonProjectiles.splice(i,1);
   }
 }
@@ -920,7 +950,7 @@ function connectMultiplayer(roomMode="quick",roomCode=""){ const publicRoomAuto=
       if(multiplayerConnectTimer){clearTimeout(multiplayerConnectTimer);multiplayerConnectTimer=null;}
 
       setConnectionStatus("CONECTADO","Entrando a la sala…");
-      socket.send(JSON.stringify({type:"join",name:playerName||"Jugador",saveKey:saveKey,color:"#39e7ff",room:roomMode==="join"?roomCode:"",createRoom:roomMode==="create",clientBuild:window.NEON_CORE_BUILD||"BUILD-27"}));
+      socket.send(JSON.stringify({type:"join",name:playerName||"Jugador",saveKey:saveKey,color:"#39e7ff",room:roomMode==="join"?roomCode:"",createRoom:roomMode==="create",clientBuild:window.NEON_CORE_BUILD||"BUILD-28"}));
     });
     socket.addEventListener("message",e=>{
        if(multiplayerSocket!==socket)return;
@@ -928,7 +958,7 @@ function connectMultiplayer(roomMode="quick",roomCode=""){ const publicRoomAuto=
         const m=JSON.parse(e.data);
         if(m.type==="server_update_notice"){
           const target=String(m.clientBuild||m.serverVersion||"");
-          if(target&&target!=="BUILD-27"&&typeof window.__neonForceUpdate==="function"){window.__neonForceUpdate(target);}
+          if(target&&target!=="BUILD-28"&&typeof window.__neonForceUpdate==="function"){window.__neonForceUpdate(target);}
           return;
         }
         if(m.type==="room_joined"){
@@ -1032,14 +1062,19 @@ function connectMultiplayer(roomMode="quick",roomCode=""){ const publicRoomAuto=
               remotePlayers.set(m.player.id,m.player);
             }
           }
-        }else if(m.type==="player_shot"){neonProjectiles.push({id:m.shotId||Math.random(),x:Number(m.x)||0,y:Number(m.y)||0,tx:Number(m.impactX)||Number(m.x)||0,ty:Number(m.impactY)||Number(m.y)||0,angle:Number(m.angle)||0,startAt:performance.now(),duration:Math.max(90,Number(m.travelMs)||160),color:m.id===multiplayerId?"#fff":"#39e7ff"});
-          if(m.id!==multiplayerId && Number.isFinite(Number(m.x)) && Number.isFinite(Number(m.y)) && Number.isFinite(Number(m.angle))){
-            const other=remotePlayers.get(m.id);
-            if(other)other.shootPulse=1;
-            const sx0=Number(m.x),sy0=Number(m.y),angle=Number(m.angle);
-            const travelDistance=Math.max(1,Number(m.travelDistance)||Number(m.range)||weaponStats[m.weapon]?.range||760);
+        }else if(m.type==="player_shot"){
+          if(m.id!==multiplayerId){
+            const sx0=Number(m.x)||0,sy0=Number(m.y)||0,angle=Number(m.angle)||0;
+            const travelDistance=Math.max(1,Number(m.travelDistance)||Number(m.range)||weaponStats[m.weapon]?.range||1000);
             const ix=Number.isFinite(Number(m.impactX))?Number(m.impactX):sx0+Math.cos(angle)*travelDistance;
             const iy=Number.isFinite(Number(m.impactY))?Number(m.impactY):sy0+Math.sin(angle)*travelDistance;
+            neonProjectiles.push({
+              id:m.shotId||Math.random(),x:sx0,y:sy0,tx:ix,ty:iy,angle,
+              startAt:performance.now(),duration:Math.max(220,Number(m.travelMs)||760),
+              color:"#39e7ff",size:13,pending:false
+            });
+            const other=remotePlayers.get(m.id);
+            if(other)other.shootPulse=1;
             audioTone(520,.065,"sawtooth",.03,240);
           }
         }else if(m.type==="enemy_state"){
@@ -1220,15 +1255,21 @@ function connectMultiplayer(roomMode="quick",roomCode=""){ const publicRoomAuto=
         }else if(m.type==="ammo_empty"){audioTone(220,.1,"square",.05,-120);audioTone(110,.16,"square",.04,0,.06);p.ammo=0;updateResourceHud();showShopMsg("Sin munición. Ve con el vendedor.");
         }else if(m.type==="shot_result"){
           if(Number.isFinite(Number(m.ammo)))p.ammo=Math.max(0,Number(m.ammo));
+          const pendingLocal=neonProjectiles.slice().reverse().find(q=>q.pending);
           if(m.ok){
             const angle=Number.isFinite(Number(m.angle))?Number(m.angle):p.angle;
             const sx0=Number.isFinite(Number(m.x))?Number(m.x):p.x;
             const sy0=Number.isFinite(Number(m.y))?Number(m.y):p.y;
-            const travelDistance=Math.max(1,Number(m.travelDistance)||Number(m.range)||weaponStats[p.weapon]?.range||760);
-            const bulletSpeed=1200;
+            const travelDistance=Math.max(1,Number(m.travelDistance)||Number(m.range)||weaponStats[p.weapon]?.range||1000);
             const ix=Number.isFinite(Number(m.impactX))?Number(m.impactX):sx0+Math.cos(angle)*travelDistance;
             const iy=Number.isFinite(Number(m.impactY))?Number(m.impactY):sy0+Math.sin(angle)*travelDistance;
-            bullets.push({x:sx0,y:sy0,startX:sx0,startY:sy0,vx:Math.cos(angle)*bulletSpeed,vy:Math.sin(angle)*bulletSpeed,life:travelDistance/bulletSpeed+0.08,damage:Number(m.damage)||p.damage,range:1000,maxRange:travelDistance,impactX:ix,impactY:iy});
+            if(pendingLocal){
+              pendingLocal.x=sx0;pendingLocal.y=sy0;pendingLocal.tx=ix;pendingLocal.ty=iy;
+              pendingLocal.angle=angle;pendingLocal.duration=Math.max(220,Number(m.travelMs)||760);
+              pendingLocal.startAt=performance.now();pendingLocal.pending=false;
+            }else{
+              neonProjectiles.push({x:sx0,y:sy0,tx:ix,ty:iy,angle,startAt:performance.now(),duration:Math.max(220,Number(m.travelMs)||760),color:"#fff",size:14,pending:false});
+            }
             weaponShotSound(p.weapon);
             if(m.hitKind && m.hitKind!=="range"){
               const impactColor=m.hitKind==="player"?"#ff5474":m.hitKind==="enemy"?"#ff9f43":"#8da2c1";
@@ -1404,8 +1445,22 @@ function fire(){
   if(fireTriggerActive&&now-fireHoldStartedAt<FIRST_SHOT_DELAY)return;
   if(now-p.lastShot<p.fireRate)return;
   if(!multiplayerSocket || multiplayerSocket.readyState!==1)return;
+  if(Math.hypot(p.x-safeZone.x,p.y-safeZone.y)<=safeZone.r+24)return;
   p.lastShot=now;
   localVisual.shoot=1;
+
+  const weapon=weaponStats[p.weapon]||weaponStats.blaster;
+  const angle=Number(p.angle)||0;
+  const range=Math.max(300,Number(weapon.range)||1000);
+  const tx=p.x+Math.cos(angle)*range;
+  const ty=p.y+Math.sin(angle)*range;
+  neonProjectiles.push({
+    id:"local_"+Math.random().toString(36).slice(2),
+    x:p.x,y:p.y,tx,ty,angle,
+    startAt:performance.now(),duration:Math.max(560,range/1200*1000),
+    color:"#fff",size:15,pending:true
+  });
+
   multiplayerSocket.send(JSON.stringify({type:"fire"}));
 }
 function returnToMenu(){
@@ -1425,6 +1480,7 @@ function returnToMenu(){
   }
   p.x=3000;p.y=2200;p.hp=p.maxHp;p.alive=true;
   bullets.length=0;
+  neonProjectiles.length=0;
   resetAllControls();
   username.value=loadName();
   username.focus();
@@ -1447,6 +1503,7 @@ function applyServerRespawn(r){
   moveY=0;
   resetAllControls();
   bullets.length=0;
+  neonProjectiles.length=0;
   gameActive=true;
   spawnProtectionUntil=performance.now()+5000;
   document.getElementById("death").style.display="none";
@@ -1534,7 +1591,7 @@ function update(dt){
   const visualMoving=actualSpeed>7;
   if(visualMoving){
     if(!movementTelemetry.inputSince)movementTelemetry.inputSince=performance.now();
-    // BUILD-27: el joystick izquierdo solo mueve; el derecho controla la mira.
+    // BUILD-28: el joystick izquierdo solo mueve; el derecho controla la mira.
   }else{
     movementTelemetry.inputSince=0;
   }
@@ -2272,14 +2329,6 @@ function draw(){
   drawTank(p.x,p.y,p.angle,"#39e7ff",p.r,p.weapon||"",p.equippedSkin||"",equippedArmor||"",localVisual);
   drawNameTag(playerName,p.x,p.y,p.r,"#39e7ff",p.level||1);
   drawNeonProjectiles();
-  for(const b of bullets){
-    const bx=sx(b.x),by=sy(b.y),ba=Math.atan2(Number(b.vy)||0,Number(b.vx)||1);
-    ctx.save();ctx.translate(bx,by);ctx.rotate(ba);ctx.globalCompositeOperation="lighter";
-    ctx.shadowBlur=24;ctx.shadowColor="#39e7ff";ctx.strokeStyle="#39e7ff";ctx.lineWidth=9;ctx.lineCap="round";
-    ctx.beginPath();ctx.moveTo(-15,0);ctx.lineTo(9,0);ctx.stroke();
-    ctx.fillStyle="#fff";ctx.beginPath();ctx.roundRect(-5,-2.5,13,5,2.5);ctx.fill();
-    ctx.restore();
-  }
   if(controlMode==="mouse"&&gameActive){ctx.save();ctx.strokeStyle="rgba(57,231,255,.95)";ctx.lineWidth=1.5;ctx.beginPath();ctx.arc(pointer.x,pointer.y,10,0,Math.PI*2);ctx.moveTo(pointer.x-16,pointer.y);ctx.lineTo(pointer.x+16,pointer.y);ctx.moveTo(pointer.x,pointer.y-16);ctx.lineTo(pointer.x,pointer.y+16);ctx.stroke();ctx.restore();}
   drawMinimap();updateCosmeticShop();updateResourceHud();
 
