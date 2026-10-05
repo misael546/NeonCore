@@ -54,7 +54,7 @@ button span{margin-right:7px}
   <button id="play" type="button"><span>▶</span>JUGAR</button>
   <button id="accountRecoveryOpen" type="button" style="margin-top:8px;background:#0d1727;border:1px solid #33415d;color:#9fb0c7">RECUPERAR CUENTA</button>
   <div id="accountRecoveryPanel" style="display:none;margin-top:8px"><input id="accountRecoveryInput" maxlength="32" autocomplete="off" placeholder="CÓDIGO DE RECUPERACIÓN"><button id="accountRecoverySubmit" type="button" style="margin-top:8px">RECUPERAR CUENTA</button><div id="accountRecoveryMsg" class="msg"></div></div>
-  <div class="foot"><span>SESIÓN 1</span><span>•</span><span id="menuBuild">COMPROBANDO BUILD…</span></div>
+  <div class="foot"><span>SESIÓN 1</span><span>•</span><span id="menuBuild">COMPROBANDO V…</span></div>
 </main>
 <script>
 (function(){
@@ -100,7 +100,9 @@ button span{margin-right:7px}
       const res=await fetch(url,{cache:"no-store",headers:{"Cache-Control":"no-cache"}});
       if(!res.ok)throw new Error("release "+res.status);
       const manifest=await res.json();
-      const target=String(manifest.clientBuild||manifest.releaseId||"").trim();
+      const raw=String(manifest.clientBuild||manifest.releaseId||manifest.serverBuild||"").trim().toUpperCase();
+      const match=raw.match(/^V([1-9]|[1-4][0-9]|50)$/) || raw.match(/^BUILD-?([1-9]|[1-4][0-9]|50)$/);
+      const target=match ? "V"+Number(match[1]) : "";
       const clientPath=String(manifest.clientPath||"").replace(/^\/+?/,"");
       if(!target||!clientPath)throw new Error("release inválida");
       if(menuBuild)menuBuild.textContent=target;
@@ -116,7 +118,9 @@ button span{margin-right:7px}
     try{
       const res=await fetch("/NeonCore/release.json?neon_menu_init="+Date.now(),{cache:"no-store",headers:{"Cache-Control":"no-cache"}});
       const m=await res.json();
-      const target=String(m.clientBuild||m.releaseId||"").trim();
+      const raw=String(m.clientBuild||m.releaseId||m.serverBuild||"").trim().toUpperCase();
+      const match=raw.match(/^V([1-9]|[1-4][0-9]|50)$/) || raw.match(/^BUILD-?([1-9]|[1-4][0-9]|50)$/);
+      const target=match ? "V"+Number(match[1]) : "";
       if(menuBuild&&target)menuBuild.textContent=target;
     }catch{}
   })();
