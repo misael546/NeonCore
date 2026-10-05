@@ -7,6 +7,7 @@ const path = require('path');
 const { WebSocketServer } = require('ws');
 const storage = require('./storage');
 const cosmetics = require('./cosmetics');
+const crypto = require('crypto');
 
 const PORT = Number(process.env.PORT || 10000);
 
@@ -33,7 +34,7 @@ try {
 }
 
 const RELEASE_ID = String(UNIFIED_RELEASE_MANIFEST.releaseId || 'unknown');
-const DATABASE_SCHEMA_VERSION = Math.max(1, Number(UNIFIED_RELEASE_MANIFEST.databaseSchema) || 1);
+const DATABASE_SCHEMA_VERSION = Math.max(2, Number(UNIFIED_RELEASE_MANIFEST.databaseSchema) || 2);
 const SERVER_VERSION = RELEASE_ID;
 const SERVER_UPDATE_MESSAGE = 'NUEVA ACTUALIZACIÓN DISPONIBLE. Neon Core se actualizará automáticamente en unos segundos. No cierres la pestaña.';
 
@@ -112,6 +113,35 @@ const SERVER_STARTED_AT = Date.now();
 
 const clients = new Map();
 const savedPlayers = new Map();
+const memoryAccountsByToken=new Map();
+const memoryAccountNames=new Map();
+const RESERVED_ACCOUNT_NAMES=new Set(['admin','administrator','owner','system','staff','support','moderator','mod','gm','gamemaster','game-master','god','neoncore','developer','dev']);
+function normalizeAccountName(name){return String(name||'').normalize('NFKC').replace(/[\u0000-\u001F\u007F]/g,' ').replace(/\s+/g,' ').trim().slice(0,NAME_MAX_LENGTH);}
+function accountNameKey(name){return normalizeAccountName(name).toLocaleLowerCase('en-US');}
+function isReservedAccountName(name){const key=accountNameKey(name).replace(/[ _-]+/g,'');return RESERVED_ACCOUNT_NAMES.has(key)||key.startsWith('admin')||key.startsWith('owner');}
+function sanitizeAccountToken(token){return String(token||'').trim().slice(0,128);}
+function newMemoryAccount(name){const cleanName=normalizeAccountName(name),accountId='acc_'+crypto.randomUUID().replace(/-/g,''),accountToken=crypto.randomBytes(32).toString('base64url'),a={accountId,accountToken,name:cleanName,playerSaveKey:accountId,createdAt:new Date().toISOString(),updatedAt:new Date().toISOString()};memoryAccountsByToken.set(accountToken,a);memoryAccountNames.set(accountNameKey(cleanName),a);return {ok:true,created:true,...a};}
+async function authenticateOrCreateAccount(requestedName,accountToken,legacySaveKey){
+  const token=sanitizeAccountToken(accountToken);
+  if(token){
+    const db=await storage.findAccountByToken(token);
+    if(db)return {ok:true,created:false,...db};
+    const mem=memoryAccountsByToken.get(token);
+    if(mem)return {ok:true,created:false,...mem};
+    return {ok:false,reason:'account_invalid'};
+  }
+  let legacy=null;
+  if(legacySaveKey){try{legacy=await loadSavedPlayer(legacySaveKey,'');}catch{}}
+  const desiredName=normalizeAccountName(legacy?.data?.name||requestedName)||'Jugador';
+  if(!legacy?.data&&isReservedAccountName(desiredName))return {ok:false,reason:'name_reserved'};
+  const key=accountNameKey(desiredName);
+  for(const otherP of clients.values()){if(otherP?.accountId&&otherP.name&&accountNameKey(otherP.name)===key)return {ok:false,reason:'name_taken'};}
+  const existing=await storage.findAccountByName(desiredName);
+  if(existing)return {ok:false,reason:'name_taken'};
+  if(!storage.enabled){if(memoryAccountNames.has(key))return {ok:false,reason:'name_taken'};return newMemoryAccount(desiredName);}
+  return storage.createAccount(desiredName);
+}
+
 
 const rooms = new Map();
 const roomEnemies = new Map();
@@ -415,12 +445,6 @@ async function loadSavedPlayer(saveKey, playerName = '') {
     // Migración entre orígenes (por ejemplo github.io -> dominio corto):
     // si el navegador genera un saveKey nuevo, recuperamos el único perfil
     // existente que tenga exactamente el mismo nombre.
-    const legacy = await storage.loadPlayerDataByName(playerName);
-    if (legacy) {
-      savedPlayers.set(saveKey, { ...legacy });
-      console.log('[STORAGE MIGRATION] Perfil recuperado por nombre:', String(playerName || '').trim());
-      return { data: { ...legacy }, migrated: true };
-    }
   } catch (error) {
     console.error('[STORAGE LOAD]', error?.message || error);
   }
@@ -1808,6 +1832,7 @@ function createPlayer(ws) {
     name: 'Jugador',
     nameLocked: false,
     accountId: '',
+    accountTokenHash: '',
     saveKey: '',
     x: SAFE_ZONE.x,
     y: SAFE_ZONE.y,
@@ -1991,80 +2016,55 @@ wss.on('connection', async (ws) => {
           return;
         }
 
-        const requestedName = String(msg.name || 'Jugador')
-          .replace(/[\\u0000-\\u001F\\u007F]/g, ' ')
-          .replace(/\\s+/g, ' ')
-          .trim()
-          .slice(0, NAME_MAX_LENGTH) || 'Jugador';
-        p.name = requestedName;
-        p.saveKey = String(msg.saveKey || '')
-          .replace(/[^a-zA-Z0-9_-]/g, '')
-          .slice(0, 80);
-        p.accountId = p.saveKey;
+        const requestedName=normalizeAccountName(msg.name||'Jugador')||'Jugador';
+        const legacySaveKey=String(msg.saveKey||'').replace(/[^a-zA-Z0-9_-]/g,'').slice(0,80);
+        const accountToken=sanitizeAccountToken(msg.accountToken);
+        let account;
+        try{account=await authenticateOrCreateAccount(requestedName,accountToken,legacySaveKey);}
+        catch(error){
+          console.error('[ACCOUNT AUTH]',error?.stack||error);
+          send(ws,{type:'room_error',reason:'account_error',message:'No se pudo validar la cuenta. Intenta de nuevo.'});return;
+        }
+        if(!account?.ok){
+          const accountMessages={
+            account_invalid:'La credencial de cuenta no es válida. No se creará otra cuenta automáticamente.',
+            name_reserved:'Ese nombre está reservado por Neon Core.',
+            name_taken:'Ese nombre ya está ocupado. Elige otro nombre.',
+            storage_error:'No se pudo guardar la cuenta. Intenta de nuevo.'
+          };
+          send(ws,{type:'room_error',reason:account.reason||'account_error',message:accountMessages[account.reason]||'No se pudo crear o validar la cuenta.'});return;
+        }
+        p.accountId=String(account.accountId||'').slice(0,96);
+        p.saveKey=String(account.playerSaveKey||p.accountId||'').slice(0,96);
+        p.name=normalizeAccountName(account.name||requestedName)||'Jugador';
 
-        if (p.saveKey) {
-          // Una reconexión válida puede llegar antes de que el cierre de la
-          // conexión anterior termine de procesarse. Reemplazamos esa sesión
-          // vieja en vez de rechazar la nueva indefinidamente.
-          for (const [oldWs, oldP] of clients) {
-            if (oldWs === ws || !oldP?.saveKey || oldP.saveKey !== p.saveKey) continue;
-
-            try {
-              oldP.frozen = true;
-            } catch {}
-
-            try {
-              if (oldP.room) {
-                await leaveRoom(oldWs);
-              } else if (oldP.saveKey) {
-                await persistPlayer(oldP);
-              }
-            } catch (error) {
-              console.error('[WS SESSION REPLACE]', error?.message || error);
-            }
-
-            clients.delete(oldWs);
-
-            try {
-              oldWs.close(4001, 'replaced_session');
-            } catch {}
-          }
+        for(const [oldWs,oldP] of clients){
+          if(oldWs===ws||!oldP?.accountId||oldP.accountId!==p.accountId)continue;
+          try{oldP.frozen=true;}catch{}
+          try{if(oldP.room)await leaveRoom(oldWs);else await persistPlayer(oldP);}catch(error){console.error('[WS ACCOUNT SESSION REPLACE]',error?.message||error);}
+          clients.delete(oldWs);try{oldWs.close(4001,'replaced_account_session');}catch{}
         }
 
-        const loadedProfile = await loadSavedPlayer(p.saveKey, p.name);
-        const saved = loadedProfile?.data || null;
-        p.migratedProfile = Boolean(loadedProfile?.migrated);
-        p.hasSaved = !!saved;
-
-        if (!saved) {
-          const owner = await storage.findPlayerByName(p.name);
-          if (owner?.ambiguous || (owner?.saveKey && owner.saveKey !== p.saveKey)) {
-            send(ws, {
-              type: 'room_error',
-              reason: 'name_taken',
-              message: 'Ese nombre ya está ocupado. Elige otro nombre.'
-            });
-            return;
-          }
-
-          for (const [otherWs, otherP] of clients) {
-            if (otherWs === ws || !otherP?.name) continue;
-            if (String(otherP.name).trim().toLowerCase() === p.name.toLowerCase()) {
-              send(ws, {
-                type: 'room_error',
-                reason: 'name_taken',
-                message: 'Ese nombre ya está en uso.'
-              });
-              return;
+        const loadedProfile=await loadSavedPlayer(p.saveKey,'');
+        let saved=loadedProfile?.data||null;
+        p.migratedProfile=false;
+        if(!saved&&account.created&&legacySaveKey&&legacySaveKey!==p.saveKey){
+          try{
+            const legacyProfile=await loadSavedPlayer(legacySaveKey,'');
+            if(legacyProfile?.data){
+              saved={...legacyProfile.data,accountId:p.accountId,name:p.name,nameLocked:true};
+              p.migratedProfile=true;
+              console.log('[ACCOUNT MIGRATION] Perfil legado vinculado a cuenta:',p.accountId);
             }
-          }
+          }catch(error){console.error('[ACCOUNT MIGRATION LOAD]',error?.message||error);}
         }
+        p.hasSaved=!!saved;
 
         if (saved) {
           const savedName = String(saved.name || '').trim().slice(0, NAME_MAX_LENGTH);
           if (savedName) p.name = savedName;
           p.nameLocked = true;
-          p.accountId = String(saved.accountId || p.saveKey || '').slice(0, 96) || p.saveKey;
+          p.accountId = p.accountId || String(saved.accountId || p.saveKey || '').slice(0, 96) || p.saveKey;
 
           // La posición nunca se persiste: cada nueva conexión empieza en la zona segura.
           p.level = clamp(Number(saved.level) || 1, 1, 1000);
@@ -2100,7 +2100,6 @@ wss.on('connection', async (ws) => {
 
         if (!saved) {
           p.nameLocked = true;
-          p.accountId = p.saveKey;
         }
 
         if (msg.color) {
@@ -2113,6 +2112,8 @@ wss.on('connection', async (ws) => {
         applyCombatStats(p);
         p.joined = true;
 
+        send(ws,{type:'account_authenticated',accountId:p.accountId,name:p.name,nameLocked:true,created:!!account.created,accountToken:account.created?String(account.accountToken||''):''});
+
         if (msg.room) {
           await joinRoom(ws, msg.room, false);
         } else if (msg.createRoom) {
@@ -2121,7 +2122,7 @@ wss.on('connection', async (ws) => {
           await joinRoom(ws, 'OPEN', false);
         }
 
-        if (!saved || p.migratedProfile) {
+        if (account.created || !saved || p.migratedProfile) {
           await persistPlayer(p);
           p.migratedProfile = false;
         }

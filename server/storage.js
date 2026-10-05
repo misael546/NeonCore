@@ -1,6 +1,7 @@
 'use strict';
 
 const { Pool } = require('pg');
+const crypto = require('crypto');
 
 let pool = null;
 let storageReady = false;
@@ -43,6 +44,23 @@ async function initStorage(releaseId = '', schemaVersion = 1) {
   await pool.query(
     'CREATE INDEX IF NOT EXISTS neoncore_players_updated_idx ' +
     'ON neoncore_players (updated_at)'
+  );
+
+  await pool.query(
+    'CREATE TABLE IF NOT EXISTS neoncore_accounts (' +
+      'account_id VARCHAR(64) PRIMARY KEY,' +
+      'token_hash CHAR(64) NOT NULL UNIQUE,' +
+      'name VARCHAR(20) NOT NULL,' +
+      'name_normalized VARCHAR(20) NOT NULL UNIQUE,' +
+      'player_save_key VARCHAR(96) NOT NULL UNIQUE,' +
+      'created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),' +
+      'updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()' +
+    ')'
+  );
+
+  await pool.query(
+    'CREATE INDEX IF NOT EXISTS neoncore_accounts_updated_idx ' +
+    'ON neoncore_accounts (updated_at)'
   );
 
   await pool.query(
@@ -163,6 +181,77 @@ async function findPlayerByName(name) {
   }
 }
 
+function normalizeAccountToken(token) {
+  return String(token || '').trim().slice(0, 128);
+}
+function normalizeAccountName(name) {
+  return String(name || '').normalize('NFKC')
+    .replace(/[\u0000-\u001F\u007F]/g, ' ')
+    .replace(/\s+/g, ' ').trim().slice(0, 20);
+}
+function accountNameKey(name) {
+  return normalizeAccountName(name).toLocaleLowerCase('en-US');
+}
+function hashAccountToken(token) {
+  return crypto.createHash('sha256').update(normalizeAccountToken(token), 'utf8').digest('hex');
+}
+async function createAccount(name) {
+  if (!storageReady || !pool) return { ok:false, reason:'storage_unavailable' };
+  const cleanName=normalizeAccountName(name), normalized=accountNameKey(cleanName);
+  if(!cleanName)return {ok:false,reason:'invalid_name'};
+  const accountId='acc_'+crypto.randomUUID().replace(/-/g,'');
+  const accountToken=crypto.randomBytes(32).toString('base64url');
+  const tokenHash=hashAccountToken(accountToken);
+  try{
+    const result=await pool.query(
+      'INSERT INTO neoncore_accounts (account_id, token_hash, name, name_normalized, player_save_key) '+
+      'VALUES ($1,$2,$3,$4,$5) RETURNING account_id,name,player_save_key,created_at,updated_at',
+      [accountId,tokenHash,cleanName,normalized,accountId]
+    );
+    const row=result.rows[0];
+    return {
+      ok:true,created:true,accountId:String(row.account_id),accountToken,
+      name:String(row.name),playerSaveKey:String(row.player_save_key),
+      createdAt:row.created_at?new Date(row.created_at).toISOString():new Date().toISOString(),
+      updatedAt:row.updated_at?new Date(row.updated_at).toISOString():new Date().toISOString()
+    };
+  }catch(error){
+    if(error?.code==='23505')return {ok:false,reason:'name_taken'};
+    console.error('[STORAGE ACCOUNT CREATE]',error?.message||error);
+    return {ok:false,reason:'storage_error'};
+  }
+}
+async function findAccountByToken(token) {
+  if(!storageReady||!pool)return null;
+  const clean=normalizeAccountToken(token);if(!clean)return null;
+  try{
+    const result=await pool.query(
+      'SELECT account_id,name,player_save_key,created_at,updated_at FROM neoncore_accounts WHERE token_hash=$1 LIMIT 1',
+      [hashAccountToken(clean)]
+    );
+    const row=result.rows[0];if(!row)return null;
+    return {accountId:String(row.account_id||''),name:normalizeAccountName(row.name),
+      playerSaveKey:String(row.player_save_key||row.account_id||''),
+      createdAt:row.created_at?new Date(row.created_at).toISOString():'',
+      updatedAt:row.updated_at?new Date(row.updated_at).toISOString():''};
+  }catch(error){console.error('[STORAGE ACCOUNT AUTH]',error?.message||error);return null;}
+}
+async function findAccountByName(name) {
+  if(!storageReady||!pool)return null;
+  const normalized=accountNameKey(name);if(!normalized)return null;
+  try{
+    const result=await pool.query(
+      'SELECT account_id,name,player_save_key,created_at,updated_at FROM neoncore_accounts WHERE name_normalized=$1 LIMIT 1',
+      [normalized]
+    );
+    const row=result.rows[0];if(!row)return null;
+    return {accountId:String(row.account_id||''),name:normalizeAccountName(row.name),
+      playerSaveKey:String(row.player_save_key||row.account_id||''),
+      createdAt:row.created_at?new Date(row.created_at).toISOString():'',
+      updatedAt:row.updated_at?new Date(row.updated_at).toISOString():''};
+  }catch(error){console.error('[STORAGE ACCOUNT NAME]',error?.message||error);return null;}
+}
+
 async function savePlayerData(saveKey, data) {
   if (!storageReady || !pool || !saveKey) return false;
 
@@ -200,6 +289,9 @@ module.exports = {
   loadPlayerData,
   loadPlayerDataByName,
   findPlayerByName,
+  createAccount,
+  findAccountByToken,
+  findAccountByName,
   savePlayerData,
   closeStorage,
   get enabled() {
