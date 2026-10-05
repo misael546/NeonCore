@@ -6,7 +6,7 @@
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
-<title>NEON CORE · ACTUALIZANDO</title>
+<title>NEON CORE</title>
 <style>
 *{box-sizing:border-box}
 html,body{margin:0;width:100%;height:100%;overflow:hidden;background:#02050b;color:#fff;font-family:Arial,sans-serif}
@@ -22,8 +22,8 @@ small{display:block;margin-top:10px;color:#71819a;font-size:10px}
 <body>
 <div class="card">
   <div class="spinner"></div>
-  <h1>ACTUALIZANDO NEON CORE</h1>
-  <p id="status">Comprobando la versión global…</p>
+  <h1>NEON CORE</h1>
+  <p id="status">Comprobando la versión…</p>
   <small>GitHub · Render · Base de datos · Cliente</small>
 </div>
 <script>
@@ -31,40 +31,49 @@ small{display:block;margin-top:10px;color:#71819a;font-size:10px}
   const RAW="https://raw.githubusercontent.com/misael546/NeonCore/main/";
   const fallbackPath="neoncore/12345/v1/index.html";
   const nameKey="neon_core_player_name";
+  const buildKey="neon_core_build";
   function status(t){const e=document.getElementById("status");if(e)e.textContent=t;}
   function cb(u){return u+(u.includes("?")?"&":"?")+"t="+Date.now()+"-"+Math.random().toString(36).slice(2);}
-  async function get(u){const r=await fetch(cb(u),{cache:"no-store",});if(!r.ok)throw new Error(String(r.status));return r;}
+  async function get(u){const r=await fetch(cb(u),{cache:"no-store"});if(!r.ok)throw new Error(String(r.status));return r;}
+  function savedName(){
+    try{return String(new URL(location.href).searchParams.get("name")||localStorage.getItem(nameKey)||"").trim().slice(0,20);}
+    catch{return "";}
+  }
+  function goDirect(path,name,target){
+    const u=new URL("https://misael546.github.io/NeonCore/"+String(path).replace(/^\/+?/,""));
+    if(name)u.searchParams.set("name",name);
+    if(target)u.searchParams.set("neon_release",target);
+    u.searchParams.set("neon_cache",String(Date.now()));
+    location.replace(u.toString());
+  }
   try{
     const manifest=await (await get(RAW+"release.json")).json();
-    const target=String(manifest.clientBuild||manifest.releaseId||"");
-    const clientPath=String(manifest.clientPath||fallbackPath).replace(/^\//,"");
+    const target=String(manifest.clientBuild||manifest.releaseId||"").trim();
+    const clientPath=String(manifest.clientPath||fallbackPath).replace(/^\/+?/,"");
     if(!target)throw new Error("release vacío");
-    status("Descargando la versión global más reciente…");
+
+    let installed="";
+    try{installed=String(localStorage.getItem(buildKey)||"").trim();}catch{}
+
+    // Si el cliente ya conoce exactamente la misma build, NO se vuelve a instalar.
+    if(installed===target){
+      status("BUILD "+target+" ya está instalada. Entrando…");
+      goDirect(clientPath,savedName(),target);
+      return;
+    }
+
+    status("Verificando la build "+target+"…");
     const html=await (await get(RAW+clientPath)).text();
-    const m=html.match(/window\.NEON_CORE_BUILD\s*=\s*"([^"]+)"/);
-    if(!m||String(m[1])!==target)throw new Error("cliente desfasado");
-    let name="";
-    try{name=String(new URL(location.href).searchParams.get("name")||"").trim().slice(0,20);}catch{}
-    if(!name){try{name=String(localStorage.getItem(nameKey)||"").trim().slice(0,20);}catch{}}
-    const query=name?"?name="+encodeURIComponent(name)+"&neon_release="+encodeURIComponent(target)+"&neon_force="+Date.now(): "?neon_release="+encodeURIComponent(target)+"&neon_force="+Date.now();
-    try{history.replaceState({},"","../../"+clientPath+query);}catch{}
-    status("Instalando automáticamente la build "+target+"…");
-    document.open();document.write(html);document.close();
+    const m=html.match(/window\.NEON_CORE_BUILD\s*=\s*["']([^"']+)["']/);
+    if(!m||String(m[1]).trim()!==target)throw new Error("cliente desfasado");
+
+    try{localStorage.setItem(buildKey,target);}catch{}
+    status("BUILD "+target+" verificada. Entrando…");
+    goDirect(clientPath,savedName(),target);
   }catch(e){
-    // Nunca bloqueamos al jugador en esta pantalla: el siguiente intento usa
-    // una URL única y, si GitHub Raw falla temporalmente, entra directo a v1.
-    status("Actualización no disponible. Reintentando automáticamente…");
-    setTimeout(()=>{
-      try{
-        const u=new URL("./v1/index.html",location.href);
-        const name=String(new URL(location.href).searchParams.get("name")||"").trim().slice(0,20);
-        if(name)u.searchParams.set("name",name);
-        u.searchParams.set("neon_force",String(Date.now()));
-        location.replace(u.toString());
-      }catch{
-        location.reload();
-      }
-    },1200);
+    // No dejamos al jugador atrapado en el cargador.
+    status("Comprobación temporal no disponible. Entrando al cliente…");
+    setTimeout(()=>goDirect(fallbackPath,savedName(),""),700);
   }
 })();
 </script>
