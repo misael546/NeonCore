@@ -9,7 +9,7 @@
 <script>
 (function(){
   try{
-    var v="V42",checking=false,updating=false,timer=null,base=new URL("../../../",location.href),manifestUrl=new URL("/NeonCore/release.json",location.origin);
+    var v="V43",checking=false,updating=false,timer=null,base=new URL("../../../",location.href),manifestUrl=new URL("/NeonCore/release.json",location.origin);
     window.NEON_CORE_VERSION=v;localStorage.setItem("neon_core_version",v);
     function notice(remote){
       if(updating)return;updating=true;
@@ -48,7 +48,7 @@
   }catch(e){}
 })();
 </script>
-<title>Neon Core · V42</title>
+<title>Neon Core · V43</title>
 <style>
 *{box-sizing:border-box}html,body{margin:0;width:100%;height:100%;overflow:hidden;background:#050811;color:#fff;font-family:Arial,sans-serif;touch-action:none}
 #game{display:block;width:100vw;height:100vh}
@@ -297,9 +297,11 @@ html.pc-controls #controlConfigBtn,html.touch-controls #controlConfigBtn{display
 #pickupBtn{display:none;right:18px;bottom:142px;touch-action:manipulation;user-select:none;-webkit-user-select:none}
 @media(max-width:799px){.aimJoy{display:block}#pickupBtn{right:18px;bottom:142px;width:50px;height:50px}}
 html.pc-controls .aimJoy{display:none!important}html.touch-controls .aimJoy{display:block!important}
+</style><style id="neonItemsV43">
+.equipmentGrid{display:grid;grid-template-columns:repeat(3,1fr);gap:7px;margin:0 0 9px}.equipmentSlot{min-width:0;min-height:82px;border:1px solid #33415d;border-radius:12px;background:linear-gradient(180deg,#0d192b,#09111d);color:#fff;padding:7px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;pointer-events:auto}.equipmentSlot.filled{border-color:#39e7ff88;box-shadow:0 0 16px #39e7ff18,inset 0 0 14px #39e7ff0b}.equipmentLabel{font-size:8px;color:#71819a;font-weight:900;letter-spacing:1px}.equipmentIcon{height:31px;display:grid;place-items:center;font-size:24px}.equipmentIcon img{width:28px;height:28px;object-fit:contain;filter:drop-shadow(0 0 7px #39e7ff88)}.equipmentName{max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:#dffbff;font-size:8px;font-weight:900}.itemVisual{height:60px;display:grid;place-items:center;border:1px solid #26344e;border-radius:11px;background:#08111d;overflow:hidden;box-shadow:inset 0 0 24px #000}.itemVisual img{width:54px;height:54px;object-fit:contain;filter:drop-shadow(0 0 12px #39e7ff88)}.itemShopCard{cursor:pointer}.itemShopCard:disabled{cursor:not-allowed;opacity:.55}.itemEmptyMsg{grid-column:1/-1;padding:18px;text-align:center;border:1px dashed #33415d;border-radius:11px;color:#71819a;font-size:11px}.sellCard{border-color:#4b3b2c}.backpackIconImg{width:42px;height:42px;object-fit:contain}.inventorySlot .slotIcon img{width:27px;height:27px;object-fit:contain}.inventorySlot .slotName{min-height:18px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.inventorySlot .slotQty:empty{display:none}@media(max-width:700px){.equipmentSlot{min-height:74px}.equipmentIcon{font-size:21px}.itemVisual{height:52px}.itemVisual img{width:48px;height:48px}.shopUnifiedGrid{grid-template-columns:repeat(2,minmax(0,1fr))}}@media(max-width:430px){.equipmentSlot{min-height:70px;padding:5px}.equipmentName{font-size:7px}.shopUnifiedGrid{grid-template-columns:1fr}.inventoryGrid{grid-template-columns:repeat(4,minmax(0,1fr))}}
 </style></head>
 <body>
-<canvas id="game"></canvas><div id="versionDisplay">V42</div><button id="audioToggle" type="button" aria-label="Activar o silenciar audio">🔊</button>
+<canvas id="game"></canvas><div id="versionDisplay">V43</div><button id="audioToggle" type="button" aria-label="Activar o silenciar audio">🔊</button>
 
 <div id="hud">
   <div class="panel" id="bars">
@@ -325,24 +327,26 @@ html.pc-controls .aimJoy{display:none!important}html.touch-controls .aimJoy{disp
       <span>🛡 DEFENSA · <b id="shopDefense">0</b></span>
     </div>
     <div class="shopTabs">
-      <button class="shopTab active" data-shop-section="arsenal" type="button">⚔ ARSENAL</button>
+      <button class="shopTab active" data-shop-section="items" type="button">🎒 ITEMS VENTA</button>
       <button class="shopTab" data-shop-section="skins" type="button">🧬 SKINS</button>
       <button class="shopTab" data-shop-section="redeem" type="button">🎁 CENTRO DE CÓDIGOS</button>
     </div>
 
-    <section id="shopArsenalSection" class="shopSection">
-      <div class="shopSubTitle arsenalCompleteTitle">⚔ ARSENAL · 10 ARMAS · PODER ASCENDENTE</div>
+    <section id="shopItemsSection" class="shopSection">
+      <div class="shopSubTitle">🎒 ITEMS VENTA · COMPRAR</div>
       <div class="arsenalAmmoBar">
-        <div><strong>🔸 MUNICIÓN</strong><span><b id="arsenalAmmo">0</b>/<b id="arsenalMaxAmmo">220</b></span></div>
+        <div><strong>🔸 MUNICIÓN</strong><span><b id="arsenalAmmo">0</b>/<b id="arsenalMaxAmmo">8000</b></span></div>
         <button id="buyAmmoBtn" type="button">COMPRAR 100 · 🪙 75</button>
       </div>
-      <div id="arsenalGrid" class="shopGrid shopUnifiedGrid"></div>
-      <small id="shopMsg" class="shopUnifiedMsg">Las armas otorgan PODER. Cuanto más PODER tengas, más daño haces. Los SKINS otorgan DEFENSA.</small>
+      <div id="itemShopGrid" class="shopGrid shopUnifiedGrid"></div>
+      <div class="shopSubTitle">💰 VENDER TUS ITEMS</div>
+      <div id="sellItemsGrid" class="shopGrid shopUnifiedGrid"></div>
+      <small id="shopMsg" class="shopUnifiedMsg">Compra armas, espadas, armaduras y mochilas. Los objetos comprados llegan primero a tu inventario.</small>
+      <small id="itemShopMsg" class="shopUnifiedMsg"></small>
     </section>
 
     <section id="shopSkinsSection" class="shopSection" style="display:none">
 <div class="shopSubTitle">🧬 SKINS BASE · GRATIS</div><div id="baseSkinShopGrid" class="cosmeticGrid"></div>
-<div class="shopSubTitle" style="margin-top:10px">🛡 ARMADURAS · SOLO VENTA POR AHORA</div><div id="armorShopGrid" class="cosmeticGrid"></div>
 </section>
 
     <section id="shopRedeemSection" class="shopSection" style="display:none">
@@ -403,7 +407,7 @@ html.pc-controls .aimJoy{display:none!important}html.touch-controls .aimJoy{disp
 
 <div id="controlEditor"><div id="controlCard">
 <div id="utilityHead"><div class="settingsMark">⚙</div><div class="utilityHeadText"><strong>CONFIGURACIONES GENERALES</strong><small>CONTROLES · STATS · NEON CORE</small></div><button id="controlClose" class="utilityClose" type="button" aria-label="Cerrar configuraciones">×</button></div>
-<div class="utilityTabs"><button class="utilityTab active" data-utility-tab="controls" type="button">CONTROLES</button><button class="utilityTab" data-utility-tab="stats" type="button">STATS</button><button class="utilityTab" data-utility-tab="inventory" type="button">🎒 MOCHILA</button></div>
+<div class="utilityTabs"><button class="utilityTab active" data-utility-tab="controls" type="button">CONTROLES</button><button class="utilityTab" data-utility-tab="stats" type="button">STATS</button><button class="utilityTab" data-utility-tab="inventory" type="button">🎒 INVENTARIO</button></div>
 <section id="controlView" class="utilityView active"><p>Configuración universal. Los cambios quedan guardados en este dispositivo.</p>
 <div class="controlRow"><label>Arriba</label><button class="bindKey" data-bind="up" type="button">W</button></div><div class="controlRow"><label>Izquierda</label><button class="bindKey" data-bind="left" type="button">A</button></div><div class="controlRow"><label>Abajo</label><button class="bindKey" data-bind="down" type="button">S</button></div><div class="controlRow"><label>Derecha</label><button class="bindKey" data-bind="right" type="button">D</button></div><div class="controlRow"><label>Disparo teclado</label><button class="bindKey" data-bind="fire" type="button">ESPACIO</button></div><div id="bindMsg" style="min-height:18px;margin:-2px 0 8px;color:#39e7ff;font-size:11px;text-align:center"></div>
 <div class="controlRow"><label for="joySize">Joystick</label><input id="joySize" type="range" min="80" max="170" value="112"></div><div class="controlRow"><label for="fireSize">Apuntar / disparar</label><input id="fireSize" type="range" min="60" max="130" value="86"></div><div class="controlRow"><label for="joyX">Joystick X</label><input id="joyX" type="range" min="0" max="100" value="8"></div><div class="controlRow"><label for="joyY">Joystick Y</label><input id="joyY" type="range" min="0" max="100" value="8"></div><div class="controlRow"><label for="fireX">Disparo X</label><input id="fireX" type="range" min="0" max="100" value="8"></div><div class="controlRow"><label for="fireY">Disparo Y</label><input id="fireY" type="range" min="0" max="100" value="8"></div>
@@ -420,9 +424,14 @@ html.pc-controls .aimJoy{display:none!important}html.touch-controls .aimJoy{disp
 <div class="statsXp defenseXpPanel"><div class="statsXpHead"><span>PROGRESO DEFENSA</span><b><span id="statsDefenseXp">0</span> / <span id="statsDefenseNeed">100</span> XP</b></div><div class="statsXpTrack"><i id="statsDefenseXpFill"></i></div></div>
 </section>
 <section id="inventoryView" class="utilityView">
-  <div class="inventoryHero"><div><strong>🎒 MOCHILA BÁSICA</strong><small>16 espacios · hasta 500 balas por espacio</small></div><b id="inventoryCapacity">0 / 8000 BALAS</b></div>
+  <div class="inventoryHero"><div><strong>🎒 INVENTARIO</strong><small><span id="inventoryCapacityHint">16</span> espacios · 500 unidades máximas por stack</small></div><b id="inventoryCapacity">0 / 8000</b></div>
+  <div class="equipmentGrid">
+    <button type="button" class="equipmentSlot" id="equippedBackpackSlot"><span class="equipmentLabel">MOCHILA</span><span class="equipmentIcon">🎒</span><span class="equipmentName">VACÍA</span></button>
+    <button type="button" class="equipmentSlot" id="equippedWeaponSlot"><span class="equipmentLabel">ARMA</span><span class="equipmentIcon">🔫</span><span class="equipmentName">VACÍA</span></button>
+    <button type="button" class="equipmentSlot" id="equippedArmorSlot"><span class="equipmentLabel">ARMADURA</span><span class="equipmentIcon">🛡</span><span class="equipmentName">VACÍA</span></button>
+  </div>
   <div id="inventoryGrid" class="inventoryGrid"></div>
-  <small class="inventoryHint">Toca directamente un espacio con balas para mostrar «DROPEAR?». Se soltará todo ese stack.</small>
+  <small class="inventoryHint">Toca un arma, espada, armadura o mochila para equiparla. Toca un objeto no equipado para venderlo desde ITEMS VENTA o soltarlo al suelo.</small>
 </section>
 </div></div>
 <div id="dropConfirm" class="dropConfirm" aria-hidden="true"><div class="dropConfirmCard"><strong>DROPEAR?</strong><span id="dropConfirmText">¿Quieres soltar este stack de munición?</span><div><button id="dropConfirmNo" type="button">NO</button><button id="dropConfirmYes" type="button">SÍ, SOLTAR</button></div></div></div>
@@ -735,10 +744,26 @@ function startNeonMusic(state){
 function stopNeonMusic(){neonProcClear();neonMusic.current="";neonMusic.desired="";for(const key of Object.keys(neonMusic.elements)){const a=neonMusic.elements[key];try{a.pause();a.currentTime=0;a.volume=0;}catch{}}}
 
 const PROJECTILE_SPEED=1200;
-const INVENTORY_SLOTS=16;
+const BASE_INVENTORY_SLOTS=16;
+const BACKPACK_EXTRA_SLOTS=16;
+const MAX_INVENTORY_SLOTS=32;
+const INVENTORY_SLOTS=BASE_INVENTORY_SLOTS;
 const INVENTORY_STACK_MAX=500;
 const MAX_INVENTORY_AMMO=INVENTORY_SLOTS*INVENTORY_STACK_MAX;
 const neonProjectiles=[];
+const meleeSlashes=[];
+function drawMeleeSlashes(){
+  const now=performance.now();
+  for(let i=meleeSlashes.length-1;i>=0;i--){
+    const q=meleeSlashes[i],t=clamp((now-q.startAt)/Math.max(80,Number(q.duration)||200),0,1);
+    ctx.save();ctx.globalCompositeOperation="lighter";ctx.translate(sx(q.x),sy(q.y));ctx.rotate(q.angle);
+    const arc=Math.max(.5,Number(q.arc)||1.1),rr=Math.max(70,Number(q.radius)||150);
+    ctx.globalAlpha=(1-t)*.8;ctx.strokeStyle=q.color||"#39e7ff";ctx.lineWidth=7;
+    ctx.beginPath();ctx.arc(0,0,rr,-arc*.5,arc*.5);ctx.stroke();
+    ctx.globalAlpha=(1-t)*.3;ctx.lineWidth=18;ctx.stroke();
+    ctx.restore();if(t>=1)meleeSlashes.splice(i,1);
+  }
+}
 function drawNeonProjectiles(){
   const now=performance.now();
   for(let i=neonProjectiles.length-1;i>=0;i--){
@@ -808,32 +833,30 @@ function drawNeonProjectiles(){
   }
 }
 const world={w:6000,h:4400};
-const p={x:3000,y:2200,r:16,angle:0,hp:150,maxHp:150,xp:0,level:1,score:0,kills:0,pvpKills:0,power:100,damage:35,defense:0,speed:205,fireRate:650,lastShot:0,alive:true,gold:0,diamonds:0,ammo:0,maxAmmo:8000,weapon:"blaster",equippedSkin:"core_default"};
+const p={x:3000,y:2200,r:16,angle:0,hp:150,maxHp:150,xp:0,level:1,score:0,kills:0,pvpKills:0,power:100,damage:35,defense:0,speed:205,fireRate:650,lastShot:0,alive:true,gold:0,diamonds:0,ammo:0,maxAmmo:8000,weapon:"blaster",equippedSkin:"core_default",equippedBackpack:""};
 const shopNpc={x:3250,y:2200,r:24};
 const weaponNames={
-  blaster:"BLASTER · NEONSTORM",
-  pulse:"PULSE · PRISMA",
-  cannon:"CANNON · SOLARIS",
-  railgun:"RAILGUN · ECLIPSE",
-  nova:"NOVA · SUPERNOVA",
-  plasma:"PLASMA · INFERNO",
-  vortex:"VORTEX · SHARD",
-  quasar:"QUASAR · RAY",
-  singularity:"SINGULARITY · CORE",
-  omega:"OMEGA · ASCENSION"
+  blaster:"BLASTER · NEONSTORM",pulse:"PULSE · PRISMA",cannon:"CANNON · SOLARIS",railgun:"RAILGUN · ECLIPSE",nova:"NOVA · SUPERNOVA",
+  plasma:"PLASMA · INFERNO",vortex:"VORTEX · SHARD",quasar:"QUASAR · RAY",singularity:"SINGULARITY · CORE",omega:"OMEGA · ASCENSION",
+  sword_neo:"ESPADA NEO",sword_pulse:"ESPADA PULSO",sword_void:"ESPADA VACÍO",sword_solar:"ESPADA SOLAR",sword_omega:"ESPADA OMEGA"
 };
 const weaponStats={
-  blaster:{name:"BLASTER · NEONSTORM",power:100,fireRate:650,maxAmmo:8000,cost:0,range:1000},
-  pulse:{name:"PULSE · PRISMA",power:200,fireRate:650,maxAmmo:8000,cost:500,range:1000},
-  cannon:{name:"CANNON · SOLARIS",power:400,fireRate:650,maxAmmo:8000,cost:1500,range:1000},
-  railgun:{name:"RAILGUN · ECLIPSE",power:743,fireRate:650,maxAmmo:8000,cost:6500,range:1000},
-  nova:{name:"NOVA · SUPERNOVA",power:1486,fireRate:650,maxAmmo:8000,cost:22000,range:1000},
-  plasma:{name:"PLASMA · INFERNO",power:2286,fireRate:650,maxAmmo:8000,cost:60000,range:1000},
-  vortex:{name:"VORTEX · SHARD",power:3286,fireRate:650,maxAmmo:8000,cost:150000,range:1000},
-  quasar:{name:"QUASAR · RAY",power:4429,fireRate:650,maxAmmo:8000,cost:400000,range:1000},
-  singularity:{name:"SINGULARITY · CORE",power:6000,fireRate:650,maxAmmo:8000,cost:900000,range:1000},
-  omega:{name:"OMEGA · ASCENSION",power:8000,fireRate:650,maxAmmo:8000,cost:2000000,range:1000}
-};let shopOpen=false,shopSection="arsenal";
+  blaster:{name:"BLASTER · NEONSTORM",power:100,fireRate:650,maxAmmo:8000,cost:0,range:1000,type:"ranged"},
+  pulse:{name:"PULSE · PRISMA",power:200,fireRate:650,maxAmmo:8000,cost:500,range:1000,type:"ranged"},
+  cannon:{name:"CANNON · SOLARIS",power:400,fireRate:650,maxAmmo:8000,cost:1500,range:1000,type:"ranged"},
+  railgun:{name:"RAILGUN · ECLIPSE",power:743,fireRate:650,maxAmmo:8000,cost:6500,range:1000,type:"ranged"},
+  nova:{name:"NOVA · SUPERNOVA",power:1486,fireRate:650,maxAmmo:8000,cost:22000,range:1000,type:"ranged"},
+  plasma:{name:"PLASMA · INFERNO",power:2286,fireRate:650,maxAmmo:8000,cost:60000,range:1000,type:"ranged"},
+  vortex:{name:"VORTEX · SHARD",power:3286,fireRate:650,maxAmmo:8000,cost:150000,range:1000,type:"ranged"},
+  quasar:{name:"QUASAR · RAY",power:4429,fireRate:650,maxAmmo:8000,cost:400000,range:1000,type:"ranged"},
+  singularity:{name:"SINGULARITY · CORE",power:6000,fireRate:650,maxAmmo:8000,cost:900000,range:1000,type:"ranged"},
+  omega:{name:"OMEGA · ASCENSION",power:8000,fireRate:650,maxAmmo:8000,cost:2000000,range:1000,type:"ranged"},
+  sword_neo:{name:"ESPADA NEO",power:140,fireRate:700,maxAmmo:0,cost:300,range:150,type:"melee",arc:1.05},
+  sword_pulse:{name:"ESPADA PULSO",power:280,fireRate:700,maxAmmo:0,cost:1200,range:160,type:"melee",arc:1.10},
+  sword_void:{name:"ESPADA VACÍO",power:520,fireRate:760,maxAmmo:0,cost:4500,range:170,type:"melee",arc:1.15},
+  sword_solar:{name:"ESPADA SOLAR",power:850,fireRate:820,maxAmmo:0,cost:15000,range:180,type:"melee",arc:1.20},
+  sword_omega:{name:"ESPADA OMEGA",power:1400,fireRate:900,maxAmmo:0,cost:50000,range:195,type:"melee",arc:1.25}
+};let shopOpen=false,shopSection="items";
 const SHOP_INTERACTION_RADIUS_CLIENT=48;
 const BASE_SKINS=[
 {id:"core_default",name:"NÚCLEO ORIGINAL",rarity:"Común",currency:"free",price:0,desc:"Skin base del jugador."},
@@ -847,14 +870,7 @@ const ARMOR_CATALOG=[
 {id:"rust_core",name:"CORAZA OXIDADA",rarity:"Raro",currency:"gold",price:1500,armorRating:20,desc:"Placas remendadas de combate."},
 {id:"toxic_orb",name:"TRAJE TÓXICO",rarity:"Épico",currency:"gold",price:12000,armorRating:35,desc:"Blindaje químico con depósitos verdes."},
 {id:"plasma_violet",name:"ARMADURA PLASMA",rarity:"Mítico",currency:"gold",price:60000,armorRating:60,desc:"Placas de plasma de alta energía."},
-{id:"aurora",name:"CORAZA AURORA",rarity:"Épico",currency:"diamonds",price:250,armorRating:90,desc:"Coraza polar luminosa."},
-{id:"nebula_prism",name:"ARMADURA NEBULOSA",rarity:"Mítico",currency:"diamonds",price:4500,armorRating:140,desc:"Blindaje prismático orbital."},
-{id:"eclipse_gold",name:"CORAZA ECLIPSE",rarity:"Legendario",currency:"diamonds",price:2000,armorRating:220,desc:"Exoesqueleto oscuro con aro solar."},
-{id:"celestial",name:"ARMADURA CELESTE",rarity:"Legendario",currency:"diamonds",price:7500,armorRating:320,desc:"Placas celestes con estrellas."},
-{id:"angel_seraph",name:"ARMADURA SERAFÍN",rarity:"Legendario",currency:"diamonds",price:12000,armorRating:500,desc:"Blindaje angelical con halo y alas."},
-{id:"demon_infernal",name:"ARMADURA INFERNAL",rarity:"Supremo",currency:"diamonds",price:25000,armorRating:700,desc:"Coraza infernal con cuernos y alas."},
-{id:"eternal_void",name:"ARMADURA VACÍO",rarity:"Supremo",currency:"diamonds",price:30000,armorRating:950,desc:"Blindaje de vacío oscuro."},
-{id:"gm_core",name:"ARMADURA SOBERANA",rarity:"Supremo",currency:"diamonds",price:50000,armorRating:1250,desc:"Armadura soberana de prueba."}
+{id:"aurora",name:"CORAZA AURORA",rarity:"Épico",currency:"diamonds",price:250,armorRating:90,desc:"Coraza polar luminosa."}
 ];
 let cosmeticShopNpc={...shopNpc};
 let ownedSkins=["core_default","neon_runner","signal_amber","pulse_guard","shadow_scout"],equippedSkin="core_default";
@@ -862,6 +878,7 @@ let ownedArmors=[],equippedArmor="";
 let ownedWeapons=["blaster"],equippedWeaponSkin="",ownedWeaponSkins=[];
 let weaponSkinCatalog=[];
 let cosmeticShopWasNear=false,cosmeticShopDismissedUntil=0;
+let equippedBackpack="",inventoryCapacityClient=16,itemShopCatalog=[],itemShopStock={};
 let bullets=[],enemies=[],drops=[],particles=[],walls=[],hitTexts=[],bossProjectiles=[],bossWarnings=[];
 let inventorySlots=Array.from({length:INVENTORY_SLOTS},()=>null);
 let serverXpNeed=100,serverKillsToLevel=5,serverPower=100,serverDefense=0,serverDefenseLevel=1,serverDefenseXp=0,serverDefenseXpIntoLevel=0,serverDefenseXpNeed=100,serverPistoleroLevel=1,serverPistoleroXp=0,serverPistoleroXpIntoLevel=0,serverPistoleroXpNeed=100,serverPowerAttackBonus=0;
@@ -1063,12 +1080,13 @@ function connectMultiplayer(roomMode="quick",roomCode=""){ const publicRoomAuto=
       if(multiplayerConnectTimer){clearTimeout(multiplayerConnectTimer);multiplayerConnectTimer=null;}
 
       setConnectionStatus("CONECTADO","Entrando a la sala…");
-      socket.send(JSON.stringify({type:"join",name:playerName||"Jugador",accountToken:accountToken,saveKey:accountToken?"":saveKey,color:"#39e7ff",room:roomMode==="join"?roomCode:"",createRoom:roomMode==="create",clientVersion:window.NEON_CORE_VERSION||"V42"}));
+      socket.send(JSON.stringify({type:"join",name:playerName||"Jugador",accountToken:accountToken,saveKey:accountToken?"":saveKey,color:"#39e7ff",room:roomMode==="join"?roomCode:"",createRoom:roomMode==="create",clientVersion:window.NEON_CORE_VERSION||"V43"}));
     });
     socket.addEventListener("message",e=>{
        if(multiplayerSocket!==socket)return;
       try{
         const m=JSON.parse(e.data);
+        if(m.type==="item_shop_state"||m.type==="item_shop_result"){handleItemShopMessage(m);return;}
         if(m.type==="account_authenticated"){
           if(m.accountId){accountId=String(m.accountId).slice(0,96);try{localStorage.setItem("neon_core_account_id",accountId);}catch{}}
           if(m.accountToken){accountToken=String(m.accountToken).slice(0,128);try{localStorage.setItem("neon_core_account_token",accountToken);}catch{}}
@@ -1101,7 +1119,7 @@ function connectMultiplayer(roomMode="quick",roomCode=""){ const publicRoomAuto=
             if(Number.isFinite(me.defense))p.defense=me.defense;
             if(Number.isFinite(me.maxHp))p.maxHp=me.maxHp;else p.maxHp=100+(p.level-1)*15;
             if(Number.isFinite(me.speed))p.speed=me.speed;else p.speed=205+(p.level-1)*4;
-            if(me.weapon)p.weapon=me.weapon;if(me.equippedSkin){p.equippedSkin=me.equippedSkin;equippedSkin=me.equippedSkin;}if(Object.prototype.hasOwnProperty.call(me,"equippedArmor")){p.equippedArmor=me.equippedArmor||"";equippedArmor=me.equippedArmor||"";}
+            if(me.weapon)p.weapon=me.weapon;if(me.equippedSkin){p.equippedSkin=me.equippedSkin;equippedSkin=me.equippedSkin;}if(Object.prototype.hasOwnProperty.call(me,"equippedArmor")){p.equippedArmor=me.equippedArmor||"";equippedArmor=me.equippedArmor||"";}if(Object.prototype.hasOwnProperty.call(me,"equippedBackpack")){p.equippedBackpack=me.equippedBackpack||"";equippedBackpack=p.equippedBackpack;}
           }
           enemies.length=0;
           for(const e of (m.enemies||[])){e.targetX=e.x;e.targetY=e.y;e.shape=e.shape||"triangle";enemies.push(e);}
@@ -1211,13 +1229,18 @@ function connectMultiplayer(roomMode="quick",roomCode=""){ const publicRoomAuto=
             const travelDistance=Math.max(1,Number(m.travelDistance)||Number(m.range)||weaponStats[m.weapon]?.range||1000);
             const ix=Number.isFinite(Number(m.impactX))?Number(m.impactX):sx0+Math.cos(angle)*travelDistance;
             const iy=Number.isFinite(Number(m.impactY))?Number(m.impactY):sy0+Math.sin(angle)*travelDistance;
-            neonProjectiles.push({
-              id:m.shotId||Math.random(),x:sx0,y:sy0,tx:ix,ty:iy,angle,
-              startAt:performance.now(),duration:Math.max(180,Math.min(650,Number(m.travelMs)||520)),
-              color:(weaponVisuals[String(m.weapon)]||weaponVisuals.blaster).glow,
-              accent:(weaponVisuals[String(m.weapon)]||weaponVisuals.blaster).base,
-              size:10,pending:false,seed:Math.random()*1000
-            });
+            const remoteWeapon=weaponStats[String(m.weapon)]||{};
+            if(m.melee||remoteWeapon.type==="melee"){
+              meleeSlashes.push({x:sx0,y:sy0,angle,startAt:performance.now(),duration:220,color:(weaponVisuals[String(m.weapon)]||weaponVisuals.blaster).glow,arc:Number(remoteWeapon.arc)||1.1,radius:Number(remoteWeapon.range)||150});
+            }else{
+              neonProjectiles.push({
+                id:m.shotId||Math.random(),x:sx0,y:sy0,tx:ix,ty:iy,angle,
+                startAt:performance.now(),duration:Math.max(180,Math.min(650,Number(m.travelMs)||520)),
+                color:(weaponVisuals[String(m.weapon)]||weaponVisuals.blaster).glow,
+                accent:(weaponVisuals[String(m.weapon)]||weaponVisuals.blaster).base,
+                size:10,pending:false,seed:Math.random()*1000
+              });
+            }
             const other=remotePlayers.get(m.id);
             if(other)other.shootPulse=1;
             audioTone(520,.065,"sawtooth",.03,240);
@@ -1331,7 +1354,13 @@ function connectMultiplayer(roomMode="quick",roomCode=""){ const publicRoomAuto=
           const r=m.respawn||{};
           applyServerRespawn(r);
           enemies.length=0;
-        }else if(m.type==="inventory_state"){syncClientInventory(m.inventory);updateResourceHud();
+        }else if(m.type==="inventory_state"){
+          if(Array.isArray(m.itemCatalog))itemShopCatalog=m.itemCatalog;
+          if(m.shopStock)itemShopStock={...m.shopStock};
+          if(Object.prototype.hasOwnProperty.call(m,"equippedBackpack")){equippedBackpack=m.equippedBackpack||"";p.equippedBackpack=equippedBackpack;}
+          if(Object.prototype.hasOwnProperty.call(m,"equippedWeapon"))p.weapon=m.equippedWeapon||"";
+          if(Object.prototype.hasOwnProperty.call(m,"equippedArmor")){equippedArmor=m.equippedArmor||"";p.equippedArmor=equippedArmor;}
+          syncClientInventory(m.inventory,m.inventoryCapacity||m.slots||16);updateResourceHud();
         }else if(m.type==="drop_state"){drops=Array.isArray(m.drops)?m.drops.map(q=>({...q})):[];updatePickupButton();
         }else if(m.type==="currency_pickup"){
           if(Number.isFinite(Number(m.gold)))p.gold=Math.max(0,Number(m.gold));
@@ -1364,7 +1393,9 @@ function connectMultiplayer(roomMode="quick",roomCode=""){ const publicRoomAuto=
           if(Object.prototype.hasOwnProperty.call(m,"equippedArmor")){equippedArmor=m.equippedArmor||"";p.equippedArmor=equippedArmor;}
            if(Array.isArray(m.ownedSkins))ownedSkins=m.ownedSkins;
            if(Array.isArray(m.ownedArmors))ownedArmors=m.ownedArmors;
-           if(Array.isArray(m.ownedWeapons))ownedWeapons=m.ownedWeapons; if(Array.isArray(m.inventory))syncClientInventory(m.inventory);
+           if(Array.isArray(m.ownedWeapons))ownedWeapons=m.ownedWeapons;
+           if(Object.prototype.hasOwnProperty.call(m,"equippedBackpack")){equippedBackpack=m.equippedBackpack||"";p.equippedBackpack=equippedBackpack;}
+           if(Array.isArray(m.inventory)){itemShopCatalog=Array.isArray(m.itemCatalog)?m.itemCatalog:itemShopCatalog;syncClientInventory(m.inventory,m.inventoryCapacity||m.inventory?.length||16);}
           if(Number.isFinite(m.xpNeed))serverXpNeed=m.xpNeed;
           if(Number.isFinite(m.power))serverPower=Math.max(0,Number(m.power));
           if(Number.isFinite(m.defense))serverDefense=m.defense;
@@ -1409,7 +1440,7 @@ function connectMultiplayer(roomMode="quick",roomCode=""){ const publicRoomAuto=
             for(let i=neonProjectiles.length-1;i>=0;i--)if(neonProjectiles[i]?.pending){neonProjectiles.splice(i,1);break;}
           }
           if(m.ok){
-            consumeClientAmmo(1);
+            if(Number(m.consumedAmmo)>0)consumeClientAmmo(Number(m.consumedAmmo));
             const angle=Number.isFinite(Number(m.angle))?Number(m.angle):p.angle;
             const sx0=Number.isFinite(Number(m.x))?Number(m.x):p.x;
             const sy0=Number.isFinite(Number(m.y))?Number(m.y):p.y;
@@ -1577,7 +1608,8 @@ function weaponShotSound(weapon){
     vortex:[340,.11,"triangle",.050,520],
     quasar:[1180,.075,"sine",.055,-780],
     singularity:[190,.16,"sawtooth",.070,720],
-    omega:[520,.18,"triangle",.080,980]
+    omega:[520,.18,"triangle",.080,980],
+    sword_neo:[760,.10,"sawtooth",.05,220],sword_pulse:[540,.11,"triangle",.05,380],sword_void:[350,.14,"sawtooth",.055,560],sword_solar:[220,.16,"sawtooth",.06,880],sword_omega:[130,.20,"triangle",.07,1260]
   };
   const q=profiles[String(weapon||"blaster")]||profiles.blaster;
   audioTone(q[0],q[1],q[2],q[3],q[4]);
@@ -1585,35 +1617,28 @@ function weaponShotSound(weapon){
 }
 function fire(){
   if(!p.alive)return;
-  if(clientInventoryTotal("ammo")<=0){audioTone(155,.09,"square",.045,-70);showShopMsg("Sin munición. Ve con el vendedor.");return;}
+  const weapon=weaponStats[p.weapon]||weaponStats.blaster;
+  const melee=weapon.type==="melee";
+  if(!melee&&clientInventoryTotal("ammo")<=0){audioTone(155,.09,"square",.045,-70);showShopMsg("Sin munición. Ve con el vendedor.");return;}
   const now=performance.now();
   if(fireTriggerActive&&now-fireHoldStartedAt<FIRST_SHOT_DELAY)return;
   if(now-p.lastShot<p.fireRate)return;
-  if(!multiplayerSocket || multiplayerSocket.readyState!==1)return;
+  if(!multiplayerSocket||multiplayerSocket.readyState!==1)return;
   if(Math.hypot(p.x-safeZone.x,p.y-safeZone.y)<=safeZone.r+24)return;
-  p.lastShot=now;
-  localVisual.shoot=1;
-
-  const weapon=weaponStats[p.weapon]||weaponStats.blaster;
+  p.lastShot=now;localVisual.shoot=1;
   const angle=Number(p.angle)||0;
-  const range=Math.max(300,Number(weapon.range)||1000);
-  const tx=p.x+Math.cos(angle)*range;
-  const ty=p.y+Math.sin(angle)*range;
   const localWeaponVisual=weaponVisuals[String(p.weapon)]||weaponVisuals.blaster;
-  const handSide=Math.cos(angle)>=0?1:-1;
-  const launchDist=Math.max(p.r*.78,12);
-  const launchX=p.x+Math.cos(angle)*launchDist;
-  const launchY=p.y+Math.sin(angle)*launchDist;
-  burst(launchX,launchY,localWeaponVisual.glow,5);
-  neonProjectiles.push({
-    id:"local_"+Math.random().toString(36).slice(2),
-    x:launchX,y:launchY,tx,ty,angle,
-    startAt:performance.now(),duration:Math.max(180,Math.min(650,range/1200*1000+110)),
-    color:localWeaponVisual.glow,accent:localWeaponVisual.accent||localWeaponVisual.base,
-    size:10,pending:true,seed:Math.random()*1000,handSide
-  });
-
-  try{multiplayerSocket.send(JSON.stringify({type:"fire",angle}));}catch{for(let i=neonProjectiles.length-1;i>=0;i--)if(neonProjectiles[i]?.pending){neonProjectiles.splice(i,1);break;}}
+  const launchDist=Math.max(p.r*.78,12),launchX=p.x+Math.cos(angle)*launchDist,launchY=p.y+Math.sin(angle)*launchDist;
+  burst(launchX,launchY,localWeaponVisual.glow,melee?8:5);
+  if(melee){
+    meleeSlashes.push({x:p.x,y:p.y,angle,startAt:performance.now(),duration:210,color:localWeaponVisual.glow,arc:Number(weapon.arc)||1.1,radius:Number(weapon.range)||150});
+  }else{
+    const range=Math.max(300,Number(weapon.range)||1000),tx=p.x+Math.cos(angle)*range,ty=p.y+Math.sin(angle)*range;
+    neonProjectiles.push({id:"local_"+Math.random().toString(36).slice(2),x:launchX,y:launchY,tx,ty,angle,startAt:performance.now(),duration:Math.max(180,Math.min(650,range/1200*1000+110)),color:localWeaponVisual.glow,accent:localWeaponVisual.accent||localWeaponVisual.base,size:10,pending:true,seed:Math.random()*1000,handSide:Math.cos(angle)>=0?1:-1});
+  }
+  try{multiplayerSocket.send(JSON.stringify({type:"fire",angle}));}catch{
+    if(melee)meleeSlashes.pop();else for(let i=neonProjectiles.length-1;i>=0;i--)if(neonProjectiles[i]?.pending){neonProjectiles.splice(i,1);break;}
+  }
 }
 function returnToMenu(){
   stopSmartReconnect();
@@ -1850,7 +1875,22 @@ function drawSkinEffects(skin,r){
   ctx.restore();
 }
 function drawArmorOverlay(armorId,r,walkPhase=0,walkBlend=0){const id=String(armorId||"");if(!id)return;const t=performance.now()/1000,s=Math.sin(walkPhase)*r*.08*walkBlend,pal={pixel_cyan:["#39e7ff","#dfffff","#0b3348"],rust_core:["#d97835","#ffcf96","#5f2b15"],toxic_orb:["#74ff62","#d9ffd0","#1f6f2c"],plasma_violet:["#b67cff","#f1dcff","#4b227c"],aurora:["#82ffd7","#ecffff","#2c6f69"],nebula_prism:["#6f7bff","#fff","#442f8a"],eclipse_gold:["#ffd76a","#fff2a8","#5f4714"],celestial:["#5fa4ff","#e5f5ff","#263b95"],angel_seraph:["#fff1b8","#fff9df","#b48b2f"],demon_infernal:["#9b2430","#ffd1ba","#4f0b14"],eternal_void:["#9d53c8","#f0d1ff","#25122f"],gm_core:["#ffd76a","#fff","#493a0f"]}[id]||["#39e7ff","#dfffff","#0b3348"];ctx.save();ctx.fillStyle=pal[2];ctx.strokeStyle=pal[0];ctx.lineWidth=Math.max(1.5,r*.075);ctx.beginPath();ctx.roundRect(-r*.68,-r*.36+s,r*1.36,r*.82,r*.18);ctx.fill();ctx.stroke();ctx.fillStyle=pal[1];ctx.globalAlpha=.9;ctx.beginPath();ctx.ellipse(r*.08,-r*.02+s,r*.28,r*.17,0,0,Math.PI*2);ctx.fill();ctx.globalAlpha=1;for(const side of [-1,1]){ctx.fillStyle=pal[2];ctx.strokeStyle=pal[0];ctx.beginPath();ctx.ellipse(side*r*.73,s*.4,r*.25,r*.3,0,0,Math.PI*2);ctx.fill();ctx.stroke();ctx.fillStyle=pal[1];ctx.beginPath();ctx.arc(side*r*.99,r*.28+side*s*.5,r*.13,0,Math.PI*2);ctx.fill();}ctx.fillStyle=pal[0];ctx.globalAlpha=.75;ctx.fillRect(-r*.58,r*.42+s,r*1.16,r*.1);ctx.globalAlpha=1;if(id==="pixel_cyan"){ctx.lineWidth=2;ctx.strokeStyle=pal[1];for(let i=-1;i<=1;i++)ctx.strokeRect(i*r*.3-r*.1,-r*.1+s,r*.2,r*.34);}else if(id==="rust_core"){ctx.strokeStyle="#ffad63";ctx.lineWidth=2;ctx.beginPath();ctx.moveTo(-r*.58,-r*.3+s);ctx.lineTo(-r*.22,r*.36+s);ctx.moveTo(r*.16,-r*.28+s);ctx.lineTo(r*.58,r*.36+s);ctx.stroke();}else if(id==="toxic_orb"){ctx.strokeStyle="#c8ffad";ctx.lineWidth=2;ctx.beginPath();ctx.arc(0,0,r*.55,0,Math.PI*2);ctx.stroke();}else if(id==="plasma_violet"){ctx.strokeStyle="#eed5ff";ctx.lineWidth=2.4;ctx.beginPath();ctx.arc(0,-r*.03+s,r*.6,-2.7,.55);ctx.stroke();}else if(id==="aurora"){ctx.strokeStyle="#d9ffff";ctx.lineWidth=2;ctx.beginPath();ctx.arc(0,0,r*.6,-2.8,.5);ctx.stroke();ctx.strokeStyle="#caa2ff";ctx.beginPath();ctx.arc(0,0,r*.48,.7,2.85);ctx.stroke();}else if(id==="nebula_prism"){ctx.strokeStyle="#fff";ctx.lineWidth=2;ctx.beginPath();ctx.arc(0,0,r*.62,0,Math.PI*2);ctx.stroke();}else if(id==="eclipse_gold"){ctx.strokeStyle="#ffd76a";ctx.lineWidth=3;ctx.beginPath();ctx.arc(0,0,r*.65,0,Math.PI*2);ctx.stroke();}else if(id==="celestial"){ctx.strokeStyle="#b9ddff";ctx.lineWidth=2;ctx.beginPath();ctx.arc(0,0,r*.64,-t*.5,t*.6+4.2);ctx.stroke();}else if(id==="angel_seraph"){ctx.strokeStyle="#fff4bf";ctx.lineWidth=3;ctx.beginPath();ctx.arc(0,-r*.55,r*.44,-Math.PI*.95,-Math.PI*.05);ctx.stroke();for(const side of [-1,1]){ctx.strokeStyle="#fff7dc";ctx.lineWidth=3;ctx.beginPath();ctx.moveTo(side*r*.42,0);ctx.bezierCurveTo(side*r*1.05,-r*.62,side*r*1.38,-r*.55,side*r,r*.38);ctx.stroke();}}else if(id==="demon_infernal"){for(const side of [-1,1]){ctx.strokeStyle="#ff694e";ctx.lineWidth=3;ctx.beginPath();ctx.moveTo(side*r*.42,0);ctx.bezierCurveTo(side*r*1.08,-r*.66,side*r*1.38,-r*.45,side*r*1.03,r*.36);ctx.stroke();ctx.fillStyle="#ffcf83";ctx.beginPath();ctx.moveTo(side*r*.38,-r*.38);ctx.lineTo(side*r*.58,-r*.95);ctx.lineTo(side*r*.74,-r*.42);ctx.closePath();ctx.fill();}}else if(id==="eternal_void"){ctx.strokeStyle="#e879ff";ctx.lineWidth=2.5;ctx.beginPath();ctx.arc(0,0,r*.68,t,t+4.5);ctx.stroke();ctx.strokeStyle="#39e7ff";ctx.lineWidth=2;ctx.beginPath();ctx.arc(0,0,r*.54,-t*.8,-t*.8+3.5);ctx.stroke();}else if(id==="gm_core"){ctx.strokeStyle="#ffe27a";ctx.lineWidth=3;ctx.beginPath();ctx.arc(0,0,r*.72,t*.2,t*.2+5.3);ctx.stroke();}ctx.restore();}
+function drawSwordModel(id,r,v,shoot,angle,handSide=1,walkPhase=0,walkBlend=0){
+  const a=Number(angle)||0,side=handSide<0?-1:1,walk=Math.sin(Number(walkPhase)||0)*r*.055*clamp(Number(walkBlend)||0,0,1);
+  const handX=side*r*.78,handY=r*.12+walk*side;
+  ctx.save();ctx.translate(handX,handY);ctx.rotate(a);if(side<0)ctx.scale(1,-1);
+  const len=id==="sword_omega"?r*1.72:id==="sword_solar"?r*1.58:id==="sword_void"?r*1.45:id==="sword_pulse"?r*1.34:r*1.24;
+  const edge=v.glow||"#39e7ff",hi=v.accent||"#fff";
+  ctx.globalCompositeOperation="lighter";ctx.shadowColor=edge;ctx.shadowBlur=12;
+  ctx.strokeStyle=edge;ctx.lineWidth=Math.max(3,r*.12);ctx.beginPath();ctx.moveTo(-r*.12,0);ctx.lineTo(len,0);ctx.stroke();
+  ctx.strokeStyle=hi;ctx.lineWidth=Math.max(1.5,r*.055);ctx.beginPath();ctx.moveTo(r*.10,-r*.035);ctx.lineTo(len*.92,-r*.035);ctx.stroke();
+  ctx.fillStyle="#071019";ctx.strokeStyle=edge;ctx.lineWidth=2;ctx.beginPath();ctx.roundRect(-r*.26,-r*.10,r*.40,r*.20,r*.05);ctx.fill();ctx.stroke();
+  ctx.strokeStyle=hi;ctx.lineWidth=2;ctx.beginPath();ctx.arc(-r*.07,0,r*.24,-1.2,1.2);ctx.stroke();
+  if(shoot){ctx.globalAlpha=.65;ctx.strokeStyle=hi;ctx.lineWidth=5;ctx.beginPath();ctx.moveTo(r*.20,0);ctx.lineTo(len*.96,0);ctx.stroke();ctx.globalAlpha=1;}
+  ctx.shadowBlur=0;ctx.restore();
+}
 function drawWeaponModel(id,r,v,shoot,angle,handSide=1,walkPhase=0,walkBlend=0){
+  if(String(id||"").startsWith("sword_"))return drawSwordModel(id,r,v,shoot,angle,handSide,walkPhase,walkBlend);
   const a=Number(angle)||0;
   const side=handSide<0?-1:1;
   const walk=Math.sin(Number(walkPhase)||0)*r*.055*clamp(Number(walkBlend)||0,0,1);
@@ -2068,7 +2108,7 @@ function drawWeaponModel(id,r,v,shoot,angle,handSide=1,walkPhase=0,walkBlend=0){
 
   if(!weapon)return ctx.restore();
 
-  const weaponVisuals={blaster:{base:"#39e7ff",accent:"#dfffff",glow:"#39e7ff",thick:4},pulse:{base:"#c58cff",accent:"#f7eaff",glow:"#9c5dff",thick:4},cannon:{base:"#ffd76a",accent:"#fff4c7",glow:"#ff9f43",thick:5},railgun:{base:"#a4b6ff",accent:"#e8ecff",glow:"#7d8fff",thick:4},nova:{base:"#fff1b8",accent:"#fff",glow:"#ff9b3f",thick:5},plasma:{base:"#ff5b61",accent:"#ffd5d8",glow:"#ff3d59",thick:4},vortex:{base:"#6ff3b0",accent:"#ddffef",glow:"#36e49a",thick:4},quasar:{base:"#65c7ff",accent:"#e2f6ff",glow:"#4cb6ff",thick:4},singularity:{base:"#b67cff",accent:"#f2e7ff",glow:"#8b4dff",thick:5},omega:{base:"#fff",accent:"#ffe38a",glow:"#ffb02e",thick:5}};
+  const weaponVisuals={blaster:{base:"#39e7ff",accent:"#dfffff",glow:"#39e7ff",thick:4},pulse:{base:"#c58cff",accent:"#f7eaff",glow:"#9c5dff",thick:4},cannon:{base:"#ffd76a",accent:"#fff4c7",glow:"#ff9f43",thick:5},railgun:{base:"#a4b6ff",accent:"#e8ecff",glow:"#7d8fff",thick:4},nova:{base:"#fff1b8",accent:"#fff",glow:"#ff9b3f",thick:5},plasma:{base:"#ff5b61",accent:"#ffd5d8",glow:"#ff3d59",thick:4},vortex:{base:"#6ff3b0",accent:"#ddffef",glow:"#36e49a",thick:4},quasar:{base:"#65c7ff",accent:"#e2f6ff",glow:"#4cb6ff",thick:4},singularity:{base:"#b67cff",accent:"#f2e7ff",glow:"#8b4dff",thick:5},omega:{base:"#fff",accent:"#ffe38a",glow:"#ffb02e",thick:5},sword_neo:{base:"#39e7ff",accent:"#ffffff",glow:"#39e7ff",thick:5},sword_pulse:{base:"#c58cff",accent:"#ffffff",glow:"#9c5dff",thick:5},sword_void:{base:"#e879ff",accent:"#ffffff",glow:"#b64cff",thick:5},sword_solar:{base:"#ffd76a",accent:"#fff6c7",glow:"#ff9f43",thick:5},sword_omega:{base:"#ffffff",accent:"#ffe38a",glow:"#ffb02e",thick:6}};
   const weaponAngle=Number(angle)||0;
   const weaponHandSide=Math.cos(weaponAngle)>=0?1:-1;
   drawWeaponModel(String(weapon),r,weaponVisuals[String(weapon)]||weaponVisuals.blaster,shoot,weaponAngle,weaponHandSide,walkPhase,walkBlend);
@@ -2298,26 +2338,74 @@ function updateHud(){
   updateResourceHud();
 }
 
-function clientInventoryTotal(itemId="ammo"){let total=0;for(const slot of inventorySlots||[])if(slot&&String(slot.itemId||slot.id||"")===itemId)total+=Math.max(0,Number(slot.qty)||0);return total;}
+function clientInventoryTotal(itemId="ammo"){let total=0;for(const slot of inventorySlots||[])if(slot&&String(slot.itemId||slot.id||"")===String(itemId))total+=Math.max(0,Number(slot.qty)||0);return total;}
+function clientItemDef(id){
+  const key=String(id||"");
+  if(key==="ammo")return {id:"ammo",name:"MUNICIÓN",category:"consumable",stackable:true};
+  return itemShopCatalog.find(x=>String(x.id)===key)||null;
+}
+function itemIcon(id){
+  const def=clientItemDef(id)||{},key=String(id||"");
+  if(key==="backpack_basic")return '<img class="backpackIconImg" src="./assets/backpack.svg" alt="Mochila">';
+  if(key==="ammo")return "🔸";
+  if(def.category==="armor")return "🛡️";
+  if(def.category==="weapon")return def.weaponType==="melee"?"🗡️":"🔫";
+  return "📦";
+}
 function consumeClientAmmo(count=1){
   let remaining=Math.max(0,Math.floor(Number(count)||0));
   for(let i=0;i<inventorySlots.length&&remaining>0;i++){
-    const slot=inventorySlots[i];
-    if(!slot||String(slot.itemId||slot.id||"")!=="ammo")continue;
-    const take=Math.min(remaining,Math.max(0,Number(slot.qty)||0));
-    slot.qty-=take;remaining-=take;
-    if(slot.qty<=0)inventorySlots[i]=null;
+    const slot=inventorySlots[i];if(!slot||String(slot.itemId||slot.id||"")!=="ammo")continue;
+    const take=Math.min(remaining,Math.max(0,Number(slot.qty)||0));slot.qty-=take;remaining-=take;if(slot.qty<=0)inventorySlots[i]=null;
   }
-  p.ammo=clientInventoryTotal("ammo");
-  renderInventory();
-  updateResourceHud();
+  p.ammo=clientInventoryTotal("ammo");renderInventory();updateResourceHud();
 }
-function syncClientInventory(slots){const src=Array.isArray(slots)?slots:[];inventorySlots=Array.from({length:INVENTORY_SLOTS},(_,i)=>{const raw=src[i];if(!raw)return null;const itemId=String(raw.itemId||raw.id||""),qty=Math.max(0,Math.min(INVENTORY_STACK_MAX,Math.floor(Number(raw.qty)||0)));return itemId&&qty>0?{itemId,qty}:null;});p.ammo=clientInventoryTotal("ammo");p.maxAmmo=MAX_INVENTORY_AMMO;renderInventory();}
-function renderInventory(){const grid=document.getElementById("inventoryGrid"),cap=document.getElementById("inventoryCapacity");if(!grid)return;const total=clientInventoryTotal("ammo");if(cap)cap.textContent=total+" / "+MAX_INVENTORY_AMMO+" BALAS";grid.innerHTML=inventorySlots.map((slot,i)=>{const qty=slot&&String(slot.itemId||slot.id)==="ammo"?Math.max(0,Number(slot.qty)||0):0;return '<button type="button" class="inventorySlot '+(qty>0?'hasItem':'empty')+'" data-inventory-slot="'+i+'"><span class="slotNum">#'+(i+1)+'</span>'+(qty>0?'<span class="slotIcon">🔸</span><span class="slotName">MUNICIÓN</span><span class="slotQty">'+qty+'</span>':'<span class="slotIcon">◻</span><span class="slotName">VACÍO</span>')+'</button>';}).join("");grid.querySelectorAll("[data-inventory-slot]").forEach(btn=>btn.addEventListener("click",()=>{const idx=Number(btn.dataset.inventorySlot),slot=inventorySlots[idx],qty=slot&&String(slot.itemId||slot.id)==="ammo"?Number(slot.qty)||0:0;if(qty>0)openDropConfirm(idx,qty);}));}
+function syncClientInventory(slots,capacity){
+  const src=Array.isArray(slots)?slots:[],cap=Math.max(BASE_INVENTORY_SLOTS,Math.min(MAX_INVENTORY_SLOTS,Math.floor(Number(capacity)||src.length||BASE_INVENTORY_SLOTS)));
+  inventoryCapacityClient=cap;
+  inventorySlots=Array.from({length:cap},(_,i)=>{const raw=src[i];if(!raw)return null;const itemId=String(raw.itemId||raw.id||""),qty=Math.max(0,Math.min(INVENTORY_STACK_MAX,Math.floor(Number(raw.qty)||0)));return itemId&&qty>0?{itemId,qty}:null;});
+  p.ammo=clientInventoryTotal("ammo");p.maxAmmo=cap*INVENTORY_STACK_MAX;renderInventory();
+}
+function renderEquipmentSlot(id,itemId){
+  const el=document.getElementById(id);if(!el)return;
+  const def=clientItemDef(itemId);
+  el.classList.toggle("filled",!!itemId);el.title=itemId?"Toca para desequipar":"Sin equipo";
+  const icon=el.querySelector(".equipmentIcon"),name=el.querySelector(".equipmentName");
+  if(icon)icon.innerHTML=itemId?itemIcon(itemId):(id==="equippedBackpackSlot"?"🎒":id==="equippedWeaponSlot"?"🔫":"🛡");
+  if(name)name.textContent=itemId?(def?.name||weaponNames[itemId]||itemId):"VACÍA";
+}
+function renderInventory(){
+  const grid=document.getElementById("inventoryGrid"),cap=document.getElementById("inventoryCapacity"),hint=document.getElementById("inventoryCapacityHint");if(!grid)return;
+  const total=clientInventoryTotal("ammo"),max=inventoryCapacityClient*INVENTORY_STACK_MAX;
+  if(cap)cap.textContent=total+" / "+max;
+  if(hint)hint.textContent=String(inventoryCapacityClient);
+  renderEquipmentSlot("equippedBackpackSlot",equippedBackpack);
+  renderEquipmentSlot("equippedWeaponSlot",p.weapon||"");
+  renderEquipmentSlot("equippedArmorSlot",equippedArmor||"");
+  grid.innerHTML=inventorySlots.map((slot,i)=>{
+    const id=String(slot?.itemId||""),def=clientItemDef(id),qty=Math.max(0,Number(slot?.qty)||0),name=def?.name||weaponNames[id]||id;
+    return '<button type="button" class="inventorySlot '+(slot?'hasItem':'empty')+'" data-inventory-slot="'+i+'"><span class="slotNum">#'+(i+1)+'</span>'+(slot?'<span class="slotIcon">'+itemIcon(id)+'</span><span class="slotName">'+name+'</span><span class="slotQty">'+(qty>1?qty:"")+'</span>':'<span class="slotIcon">◻</span><span class="slotName">VACÍO</span>')+'</button>';
+  }).join("");
+  grid.querySelectorAll("[data-inventory-slot]").forEach(btn=>btn.addEventListener("click",()=>{
+    const idx=Number(btn.dataset.inventorySlot),slot=inventorySlots[idx];if(!slot)return;
+    const def=clientItemDef(slot.itemId);
+    if(def?.equipSlot)sendInventoryCommand("equip_inventory_item",idx);
+    else openDropConfirm(idx,Math.max(1,Number(slot.qty)||1),def?.name||slot.itemId);
+  }));
+}
 let pendingDropSlot=-1;
-function openDropConfirm(slotIndex,qty){pendingDropSlot=slotIndex;const box=document.getElementById("dropConfirm"),el=document.getElementById("dropConfirmText");if(el)el.textContent="Vas a soltar "+qty+" balas al suelo. ¿Continuar?";if(box){box.style.display="flex";box.setAttribute("aria-hidden","false");}}
+function openDropConfirm(slotIndex,qty,name="objeto"){pendingDropSlot=slotIndex;const box=document.getElementById("dropConfirm"),el=document.getElementById("dropConfirmText");if(el)el.textContent="Vas a soltar "+qty+" "+name+" al suelo. ¿Continuar?";if(box){box.style.display="flex";box.setAttribute("aria-hidden","false");}}
 function closeDropConfirm(){pendingDropSlot=-1;const box=document.getElementById("dropConfirm");if(box){box.style.display="none";box.setAttribute("aria-hidden","true");}}
 function sendInventoryCommand(type,slotIndex=-1){if(!multiplayerSocket||multiplayerSocket.readyState!==1){showToast("Servidor no conectado.");return;}const msg={type};if(slotIndex>=0)msg.slotIndex=slotIndex;multiplayerSocket.send(JSON.stringify(msg));}
+function sendItemShopCommand(type,itemId="",slotIndex=-1,qty=1){
+  if(!multiplayerSocket||multiplayerSocket.readyState!==1){showToast("Servidor no conectado.");return;}
+  const msg={type};if(itemId)msg.itemId=itemId;if(slotIndex>=0)msg.slotIndex=slotIndex;if(qty>0)msg.qty=qty;multiplayerSocket.send(JSON.stringify(msg));
+}
+function renderEquipmentButtons(){
+  ["equippedBackpackSlot","equippedWeaponSlot","equippedArmorSlot"].forEach((id,idx)=>{const el=document.getElementById(id);if(!el)return;el.onclick=()=>sendInventoryCommand("unequip_equipment",["backpack","weapon","armor"][idx]);});
+}
+renderEquipmentButtons();
+
 function updatePickupButton(){
   const b=document.getElementById("pickupBtn");if(!b)return;
   let nearest=null,best=Infinity;
@@ -2375,10 +2463,11 @@ function updateResourceHud(){
   if(g)g.textContent=p.gold||0;
   if(d)d.textContent=p.diamonds||0;
   if(a)a.textContent=clientInventoryTotal("ammo");
-  if(m)m.textContent=MAX_INVENTORY_AMMO;
+  if(m)m.textContent=p.maxAmmo||MAX_INVENTORY_AMMO;
   if(aa)aa.textContent=clientInventoryTotal("ammo");
-  if(am)am.textContent=MAX_INVENTORY_AMMO;
-  if(f)f.disabled=clientInventoryTotal("ammo")<=0;
+  if(am)am.textContent=p.maxAmmo||MAX_INVENTORY_AMMO;
+  const currentWeapon=weaponStats[p.weapon]||{};
+  if(f)f.disabled=currentWeapon.type!=="melee"&&clientInventoryTotal("ammo")<=0;
   const def=document.getElementById("shopDefense");
   if(def)def.textContent=Math.round(serverDefense);
   updateStatsPanel();
@@ -2402,96 +2491,61 @@ function weaponCostText(item){
   if(Number(item.priceDiamonds)>0)return "💎 "+Number(item.priceDiamonds).toLocaleString("es-MX");
   return "GRATIS";
 }
-function renderArsenal(){
-  const grid=document.getElementById("arsenalGrid");
-  if(!grid)return;
-  grid.innerHTML=Object.entries(weaponStats).map(([id,item])=>{
-    const selected=p.weapon===id,owned=ownedWeapons.includes(id);
-    const action=selected?"✓ EQUIPADA · TOCA PARA DESEQUIPAR":owned?"TOCA PARA EQUIPAR":"COMPRAR";
-    const rarity=id==="omega"?"SUPREMA":id==="singularity"?"MÍTICA":id==="quasar"?"LEGENDARIA":id==="vortex"?"ÉPICA":"ARMA";
-    return '<button type="button" class="shopWeaponCard '+(selected?"equipped":"")+'" data-weapon-buy="'+id+'">'+
-      '<div class="weaponCardVisual weapon-base-'+id+'"></div>'+
-      '<div class="weaponCardHead"><strong>'+item.name+'</strong><span>ARMA</span></div>'+
-      '<div class="weaponStats">✦ PODER · '+item.power+' <b>· '+rarity+'</b></div>'+
-      '<small>⏱ '+item.fireRate+'ms · 🔸 '+item.maxAmmo+' · 🎯 '+item.range+' rango</small>'+
-      '<small>'+((item.cost||0)===0?"Gratis":"🪙 "+item.cost.toLocaleString("es-MX"))+'</small>'+
-      '<div class="cosmeticAction">'+action+'</div>'+
-    '</button>';
+function itemCostText(item){if(Number(item.priceGold)>0)return "🪙 "+Number(item.priceGold).toLocaleString("es-MX");if(Number(item.priceDiamonds)>0)return "💎 "+Number(item.priceDiamonds).toLocaleString("es-MX");return "GRATIS";}
+function renderItemShop(){
+  const grid=document.getElementById("itemShopGrid");if(!grid)return;
+  const items=(Array.isArray(itemShopCatalog)&&itemShopCatalog.length?itemShopCatalog:[]).filter(x=>x&&["backpack","weapon","armor"].includes(x.category));
+  grid.innerHTML=items.map(item=>{
+    const stock=itemShopStock[item.id];
+    const soldOut=stock!==undefined&&Number(stock)<=0;
+    const owned=clientInventoryTotal(item.id)>0||p.weapon===item.id||equippedArmor===item.id||equippedBackpack===item.id;
+    const typeLabel=item.category==="weapon"?(item.weaponType==="melee"?"ESPADA":"PISTOLA"):"ARMADURA";
+    const extra=item.category==="backpack"?"+"+Number(item.slotsBonus||16)+" ESPACIOS":item.category==="weapon"?"✦ PODER "+Number(item.power||0):"⚙ DEFENSA "+Number(item.armorRating||0);
+    return '<button type="button" class="shopWeaponCard itemShopCard '+(owned?"equipped":"")+'" data-item-buy="'+item.id+'" '+((soldOut||owned)?"disabled":"")+'>'+
+      '<div class="itemVisual">'+itemIcon(item.id)+'</div><div class="weaponCardHead"><strong>'+item.name+'</strong><span>'+typeLabel+'</span></div>'+
+      '<div class="weaponStats">'+extra+'</div><small>'+item.rarity+' · '+(item.category==="backpack"?"INVENTARIO AMPLIADO":item.category==="weapon"?(item.weaponType==="melee"?"Ataque cuerpo a cuerpo":"Requiere munición"):"Equipo permanente")+'</small>'+
+      '<small>'+(soldOut?"AGOTADO":owned?"YA LO TIENES":itemCostText(item)+(stock!==undefined?" · x"+stock:""))+'</small><div class="cosmeticAction">'+(soldOut?"AGOTADO":owned?"YA EQUIPADO/EN INVENTARIO":"COMPRAR")+'</div></button>';
   }).join("");
-
-  grid.querySelectorAll("[data-weapon-buy]").forEach(card=>card.addEventListener("click",e=>{
-    e.preventDefault();e.stopPropagation();sendShopCommand("buy_weapon",card.dataset.weaponBuy);
-  }));
-  const ammo=document.getElementById("arsenalAmmo"),max=document.getElementById("arsenalMaxAmmo");
-  if(ammo)ammo.textContent=Math.max(0,Number(p.ammo)||0);
-  if(max)max.textContent=Math.max(0,Number(p.maxAmmo)||220);
-  const msg=document.getElementById("shopMsg");
-  if(msg)msg.textContent=p.weapon
-    ? "Toca un arma para equiparla; vuelve a tocarla para desequiparla. PISTOLERO es la base del daño; PODER solo añade un bono de ataque."
-    : "Arsenal desequipado · PODER 0 y sin munición.";
+  grid.querySelectorAll("[data-item-buy]").forEach(card=>card.addEventListener("click",e=>{e.preventDefault();e.stopPropagation();sendItemShopCommand("buy_item",card.dataset.itemBuy);}));
+  const ammo=document.getElementById("arsenalAmmo"),max=document.getElementById("arsenalMaxAmmo");if(ammo)ammo.textContent=clientInventoryTotal("ammo");if(max)max.textContent=p.maxAmmo||8000;
+}
+function renderSellItems(){
+  const grid=document.getElementById("sellItemsGrid");if(!grid)return;
+  const rows=inventorySlots.map((slot,i)=>({slot,i})).filter(({slot})=>{
+    if(!slot)return false;
+    const id=String(slot.itemId||"");
+    return id!==p.weapon&&id!==equippedArmor&&id!==equippedBackpack;
+  });
+  grid.innerHTML=rows.length?rows.map(({slot,i})=>{
+    const def=clientItemDef(slot.itemId)||{},qty=Math.max(1,Number(slot.qty)||1),value=def.stackable?"🪙 "+qty+"":"REVISA AL VENDER";
+    return '<button type="button" class="shopWeaponCard itemShopCard sellCard" data-item-sell="'+i+'"><div class="itemVisual">'+itemIcon(slot.itemId)+'</div><div class="weaponCardHead"><strong>'+(def.name||slot.itemId)+'</strong><span>VENDER</span></div><div class="weaponStats">CANTIDAD · '+qty+'</div><small>Obtén una parte del valor original del objeto.</small><div class="cosmeticAction">VENDER</div></button>';
+  }).join(""):'<div class="itemEmptyMsg">No tienes objetos sin equipar para vender.</div>';
+  grid.querySelectorAll("[data-item-sell]").forEach(card=>card.addEventListener("click",e=>{e.preventDefault();e.stopPropagation();const idx=Number(card.dataset.itemSell),slot=inventorySlots[idx],def=slot&&clientItemDef(slot.itemId),qty=def?.stackable?Math.max(1,Number(slot.qty)||1):1;sendItemShopCommand("sell_inventory_item","",idx,qty);}));
 }
 function renderBaseSkinShop(){const grid=document.getElementById("baseSkinShopGrid");if(!grid)return;grid.innerHTML=BASE_SKINS.map(item=>{const selected=equippedSkin===item.id;return '<button type="button" class="cosmeticCard owned '+(selected?"selected":"")+'" data-base-skin-id="'+item.id+'"><div class="skinPreview '+skinClass(item.id)+'"></div><strong>'+item.name+'</strong><small>SKIN BASE · '+item.rarity+'<br>'+item.desc+'</small><span class="cosmeticCost">GRATIS</span><span class="cosmeticAction">'+(selected?"✓ EQUIPADO":"EQUIPAR")+'</span></button>';}).join("");grid.querySelectorAll("[data-base-skin-id]").forEach(btn=>btn.addEventListener("click",e=>{e.preventDefault();e.stopPropagation();sendCosmeticCommand("equip_skin",btn.dataset.baseSkinId);}));}
-function renderArmorShop(){const grid=document.getElementById("armorShopGrid");if(!grid)return;grid.innerHTML=ARMOR_CATALOG.map(item=>{const owned=ownedArmors.includes(item.id),selected=equippedArmor===item.id;const action=selected?"✓ EQUIPADA · TOCA PARA QUITAR":owned?"EQUIPAR":"COMPRAR";const price=item.currency==="gold"?"🪙 "+Number(item.price).toLocaleString("es-MX"):item.currency==="diamonds"?"💎 "+Number(item.price).toLocaleString("es-MX"):"GRATIS";return '<button type="button" class="cosmeticCard '+(owned?"owned ":"")+(selected?"selected ":"")+'" data-armor-id="'+item.id+'"><div class="armorPreviewWrap"><div class="skinPreview skin-core-default"></div><div class="armorPreview armor-'+item.id+'"></div></div><strong>'+item.name+'</strong><small>ARMADURA · '+item.rarity+'<br>'+item.desc+'</small><span class="armorDefense">⚙ VALOR EQUIPO '+Number(item.armorRating||0)+'</span><span class="cosmeticCost">'+price+'</span><span class="cosmeticAction">'+action+'</span></button>';}).join("");grid.querySelectorAll("[data-armor-id]").forEach(btn=>btn.addEventListener("click",e=>{e.preventDefault();e.stopPropagation();const id=btn.dataset.armorId;sendCosmeticCommand(ownedArmors.includes(id)?"equip_armor":"buy_armor",id);}));}
-function renderSkinShop(){renderBaseSkinShop();renderArmorShop();}
+function renderSkinShop(){renderBaseSkinShop();}
 function setShopSection(section){
-  shopSection=["arsenal","skins","redeem"].includes(section)?section:"arsenal";
-  const sections={
-    arsenal:document.getElementById("shopArsenalSection"),
-    skins:document.getElementById("shopSkinsSection"),
-    redeem:document.getElementById("shopRedeemSection")
-  };
+  shopSection=["items","skins","redeem"].includes(section)?section:"items";
+  const sections={items:document.getElementById("shopItemsSection"),skins:document.getElementById("shopSkinsSection"),redeem:document.getElementById("shopRedeemSection")};
   for(const [key,node] of Object.entries(sections))if(node)node.style.display=key===shopSection?"block":"none";
-  document.querySelectorAll(".shopTab").forEach(btn=>{
-    btn.classList.toggle("active",btn.dataset.shopSection===shopSection);
-  });
-  if(shopSection==="arsenal")renderArsenal();
-  if(shopSection==="skins"){renderBaseSkinShop();renderArmorShop();}
+  document.querySelectorAll(".shopTab").forEach(btn=>btn.classList.toggle("active",btn.dataset.shopSection===shopSection));
+  if(shopSection==="items"){renderItemShop();renderSellItems();}
+  if(shopSection==="skins")renderBaseSkinShop();
 }
-
 function renderCosmeticShop(){
-  renderBaseSkinShop();renderArmorShop();
-  setShopSection(shopSection);
+  renderItemShop();renderSellItems();renderBaseSkinShop();setShopSection(shopSection);
   const gold=document.getElementById("cosmeticGold"),diamonds=document.getElementById("cosmeticDiamonds"),owned=document.getElementById("cosmeticOwned");
   if(gold)gold.textContent=Math.max(0,Number(p.gold)||0).toLocaleString("es-MX");
   if(diamonds)diamonds.textContent=Math.max(0,Number(p.diamonds)||0).toLocaleString("es-MX");
-  if(owned)owned.textContent=Object.keys(weaponStats).length;
+  if(owned)owned.textContent=Object.keys(weaponStats).filter(id=>weaponStats[id].forSale!==false).length;
 }
-
 function openCosmeticShop(){
-  const box=document.getElementById("cosmeticShop");
-  if(!box||!gameActive||!p.alive||shopOpen)return;
-  cosmeticShopDismissedUntil=0;
-  shopOpen=true;
-  resetAllControls();
-  box.style.display="flex";
-  box.setAttribute("aria-hidden","false");
-  renderCosmeticShop();
-  sendCosmeticCommand("open_cosmetic_shop");
+  const box=document.getElementById("cosmeticShop");if(!box||!gameActive||!p.alive||shopOpen)return;
+  cosmeticShopDismissedUntil=0;shopOpen=true;resetAllControls();box.style.display="flex";box.setAttribute("aria-hidden","false");renderCosmeticShop();
+  sendItemShopCommand("open_item_shop");sendCosmeticCommand("open_cosmetic_shop");
 }
-
-function closeCosmeticShop(){
-  const box=document.getElementById("cosmeticShop");
-  if(!box)return;
-  shopOpen=false;
-  box.style.display="none";
-  box.setAttribute("aria-hidden","true");
-  cosmeticShopDismissedUntil=performance.now()+1200;
-}
-
-function updateCosmeticShop(){
-  const near=Math.hypot(p.x-shopNpc.x,p.y-shopNpc.y)<=SHOP_INTERACTION_RADIUS_CLIENT;
-  const box=document.getElementById("cosmeticShop");
-  if(!near){
-    cosmeticShopWasNear=false;
-    if(box){shopOpen=false;box.style.display="none";box.setAttribute("aria-hidden","true");}
-    return;
-  }
-  if(near&&!cosmeticShopWasNear&&p.alive&&performance.now()>cosmeticShopDismissedUntil)openCosmeticShop();
-  cosmeticShopWasNear=near;
-  const def=document.getElementById("shopDefense");
-  if(def)def.textContent=Math.round(serverDefense);
-}
-
+function closeCosmeticShop(){const box=document.getElementById("cosmeticShop");if(!box)return;shopOpen=false;box.style.display="none";box.setAttribute("aria-hidden","true");cosmeticShopDismissedUntil=performance.now()+1200;}
+function updateCosmeticShop(){const near=Math.hypot(p.x-shopNpc.x,p.y-shopNpc.y)<=SHOP_INTERACTION_RADIUS_CLIENT,box=document.getElementById("cosmeticShop");if(!near){cosmeticShopWasNear=false;if(box){shopOpen=false;box.style.display="none";box.setAttribute("aria-hidden","true");}return;}if(near&&!cosmeticShopWasNear&&p.alive&&performance.now()>cosmeticShopDismissedUntil)openCosmeticShop();cosmeticShopWasNear=near;const def=document.getElementById("shopDefense");if(def)def.textContent=Math.round(serverDefense);}
 function sendCosmeticCommand(type,skinId,code){
   if(!multiplayerSocket||multiplayerSocket.readyState!==1){
     showCosmeticMsg("Servidor no conectado.");
@@ -2502,6 +2556,27 @@ function sendCosmeticCommand(type,skinId,code){
   if(code)msg.code=code;
   multiplayerSocket.send(JSON.stringify(msg));
 }
+function handleItemShopMessage(m){
+  if(m.type==="item_shop_state"){
+    if(Array.isArray(m.items))itemShopCatalog=m.items;
+    if(m.stock)itemShopStock={...m.stock};
+    if(Object.prototype.hasOwnProperty.call(m,"equippedBackpack")){equippedBackpack=m.equippedBackpack||"";p.equippedBackpack=equippedBackpack;}
+    if(Object.prototype.hasOwnProperty.call(m,"equippedWeapon"))p.weapon=m.equippedWeapon||"";
+    if(Object.prototype.hasOwnProperty.call(m,"equippedArmor")){equippedArmor=m.equippedArmor||"";p.equippedArmor=equippedArmor;}
+    syncClientInventory(m.inventory,m.inventoryCapacity||16);renderCosmeticShop();showShopMsg(m.message||"Items actualizados.");return true;
+  }
+  if(m.type==="item_shop_result"){
+    if(Number.isFinite(Number(m.gold)))p.gold=Number(m.gold);if(Number.isFinite(Number(m.diamonds)))p.diamonds=Number(m.diamonds);
+    if(Array.isArray(m.inventory))syncClientInventory(m.inventory,m.inventoryCapacity||16);
+    if(Number.isFinite(Number(m.stock))&&m.stockItem)itemShopStock[m.stockItem]=Number(m.stock);
+    if(Object.prototype.hasOwnProperty.call(m,"equippedBackpack")){equippedBackpack=m.equippedBackpack||"";p.equippedBackpack=equippedBackpack;}
+    if(Object.prototype.hasOwnProperty.call(m,"equippedWeapon"))p.weapon=m.equippedWeapon||"";
+    if(Object.prototype.hasOwnProperty.call(m,"equippedArmor")){equippedArmor=m.equippedArmor||"";p.equippedArmor=equippedArmor;}
+    showShopMsg(m.message||"");renderInventory();renderCosmeticShop();updateResourceHud();return true;
+  }
+  return false;
+}
+
 
 
 function redeemGiftCode(){
@@ -2561,6 +2636,7 @@ function drawMinimap(){
 
 function draw(){
   ctx.clearRect(0,0,W,H);
+  drawMeleeSlashes();
   ctx.fillStyle="#070b13";ctx.fillRect(0,0,W,H);
 
   const grid=80,ox=((W/2-camera.x)%grid+grid)%grid,oy=((H/2-camera.y)%grid+grid)%grid;
