@@ -131,6 +131,38 @@ async function loadPlayerDataByName(name) {
   }
 }
 
+async function findPlayerByName(name) {
+  if (!storageReady || !pool) return null;
+
+  const cleanName = String(name || '').trim().slice(0, 20);
+  if (!cleanName) return null;
+
+  try {
+    const result = await pool.query(
+      'SELECT save_key, data FROM neoncore_players ' +
+        'WHERE lower(trim(data->>\'name\')) = lower(trim($1)) ' +
+        'ORDER BY updated_at DESC LIMIT 2',
+      [cleanName]
+    );
+
+    if (result.rows.length !== 1) {
+      if (result.rows.length > 1) {
+        return { ambiguous: true, saveKey: '', data: null };
+      }
+      return null;
+    }
+
+    return {
+      ambiguous: false,
+      saveKey: String(result.rows[0].save_key || ''),
+      data: result.rows[0].data || null
+    };
+  } catch (error) {
+    console.error('[STORAGE NAME OWNER QUERY]', error?.message || error);
+    return null;
+  }
+}
+
 async function savePlayerData(saveKey, data) {
   if (!storageReady || !pool || !saveKey) return false;
 
@@ -167,6 +199,7 @@ module.exports = {
   initStorage,
   loadPlayerData,
   loadPlayerDataByName,
+  findPlayerByName,
   savePlayerData,
   closeStorage,
   get enabled() {
