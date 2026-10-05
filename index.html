@@ -54,7 +54,7 @@ button span{margin-right:7px}
   <button id="play" type="button"><span>▶</span>JUGAR</button>
   <button id="accountRecoveryOpen" type="button" style="margin-top:8px;background:#0d1727;border:1px solid #33415d;color:#9fb0c7">RECUPERAR CUENTA</button>
   <div id="accountRecoveryPanel" style="display:none;margin-top:8px"><input id="accountRecoveryInput" maxlength="32" autocomplete="off" placeholder="CÓDIGO DE RECUPERACIÓN"><button id="accountRecoverySubmit" type="button" style="margin-top:8px">RECUPERAR CUENTA</button><div id="accountRecoveryMsg" class="msg"></div></div>
-  <div class="foot"><span>SESIÓN 1</span><span>•</span><span>BUILD 32</span></div>
+  <div class="foot"><span>SESIÓN 1</span><span>•</span><span>BUILD 33</span></div>
 </main>
 <script>
 (function(){
@@ -82,7 +82,7 @@ button span{margin-right:7px}
         localStorage.removeItem("neon_core_save_key");
       }catch{}
       if(recoveryMsg)recoveryMsg.textContent="Cuenta recuperada. Entrando…";
-      window.location.assign("./neoncore/12345/v1/?name="+encodeURIComponent(String(data.name||"Jugador"))+"&neon_cache="+Date.now());
+      window.location.assign("./neoncore/12345/v2/?name="+encodeURIComponent(String(data.name||"Jugador"))+"&neon_cache="+Date.now());
     }catch(error){if(recoveryMsg)recoveryMsg.textContent=error?.message||"No se pudo recuperar la cuenta.";}
     finally{if(recoverySubmit)recoverySubmit.disabled=false;}
   }
@@ -118,7 +118,7 @@ button span{margin-right:7px}
     nameField.classList.add("locked");
     if(restriction)restriction.style.display="block";
     msg.textContent="Entrando a Sesión 1…";
-    const url="./neoncore/12345/v1/?name="+encodeURIComponent(n)+"&neon_cache="+Date.now();
+    const url="./neoncore/12345/v2/?name="+encodeURIComponent(n)+"&neon_cache="+Date.now();
     window.location.assign(url);
   }
   button.addEventListener("click",enter);
