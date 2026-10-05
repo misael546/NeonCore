@@ -1,6 +1,7 @@
 {
   "game": "Neon Core",
   "version": "V35",
+  "releaseId": "V35",
   "clientVersion": "V35",
   "serverVersion": "V35",
   "databaseSchema": 3,
