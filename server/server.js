@@ -1430,7 +1430,7 @@ function buyShopItem(ws,itemId){
   p.gold=gold-goldCost;p.diamonds=diamonds-diamondCost;
   if(stock!==undefined)SHOP_STOCK.set(id,Math.max(0,stock-1));
   syncOwnedCollections(p);void persistPlayer(p);
-  send(ws,{type:'item_shop_result',ok:true,message:'Compraste '+item.name+'. Ve al inventario para equiparlo.',gold:p.gold,diamonds:p.diamonds,stock:SHOP_STOCK.get(id),inventory:inventoryPayload(p),inventoryCapacity:inventoryCapacity(p),equippedWeapon:p.weapon||'',equippedArmor:p.equippedArmor||'',equippedBackpack:p.equippedBackpack||''});
+  send(ws,{type:'item_shop_result',ok:true,message:'Compraste '+item.name+'. Ve al inventario para equiparlo.',gold:p.gold,diamonds:p.diamonds,stock:SHOP_STOCK.get(id),inventory:inventoryPayload(p),inventoryCapacity:inventoryCapacity(p),equippedWeapon:p.weapon||'',equippedArmor:p.equippedArmor||'',equippedBackpack:p.equippedBackpack||'',stockItem:id});
   sendStats(p);sendPlayerList(p.room);
 }
 function sellInventoryItem(ws,slotIndex,qtyRequested=1){
