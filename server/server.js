@@ -1,4 +1,4 @@
-/* BUILD-33 · corrección de render y fullscreen móvil */
+/* BUILD-35 · release completo */
 'use strict';
 
 const http = require('http');
@@ -2184,7 +2184,7 @@ wss.on('connection', async (ws) => {
           serverStartedAt: SERVER_STARTED_AT,
           message: SERVER_UPDATE_MESSAGE,
           required: true,
-          clientPath: String(UNIFIED_RELEASE_MANIFEST.clientPath || '/NeonCore/neoncore/12345/v1/index.html')
+          clientPath: String(UNIFIED_RELEASE_MANIFEST.clientPath || '/NeonCore/neoncore/12345/v4/index.html')
         });
 
         return;
@@ -2991,7 +2991,7 @@ function announceServerUpdate() {
     serverStartedAt: SERVER_STARTED_AT,
     message: SERVER_UPDATE_MESSAGE,
     required: true,
-    clientPath: String(UNIFIED_RELEASE_MANIFEST.clientPath || 'neoncore/12345/v1/index.html')
+    clientPath: String(UNIFIED_RELEASE_MANIFEST.clientPath || 'neoncore/12345/v4/index.html')
   };
   for (const p of clients.values()) {
     send(p.ws, payload);
