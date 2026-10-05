@@ -1,4 +1,4 @@
-/* BUILD-35 · release completo */
+/* V35 · release completo */
 'use strict';
 
 const http = require('http');
@@ -18,8 +18,9 @@ const SAFE_ZONE = { x: 3000, y: 2200, r: 300 };
 let UNIFIED_RELEASE_MANIFEST = {
   game: 'Neon Core',
   releaseId: 'unknown',
-  clientBuild: 'unknown',
-  serverBuild: 'unknown',
+  version: 'unknown',
+  clientVersion: 'unknown',
+  serverVersion: 'unknown',
   databaseSchema: 1
 };
 
@@ -33,7 +34,7 @@ try {
   console.warn('[RELEASE] No se pudo cargar release.json:', error?.message || error);
 }
 
-const RELEASE_ID = String(UNIFIED_RELEASE_MANIFEST.releaseId || 'unknown');
+const RELEASE_ID = String(UNIFIED_RELEASE_MANIFEST.version || UNIFIED_RELEASE_MANIFEST.releaseId || 'unknown');
 const DATABASE_SCHEMA_VERSION = Math.max(3, Number(UNIFIED_RELEASE_MANIFEST.databaseSchema) || 3);
 const SERVER_VERSION = RELEASE_ID;
 const SERVER_UPDATE_MESSAGE = 'NUEVA ACTUALIZACIÓN DISPONIBLE. Neon Core se actualizará automáticamente en unos segundos. No cierres la pestaña.';
@@ -1928,7 +1929,7 @@ const httpServer = http.createServer(async (req, res) => {
 
   if (pathname === '/client') {
     try {
-      const manifestClientPath = String(UNIFIED_RELEASE_MANIFEST.clientPath || '/NeonCore/neoncore/12345/BUILD-35/index.html').replace(/^\/NeonCore\//, '').replace(/^\/+/, '');
+      const manifestClientPath = String(UNIFIED_RELEASE_MANIFEST.clientPath || '/NeonCore/neoncore/12345/V35/index.html').replace(/^\/NeonCore\//, '').replace(/^\/+/, '');
       const clientPath = path.join(__dirname, '..', manifestClientPath);
       const html = fs.readFileSync(clientPath, 'utf8');
       res.writeHead(200, {
@@ -1983,7 +1984,7 @@ const httpServer = http.createServer(async (req, res) => {
         pvp: true,
         version: SERVER_VERSION,
         releaseId: RELEASE_ID,
-        clientBuild: String(UNIFIED_RELEASE_MANIFEST.clientBuild || RELEASE_ID),
+        clientVersion: String(UNIFIED_RELEASE_MANIFEST.clientVersion || RELEASE_ID),
         startedAt: SERVER_STARTED_AT,
         storage: storage.enabled ? 'postgres' : 'memory',
         databaseReleaseId: String(storage.releaseInfo?.releaseId || ''),
@@ -2032,7 +2033,7 @@ wss.on('connection', async (ws) => {
     type: 'connected',
     id: player.id,
     releaseId: RELEASE_ID,
-    clientBuild: String(UNIFIED_RELEASE_MANIFEST.clientBuild || RELEASE_ID),
+    clientVersion: String(UNIFIED_RELEASE_MANIFEST.clientVersion || RELEASE_ID),
     databaseReleaseId: String(storage.releaseInfo?.releaseId || ''),
     databaseSchema: Number(storage.releaseInfo?.schemaVersion) || DATABASE_SCHEMA_VERSION,
     startedAt: SERVER_STARTED_AT
@@ -2180,12 +2181,13 @@ wss.on('connection', async (ws) => {
         send(ws, {
           type: 'server_update_notice',
           serverVersion: SERVER_VERSION,
-          clientBuild: String(UNIFIED_RELEASE_MANIFEST.clientBuild || RELEASE_ID),
+          version: SERVER_VERSION,
+          clientVersion: String(UNIFIED_RELEASE_MANIFEST.clientVersion || RELEASE_ID),
           releaseId: RELEASE_ID,
           serverStartedAt: SERVER_STARTED_AT,
           message: SERVER_UPDATE_MESSAGE,
           required: true,
-          clientPath: String(UNIFIED_RELEASE_MANIFEST.clientPath || '/NeonCore/neoncore/12345/BUILD-35/index.html')
+          clientPath: String(UNIFIED_RELEASE_MANIFEST.clientPath || '/NeonCore/neoncore/12345/V35/index.html')
         });
 
         return;
@@ -2987,12 +2989,13 @@ function announceServerUpdate() {
   const payload = {
     type: 'server_update_notice',
     serverVersion: SERVER_VERSION,
-    clientBuild: String(UNIFIED_RELEASE_MANIFEST.clientBuild || RELEASE_ID),
+    version: SERVER_VERSION,
+    clientVersion: String(UNIFIED_RELEASE_MANIFEST.clientVersion || RELEASE_ID),
     releaseId: RELEASE_ID,
     serverStartedAt: SERVER_STARTED_AT,
     message: SERVER_UPDATE_MESSAGE,
     required: true,
-    clientPath: String(UNIFIED_RELEASE_MANIFEST.clientPath || 'neoncore/12345/BUILD-35/index.html')
+    clientPath: String(UNIFIED_RELEASE_MANIFEST.clientPath || 'neoncore/12345/V35/index.html')
   };
   for (const p of clients.values()) {
     send(p.ws, payload);
