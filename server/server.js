@@ -1,4 +1,4 @@
-/* BUILD-32 · sistemas unidos y reconexion estabilizada */
+/* BUILD-33 · corrección de render y fullscreen móvil */
 'use strict';
 
 const http = require('http');
