@@ -1050,7 +1050,7 @@ function connectMultiplayer(roomMode="quick",roomCode=""){ const publicRoomAuto=
       if(multiplayerConnectTimer){clearTimeout(multiplayerConnectTimer);multiplayerConnectTimer=null;}
 
       setConnectionStatus("CONECTADO","Entrando a la sala…");
-      socket.send(JSON.stringify({type:"join",name:playerName||"Jugador",accountToken:accountToken,saveKey:accountToken?"":saveKey,color:"#39e7ff",room:roomMode==="join"?roomCode:"",createRoom:roomMode==="create",clientBuild:window.NEON_CORE_BUILD||"BUILD-31"}));
+      socket.send(JSON.stringify({type:"join",name:playerName||"Jugador",accountToken:accountToken,saveKey:accountToken?"":saveKey,color:"#39e7ff",room:roomMode==="join"?roomCode:"",createRoom:roomMode==="create",clientBuild:window.NEON_CORE_BUILD||"BUILD-32"}));
     });
     socket.addEventListener("message",e=>{
        if(multiplayerSocket!==socket)return;
@@ -1064,7 +1064,7 @@ function connectMultiplayer(roomMode="quick",roomCode=""){ const publicRoomAuto=
         }
         if(m.type==="server_update_notice"){
           const target=String(m.clientBuild||m.serverVersion||"");
-          if(target&&target!=="BUILD-31"&&typeof window.__neonForceUpdate==="function"){window.__neonForceUpdate(target);}
+          if(target&&target!==String(window.NEON_CORE_BUILD||"")&&typeof window.__neonForceUpdate==="function"){window.__neonForceUpdate(target);}
           return;
         }
         if(m.type==="room_joined"){
