@@ -1472,7 +1472,7 @@ function shopBuy(ws, requestedWeapon) {
 
   const weaponId = String(requestedWeapon || '');
   const item = WEAPONS[weaponId];
-  if (!item) return send(ws, { type: 'shop_result', ok: false, message: 'Arma no disponible.' });
+  if (!item || item.forSale === false) return send(ws, { type: 'shop_result', ok: false, message: 'Arma no disponible para venta.' });
 
   p.ownedWeapons = normalizeOwnedWeapons(p.ownedWeapons, p.weapon || '');
 
@@ -1612,7 +1612,7 @@ function sendCosmeticState(p,message='Tienda lista.',unlockedSkin='',unlockedWea
     equippedArmor:cosmetics.getArmor(p.equippedArmor)?p.equippedArmor:'',
     ownedWeapons:normalizeOwnedWeapons(p.ownedWeapons,p.weapon||''),weapon:p.weapon,
     weaponSkinCatalog:cosmetics.publicWeaponCatalog(),shopNpc:SHOP_NPC,
-    catalog:cosmetics.publicCatalog(),armorCatalog:cosmetics.publicArmorCatalog(),
+    catalog:cosmetics.publicCatalog(),armorCatalog:cosmetics.publicArmorCatalog().filter(a=>SHOP_ARMOR_IDS.includes(a.id)),
     realMoneyOffers:cosmetics.publicRealMoneyOffers(),realMoneyEnabled:false});
 }
 function cosmeticShopError(ws,message){send(ws,{type:'cosmetic_result',ok:false,message:String(message||'No se pudo completar la operación.')});}
@@ -1620,7 +1620,7 @@ function buyCosmeticArmor(ws,armorId){
   const p=clients.get(ws);if(!p)return;
   if(!p.room||!p.alive)return cosmeticShopError(ws,'No puedes usar armaduras ahora.');
   if(!cosmeticShopNearby(p))return cosmeticShopError(ws,'Párate sobre el SHOP.');
-  const armor=cosmetics.getArmor(armorId);if(!armor)return cosmeticShopError(ws,'Armadura no disponible.');
+  const armor=cosmetics.getArmor(armorId);if(!armor||!SHOP_ARMOR_IDS.includes(String(armorId||'')))return cosmeticShopError(ws,'Armadura no disponible para venta.');
   p.ownedArmors=cosmetics.normalizeOwnedArmors(p.ownedArmors);
   if(p.ownedArmors.includes(armor.id)){p.equippedArmor=armor.id;void persistPlayer(p);sendCosmeticState(p,'Armadura equipada: '+armor.name,'','','',armor.id);sendStats(p);sendPlayerList(p.room);return;}
   const gold=Math.max(0,Number(p.gold)||0),diamonds=Math.max(0,Number(p.diamonds)||0);
