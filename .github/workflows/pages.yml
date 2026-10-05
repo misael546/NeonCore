@@ -106,7 +106,7 @@ jobs:
             if grep -Fq 'id="name"' <<<"$html" \
                && grep -Fq 'id="play"' <<<"$html" \
                && grep -Fq 'launchLatest' <<<"$html" \
-               && grep -Fq "window.NEON_CORE_BUILD=\"$expected_release\"" <<<"$client" \
+               && grep -Fq "var v=\"$expected_release\"" <<<"$client" \
                && ! grep -Fq 'PUBLIC_ROOM_CODE' <<<"$html" \
                && ! grep -Fq '20261003-167-darkscifi' <<<"$html"; then
               echo "[PAGES] LIVE ROOT VERIFIED: current standalone main menu is being served."
