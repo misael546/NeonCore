@@ -1,4 +1,4 @@
-/* V41 · release completo */
+/* V42 · release completo */
 'use strict';
 
 const http = require('http');
@@ -1658,8 +1658,14 @@ function buyAmmo(ws){const p=clients.get(ws);if(!p)return;if(!p.room)return send
   const travelSpeed=PROJECTILE_SPEED;
   const travelMs=Math.max(70,Math.round((impactDistance/travelSpeed)*1000));
 
-  removeInventoryAmount(shooter,"ammo",1);
+  const removedAmmo=removeInventoryAmount(shooter,"ammo",1);
+  if(removedAmmo!==1){
+    shooter.lastShot=0;
+    syncAmmoFromInventory(shooter);
+    return send(ws,{type:'shot_result',ok:false,reason:'ammo_sync',ammo:shooter.ammo||0});
+  }
   send(ws,{type:'shot_result',ok:true,ammo:shooter.ammo,maxAmmo:maxAmmoForWeapon(shooter.weapon),x:shotX,y:shotY,angle:shotAngle,damage,range:maxRange,travelDistance:impactDistance,impactX,impactY,hitKind,hitTarget,travelMs});
+  sendInventoryState(shooter);
   sendStats(shooter);
   broadcastRoom(shooter.room,{type:'player_shot',shotId:'s_'+Math.random().toString(36).slice(2,10),id:shooter.id,power:shooter.power,damage,projectileSpeed:PROJECTILE_SPEED,x:shotX,y:shotY,angle:shotAngle,weapon:shooter.weapon,range:maxRange,travelDistance:impactDistance,impactX,impactY,hitKind,hitTarget,travelMs});
 
@@ -1991,7 +1997,7 @@ const httpServer = http.createServer(async (req, res) => {
 
   if (pathname === '/client') {
     try {
-      const manifestClientPath = String(UNIFIED_RELEASE_MANIFEST.clientPath || '/NeonCore/neoncore/12345/V41/index.html').replace(/^\/NeonCore\//, '').replace(/^\/+/, '');
+      const manifestClientPath = String(UNIFIED_RELEASE_MANIFEST.clientPath || '/NeonCore/neoncore/12345/V42/index.html').replace(/^\/NeonCore\//, '').replace(/^\/+/, '');
       const clientPath = path.join(__dirname, '..', manifestClientPath);
       const html = fs.readFileSync(clientPath, 'utf8');
       res.writeHead(200, {
@@ -2249,7 +2255,7 @@ wss.on('connection', async (ws) => {
           serverStartedAt: SERVER_STARTED_AT,
           message: SERVER_UPDATE_MESSAGE,
           required: true,
-          clientPath: String(UNIFIED_RELEASE_MANIFEST.clientPath || '/NeonCore/neoncore/12345/V41/index.html')
+          clientPath: String(UNIFIED_RELEASE_MANIFEST.clientPath || '/NeonCore/neoncore/12345/V42/index.html')
         });
 
         return;
@@ -3057,7 +3063,7 @@ function announceServerUpdate() {
     serverStartedAt: SERVER_STARTED_AT,
     message: SERVER_UPDATE_MESSAGE,
     required: true,
-    clientPath: String(UNIFIED_RELEASE_MANIFEST.clientPath || 'neoncore/12345/V41/index.html')
+    clientPath: String(UNIFIED_RELEASE_MANIFEST.clientPath || 'neoncore/12345/V42/index.html')
   };
   for (const p of clients.values()) {
     send(p.ws, payload);
