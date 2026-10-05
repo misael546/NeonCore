@@ -9,7 +9,7 @@
 <script>
 (function(){
   try{
-    var v="BUILD-30",checking=false,updating=false,timer=null,base=new URL("../../../",location.href),manifestUrl=new URL("/NeonCore/release.json",location.origin);
+    var v="BUILD-31",checking=false,updating=false,timer=null,base=new URL("../../../",location.href),manifestUrl=new URL("/NeonCore/release.json",location.origin);
     window.NEON_CORE_BUILD=v;localStorage.setItem("neon_core_build",v);
     function notice(remote){
       if(updating)return;updating=true;
@@ -440,7 +440,7 @@ let neonAudio={
   enabled:true,ready:false
 };
 const NEON_MUSIC_BASE="https://opengameart.org/sites/default/files/";
-const NEON_MUSIC_CREDIT="MUSIC · tricksntraps · OpenGameArt · CC0 · BUILD-30";
+const NEON_MUSIC_CREDIT="MUSIC · tricksntraps · OpenGameArt · CC0 · BUILD-31";
 const neonMusic={
   tracks:{
     menu:{file:"Currents.ogg",name:"NEON CORE"}, exploration:{file:"Currents.ogg",name:"NEON CORE"}, tension:{file:"Currents.ogg",name:"NEON CORE"}, combat:{file:"Currents.ogg",name:"NEON CORE"}, boss:{file:"Currents.ogg",name:"NEON CORE"}, bonus:{file:"Currents.ogg",name:"NEON CORE"}
@@ -937,7 +937,17 @@ function startRenderMonitor(){
 }
 function renderPlayers(list){
   const panel=document.getElementById("playersPanel"),count=document.getElementById("playersCount"),box=document.getElementById("playersList");
-  const players=Array.isArray(list)?[...list]:[];
+  let players=Array.isArray(list)?[...list]:[];
+  if(!players.length && multiplayerId){
+    players=[{
+      id:multiplayerId,
+      name:p.name||playerName||"Jugador",
+      level:Number(p.level)||1,
+      alive:p.alive!==false,
+      kills:Number(p.kills)||0,
+      pvpKills:Number(p.pvpKills)||0
+    }];
+  }
   players.sort((a,b)=>{
     const ak=(Number(b.kills)||0)+(Number(b.pvpKills)||0);
     const bk=(Number(a.kills)||0)+(Number(a.pvpKills)||0);
@@ -1036,7 +1046,7 @@ function connectMultiplayer(roomMode="quick",roomCode=""){ const publicRoomAuto=
       if(multiplayerConnectTimer){clearTimeout(multiplayerConnectTimer);multiplayerConnectTimer=null;}
 
       setConnectionStatus("CONECTADO","Entrando a la sala…");
-      socket.send(JSON.stringify({type:"join",name:playerName||"Jugador",accountToken:accountToken,saveKey:accountToken?"":saveKey,color:"#39e7ff",room:roomMode==="join"?roomCode:"",createRoom:roomMode==="create",clientBuild:window.NEON_CORE_BUILD||"BUILD-30"}));
+      socket.send(JSON.stringify({type:"join",name:playerName||"Jugador",accountToken:accountToken,saveKey:accountToken?"":saveKey,color:"#39e7ff",room:roomMode==="join"?roomCode:"",createRoom:roomMode==="create",clientBuild:window.NEON_CORE_BUILD||"BUILD-31"}));
     });
     socket.addEventListener("message",e=>{
        if(multiplayerSocket!==socket)return;
@@ -1050,7 +1060,7 @@ function connectMultiplayer(roomMode="quick",roomCode=""){ const publicRoomAuto=
         }
         if(m.type==="server_update_notice"){
           const target=String(m.clientBuild||m.serverVersion||"");
-          if(target&&target!=="BUILD-30"&&typeof window.__neonForceUpdate==="function"){window.__neonForceUpdate(target);}
+          if(target&&target!=="BUILD-31"&&typeof window.__neonForceUpdate==="function"){window.__neonForceUpdate(target);}
           return;
         }
         if(m.type==="room_joined"){
@@ -1058,6 +1068,7 @@ function connectMultiplayer(roomMode="quick",roomCode=""){ const publicRoomAuto=
 
           if(m.safeZone){safeZone=m.safeZone;} if(m.name){try{localStorage.setItem("neon_core_player_name",String(m.name).slice(0,20));localStorage.setItem("neon_core_name_locked","1");}catch{}}
           spawnProtectionUntil=performance.now()+(Number(m.spawnProtectionMs)||5000);
+          renderPlayers(m.players||[]);
           setConnectionStatus("CONECTADO","Listo. Entrando a la arena…");
           multiplayerReady=true;
           const me=(m.players||[]).find(q=>q.id===multiplayerId);
@@ -1702,7 +1713,7 @@ function update(dt){
   const visualMoving=actualSpeed>7;
   if(visualMoving){
     if(!movementTelemetry.inputSince)movementTelemetry.inputSince=performance.now();
-    // BUILD-30: el joystick izquierdo solo mueve; el derecho controla la mira.
+    // BUILD-31: el joystick izquierdo solo mueve; el derecho controla la mira.
   }else{
     movementTelemetry.inputSince=0;
   }
