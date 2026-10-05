@@ -19,22 +19,25 @@ jobs:
           npm init -y
           npm install --no-save @playwright/test
           npx playwright install --with-deps chromium
-      - name: Wait for GitHub Pages current build
+      - name: Wait for GitHub Pages current release
         run: |
+          expected="$(python3 -c 'import json; print(json.load(open("release.json", encoding="utf-8"))["clientBuild"])')"
           for i in $(seq 1 30); do
-            if curl -fsSL "https://misael546.github.io/NeonCore/?menuSmokeCI=$i" | grep -q 'BUILD-32'; then
-              echo "NeonCore final menu build is public"
+            live="$(curl -fsSL "https://misael546.github.io/NeonCore/release.json?menuSmokeCI=$i" || true)"
+            if grep -Fq "\"clientBuild\": \"$expected\"" <<<"$live"; then
+              echo "NeonCore current release is public: $expected"
               exit 0
             fi
             sleep 5
           done
-          echo "NeonCore final menu build was not detected"
+          echo "NeonCore current release was not detected"
           exit 1
       - name: Wait for Render current build
         run: |
+          expected="$(python3 -c 'import json; print(json.load(open("release.json", encoding="utf-8"))["serverBuild"])')"
           for i in $(seq 1 36); do
-            if curl -fsSL "https://neon-core-multiplayer.onrender.com/health?menuSmokeCI=$i" | grep -q '"version":"BUILD-32"'; then
-              echo "Render server is live"
+            if curl -fsSL "https://neon-core-multiplayer.onrender.com/health?menuSmokeCI=$i" | grep -Fq "\"version\":\"$expected\""; then
+              echo "Render server is live: $expected"
               exit 0
             fi
             sleep 5
