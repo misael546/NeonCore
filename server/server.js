@@ -1661,19 +1661,11 @@ function buyAmmo(ws){const p=clients.get(ws);if(!p)return;if(!p.room)return send
   sendStats(shooter);
   broadcastRoom(shooter.room,{type:'player_shot',shotId:'s_'+Math.random().toString(36).slice(2,10),id:shooter.id,power:shooter.power,damage,projectileSpeed:PROJECTILE_SPEED,x:shotX,y:shotY,angle:shotAngle,weapon:shooter.weapon,range:maxRange,travelDistance:impactDistance,impactX,impactY,hitKind,hitTarget,travelMs});
 
-  // La bala YA NO hace daño al instante. Viaja durante travelMs y el objetivo
-  // puede apartarse antes del impacto.
-  // El daño es server-authoritative e inmediato. El proyectil visual viaja solo para feedback.
+  // El disparo ya fue validado y consumió munición. El daño se aplica de inmediato.
+  // El proyectil que ve el jugador es únicamente la representación visual del impacto.
   try{
-
-    try{
-      if(!clients.has(ws)||!shooter.room||!shooter.alive)return;
-      const tolerance=targetPlayer?34:targetEnemy?Math.max(24,Number(targetEnemy.r||22)+8):0;
-      const liveTargetPlayer=targetPlayer?clients.get(targetPlayer.ws):null;
-      const liveTargetEnemy=targetEnemy?enemies.find(e=>e.id===targetEnemy.id):null;
-      if(!blockedByWall && hitKind==="player" && (!liveTargetPlayer||!liveTargetPlayer.alive||inSafeZone(liveTargetPlayer.x,liveTargetPlayer.y,24)||Math.hypot(liveTargetPlayer.x-impactX,liveTargetPlayer.y-impactY)>tolerance))return;
-      if(!blockedByWall && hitKind==="enemy" && (!liveTargetEnemy||Math.hypot(liveTargetEnemy.x-impactX,liveTargetEnemy.y-impactY)>tolerance))return;
-        if (nearestWall && nearestWallDistance <= best) {
+    if(!clients.has(ws)||!shooter.room||!shooter.alive)return;
+    if (nearestWall && nearestWallDistance <= best) {
     nearestWall.hp = clamp(nearestWall.hp - damage * 0.8, 0, nearestWall.maxHp);
 
     broadcastRoom(shooter.room, {
