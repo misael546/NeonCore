@@ -1,4 +1,4 @@
-/* BUILD-22 · HUD limpia y configuraciones generales */
+/* BUILD-23 · updater GitHub Pages corregido */
 'use strict';
 
 const http = require('http');
@@ -2091,7 +2091,9 @@ wss.on('connection', async (ws) => {
           clientBuild: String(UNIFIED_RELEASE_MANIFEST.clientBuild || RELEASE_ID),
           releaseId: RELEASE_ID,
           serverStartedAt: SERVER_STARTED_AT,
-          message: SERVER_UPDATE_MESSAGE
+          message: SERVER_UPDATE_MESSAGE,
+          required: true,
+          clientPath: String(UNIFIED_RELEASE_MANIFEST.clientPath || '/NeonCore/neoncore/12345/v1/index.html')
         });
 
         return;
