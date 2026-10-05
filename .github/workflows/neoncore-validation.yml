@@ -63,7 +63,9 @@ jobs:
           const server = fs.readFileSync('server/server.js','utf8');
 
           const build = String(release.clientBuild || release.releaseId || '');
-          const clientMarker = client.match(/window\.NEON_CORE_BUILD\s*=\s*["']([^"']+)["']/)?.[1] || '';
+          const clientMarker = client.match(/\bvar\s+v\s*=\s*["']([^"']+)["']/)?.[1]
+            || client.match(/window\.NEON_CORE_BUILD\s*=\s*["']([^"']+)["']/)?.[1]
+            || '';
           if (!build || release.releaseId !== build || release.serverBuild !== build || Number(release.databaseSchema) !== 3) {
             throw new Error('release.json is not internally synchronized');
           }
