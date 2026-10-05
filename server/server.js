@@ -1869,8 +1869,9 @@ applyCombatStats(shooter);
         roomBossProjectiles.set(shooter.room, []);
         send(shooter.ws, {
           type: 'boss_reward',
-          gold: reward,
+          gold: 0,
           diamonds: 0,
+          dropGold: reward,
           xp,
           message: '☄️ DESTRUCTOR ESTELAR DESTRUIDO · ORO EN EL SUELO · +5,000 XP'
         });
@@ -1887,7 +1888,7 @@ applyCombatStats(shooter);
   }
 
     }catch(error){ console.error('[PROJECTILE HIT]',error?.message||error); }
-  },travelMs);
+  },0);
 }
 
 function createPlayer(ws) {
