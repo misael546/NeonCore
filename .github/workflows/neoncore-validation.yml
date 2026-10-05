@@ -66,6 +66,12 @@ jobs:
           const clientMarker = client.match(/\bvar\s+v\s*=\s*["']([^"']+)["']/)?.[1]
             || client.match(/window\.NEON_CORE_BUILD\s*=\s*["']([^"']+)["']/)?.[1]
             || '';
+          if (!/^V([1-9]|[1-4][0-9]|50)$/.test(build)) {
+            throw new Error('Release label must be V1-V50: '+build);
+          }
+          if (clientMarker !== build) {
+            throw new Error('Client public version does not match release: '+clientMarker+' vs '+build);
+          }
           if (!build || release.releaseId !== build || release.serverBuild !== build || Number(release.databaseSchema) !== 3) {
             throw new Error('release.json is not internally synchronized');
           }
