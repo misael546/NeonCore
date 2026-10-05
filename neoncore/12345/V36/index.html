@@ -1291,9 +1291,8 @@ function connectMultiplayer(roomMode="quick",roomCode=""){ const publicRoomAuto=
             if(enemies[i].id===m.id){const e=enemies[i];burst(e.x,e.y,e.kind==="boss"?"#ffd76a":"#e879ff",e.kind==="boss"?18:7);enemies.splice(i,1);}
           }
         }else if(m.type==="boss_reward"){
-          p.gold=Math.max(0,(p.gold||0)+(Number(m.gold)||0));
-          p.diamonds=Math.max(0,(p.diamonds||0)+(Number(m.diamonds)||0));
-          showToast(m.message||"☄️ DESTRUCTOR ESTELAR DESTRUIDO");
+          if(Number.isFinite(Number(m.diamonds)))p.diamonds=Math.max(0,(p.diamonds||0)+(Number(m.diamonds)||0));
+          showToast(m.message||"☄️ DESTRUCTOR ESTELAR DESTRUIDO · ORO EN EL SUELO");
           burst(p.x,p.y,"#ffd76a",30);
           updateResourceHud();
         }else if(m.type==="enemy_dead"){
