@@ -9,10 +9,14 @@
 <script>
 (function(){
   try{
-    var v="BUILD-31",checking=false,updating=false,timer=null,base=new URL("../../../",location.href),manifestUrl=new URL("/NeonCore/release.json",location.origin);
+    var v="BUILD-32",checking=false,updating=false,timer=null,base=new URL("../../../",location.href),manifestUrl=new URL("/NeonCore/release.json",location.origin);
     window.NEON_CORE_BUILD=v;localStorage.setItem("neon_core_build",v);
     function notice(remote){
       if(updating)return;updating=true;
+      if(!document.body){
+        document.addEventListener("DOMContentLoaded",function(){try{notice(remote);}catch{}},{once:true});
+        return;
+      }
       var el=document.getElementById("neonUpdateOverlay");
       if(!el){el=document.createElement("div");el.id="neonUpdateOverlay";el.innerHTML='<div class="neonUpdateCard"><div class="neonUpdatePulse"></div><strong>NUEVA ACTUALIZACIÓN DISPONIBLE</strong><span id="neonUpdateText"></span><b id="neonUpdateCount">3</b></div>';document.body.appendChild(el);}
       el.style.display="flex";document.documentElement.classList.add("neon-update-lock");
@@ -33,7 +37,7 @@
   }catch(e){}
 })();
 </script>
-<title>Neon Core · Build 29</title>
+<title>Neon Core · Build 32</title>
 <style>
 *{box-sizing:border-box}html,body{margin:0;width:100%;height:100%;overflow:hidden;background:#050811;color:#fff;font-family:Arial,sans-serif;touch-action:none}
 #game{display:block;width:100vw;height:100vh}
@@ -284,7 +288,7 @@ html.pc-controls #controlConfigBtn,html.touch-controls #controlConfigBtn{display
 html.pc-controls .aimJoy{display:none!important}html.touch-controls .aimJoy{display:block!important}
 </style></head>
 <body>
-<canvas id="game"></canvas><div id="buildDisplay">BUILD 28</div><button id="audioToggle" type="button" aria-label="Activar o silenciar audio">🔊</button>
+<canvas id="game"></canvas><div id="buildDisplay">BUILD 32</div><button id="audioToggle" type="button" aria-label="Activar o silenciar audio">🔊</button>
 
 <div id="hud">
   <div class="panel" id="bars">
