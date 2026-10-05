@@ -1,4 +1,4 @@
-/* V38 · release completo */
+/* V39 · release completo */
 'use strict';
 
 const http = require('http');
@@ -1989,7 +1989,7 @@ const httpServer = http.createServer(async (req, res) => {
 
   if (pathname === '/client') {
     try {
-      const manifestClientPath = String(UNIFIED_RELEASE_MANIFEST.clientPath || '/NeonCore/neoncore/12345/V38/index.html').replace(/^\/NeonCore\//, '').replace(/^\/+/, '');
+      const manifestClientPath = String(UNIFIED_RELEASE_MANIFEST.clientPath || '/NeonCore/neoncore/12345/V39/index.html').replace(/^\/NeonCore\//, '').replace(/^\/+/, '');
       const clientPath = path.join(__dirname, '..', manifestClientPath);
       const html = fs.readFileSync(clientPath, 'utf8');
       res.writeHead(200, {
@@ -2247,7 +2247,7 @@ wss.on('connection', async (ws) => {
           serverStartedAt: SERVER_STARTED_AT,
           message: SERVER_UPDATE_MESSAGE,
           required: true,
-          clientPath: String(UNIFIED_RELEASE_MANIFEST.clientPath || '/NeonCore/neoncore/12345/V38/index.html')
+          clientPath: String(UNIFIED_RELEASE_MANIFEST.clientPath || '/NeonCore/neoncore/12345/V39/index.html')
         });
 
         return;
@@ -3055,7 +3055,7 @@ function announceServerUpdate() {
     serverStartedAt: SERVER_STARTED_AT,
     message: SERVER_UPDATE_MESSAGE,
     required: true,
-    clientPath: String(UNIFIED_RELEASE_MANIFEST.clientPath || 'neoncore/12345/V38/index.html')
+    clientPath: String(UNIFIED_RELEASE_MANIFEST.clientPath || 'neoncore/12345/V39/index.html')
   };
   for (const p of clients.values()) {
     send(p.ws, payload);
