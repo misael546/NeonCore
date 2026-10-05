@@ -49,14 +49,14 @@ button.secondary{background:#0d1727}.msg{min-height:20px;margin-top:10px;text-al
 </main>
 <script>
 "use strict";
-const BUILD="";
+const VERSION="";
 (function(){
   const bust=Date.now()+"-"+Math.random().toString(36).slice(2);
   fetch(new URL("../release.json",location.href).href+"?neon_check="+bust,{cache:"no-store",headers:{"Cache-Control":"no-cache"}})
     .then(r=>{if(!r.ok)throw new Error("manifest "+r.status);return r.json();})
     .then(m=>{
-      const remote=String(m.releaseId||m.clientBuild||"");
-      if(remote && BUILD && remote!==BUILD){
+      const remote=String(m.version||m.releaseId||m.clientVersion||m.serverVersion||"");
+      if(remote && VERSION && remote!==VERSION){
         const u=new URL(location.href);
         u.searchParams.set("neon_release",remote);
         u.searchParams.set("neon_force",String(Date.now()));
