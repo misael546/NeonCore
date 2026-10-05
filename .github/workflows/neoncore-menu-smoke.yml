@@ -33,7 +33,7 @@ jobs:
       - name: Wait for Render current build
         run: |
           for i in $(seq 1 36); do
-            if curl -fsSL "https://neon-core-multiplayer.onrender.com/health?menuSmokeCI=$i" | grep -q '"version":"BUILD-29"'; then
+            if curl -fsSL "https://neon-core-multiplayer.onrender.com/health?menuSmokeCI=$i" | grep -q '"version":"BUILD-30"'; then
               echo "Render server is live"
               exit 0
             fi
