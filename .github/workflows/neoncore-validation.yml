@@ -32,8 +32,10 @@ jobs:
         run: |
           node - <<'NODE'
           const fs = require('fs');
+          const release = JSON.parse(fs.readFileSync('release.json','utf8'));
+          const currentClient = String(release.clientPath || '').replace(/^\/+/, '');
           const files = [
-            'neoncore/12345/v1/index.html',
+            currentClient,
             'index.html',
             'sessions/index.html'
           ];
@@ -48,7 +50,7 @@ jobs:
           }
           NODE
 
-      - name: Verify BUILD-32 synchronization
+      - name: Verify current complete release synchronization
         working-directory: .
         run: |
           node - <<'NODE'
@@ -56,24 +58,31 @@ jobs:
           const release = JSON.parse(fs.readFileSync('release.json','utf8'));
           const root = fs.readFileSync('index.html','utf8');
           const sessions = fs.readFileSync('sessions/index.html','utf8');
-          const client = fs.readFileSync('neoncore/12345/v1/index.html','utf8');
+          const clientPath = String(release.clientPath || '').replace(/^\/+/, '');
+          const client = fs.readFileSync(clientPath,'utf8');
           const server = fs.readFileSync('server/server.js','utf8');
 
-          const build = String(release.clientBuild || '');
-          if (build !== 'BUILD-32' || release.releaseId !== 'BUILD-32' || release.serverBuild !== 'BUILD-32' || Number(release.databaseSchema) !== 3) {
-            throw new Error('release.json is not BUILD-32');
+          const build = String(release.clientBuild || release.releaseId || '');
+          const clientMarker = client.match(/window\.NEON_CORE_BUILD\s*=\s*["']([^"']+)["']/)?.[1] || '';
+          if (!build || release.releaseId !== build || release.serverBuild !== build || Number(release.databaseSchema) !== 3) {
+            throw new Error('release.json is not internally synchronized');
           }
-          if (!root.includes('BUILD-32') || !root.includes('id="name"') || !root.includes('id="play"')) {
-            throw new Error('Main menu is not BUILD-32');
+          if (clientMarker !== build || !root.includes('launchLatest') || !root.includes('release.json') || root.includes('neoncore/12345/v1/') || root.includes('neoncore/12345/v2/') || root.includes('neoncore/12345/v3/')) {
+            throw new Error('Main menu/current client are not release-driven');
           }
           if (!sessions.includes('Neon Core · Sesiones') || !sessions.includes('const WS=')) {
             throw new Error('Sessions page is not synchronized');
           }
-          if (!client.includes('BUILD-32') || !client.includes('FIRST_SHOT_DELAY=180') || !client.includes('fireRate:650') || !client.includes('account_authenticated')) {
+          if (!client.includes('FIRST_SHOT_DELAY=180') || !client.includes('fireRate:650') || !client.includes('account_authenticated')) {
             throw new Error('Client combat tuning is not synchronized');
           }
-          if (!server.includes('BUILD-32') || !server.includes('const WEAPON_FIRE_RATE = 650') || !server.includes('fireRate: 650') || !server.includes('account_authenticated')) {
+          if (!server.includes('WEAPON_FIRE_RATE = 650') || !server.includes('fireRate: 650') || !server.includes('account_authenticated')) {
             throw new Error('Server combat tuning is not synchronized');
           }
-          console.log('BUILD-32 synchronization: OK');
+          const obsolete = ['neoncore/12345/v1','neoncore/12345/v2','neoncore/12345/v3'];
+          for (const dir of obsolete) {
+            const fs = require('fs');
+            if (fs.existsSync(dir)) throw new Error('Obsolete build directory still exists: '+dir);
+          }
+          console.log('Current complete release synchronization: OK -> '+build);
           NODE
