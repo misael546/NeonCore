@@ -1,4 +1,4 @@
-/* V42 · release completo */
+/* V43 · inventario, items y equipo */
 'use strict';
 
 const http = require('http');
@@ -41,9 +41,12 @@ const SERVER_UPDATE_MESSAGE = 'NUEVA ACTUALIZACIÓN DISPONIBLE. Neon Core se act
 
 const AMMO_PACK_SIZE = 100;
 const AMMO_PACK_COST = 75;
-const INVENTORY_SLOTS = 16;
+const BASE_INVENTORY_SLOTS = 16;
+const BACKPACK_EXTRA_SLOTS = 16;
+const INVENTORY_SLOTS = BASE_INVENTORY_SLOTS;
+const MAX_INVENTORY_SLOTS = BASE_INVENTORY_SLOTS + BACKPACK_EXTRA_SLOTS;
 const INVENTORY_STACK_MAX = 500;
-const MAX_AMMO = INVENTORY_SLOTS * INVENTORY_STACK_MAX;
+const MAX_AMMO = BASE_INVENTORY_SLOTS * INVENTORY_STACK_MAX;
 const PICKUP_RADIUS = 85;
 const DROP_LIFETIME_MS = 10 * 60 * 1000;
 const PROJECTILE_SPEED = 1200;
@@ -59,17 +62,67 @@ const SHOP_INTERACTION_RADIUS = 48;
 const BANK_ENABLED = false;
 
 const WEAPONS = {
-  blaster: { name: 'BLASTER · NEONSTORM', cost: 0, power: 100, fireRate: 650, maxAmmo:8000, range: 1000 },
-  pulse: { name: 'PULSE · PRISMA', cost: 500, power: 200, fireRate: 650, maxAmmo:8000, range: 1000 },
-  cannon: { name: 'CANNON · SOLARIS', cost: 1500, power: 400, fireRate: 650, maxAmmo:8000, range: 1000 },
-  railgun: { name: 'RAILGUN · ECLIPSE', cost: 6500, power: 743, fireRate: 650, maxAmmo:8000, range: 1000 },
-  nova: { name: 'NOVA · SUPERNOVA', cost: 22000, power: 1486, fireRate: 650, maxAmmo:8000, range: 1000 },
-  plasma: { name: 'PLASMA · INFERNO', cost: 60000, power: 2286, fireRate: 650, maxAmmo:8000, range: 1000 },
-  vortex: { name: 'VORTEX · SHARD', cost: 150000, power: 3286, fireRate: 650, maxAmmo:8000, range: 1000 },
-  quasar: { name: 'QUASAR · RAY', cost: 400000, power: 4429, fireRate: 650, maxAmmo:8000, range: 1000 },
-  singularity: { name: 'SINGULARITY · CORE', cost: 900000, power: 6000, fireRate: 650, maxAmmo:8000, range: 1000 },
-  omega: { name: 'OMEGA · ASCENSION', cost: 2000000, power: 8000, fireRate: 650, maxAmmo:8000, range: 1000 }
+  blaster: { name: 'BLASTER · NEONSTORM', cost: 0, power: 100, fireRate: 650, maxAmmo:8000, range: 1000, type:'ranged', forSale:true },
+  pulse: { name: 'PULSE · PRISMA', cost: 500, power: 200, fireRate: 650, maxAmmo:8000, range: 1000, type:'ranged', forSale:true },
+  cannon: { name: 'CANNON · SOLARIS', cost: 1500, power: 400, fireRate: 650, maxAmmo:8000, range: 1000, type:'ranged', forSale:true },
+  railgun: { name: 'RAILGUN · ECLIPSE', cost: 6500, power: 743, fireRate: 650, maxAmmo:8000, range: 1000, type:'ranged', forSale:true },
+  nova: { name: 'NOVA · SUPERNOVA', cost: 22000, power: 1486, fireRate: 650, maxAmmo:8000, range: 1000, type:'ranged', forSale:true },
+  plasma: { name: 'PLASMA · INFERNO', cost: 60000, power: 2286, fireRate: 650, maxAmmo:8000, range: 1000, type:'ranged', forSale:false },
+  vortex: { name: 'VORTEX · SHARD', cost: 150000, power: 3286, fireRate: 650, maxAmmo:8000, range: 1000, type:'ranged', forSale:false },
+  quasar: { name: 'QUASAR · RAY', cost: 400000, power: 4429, fireRate: 650, maxAmmo:8000, range: 1000, type:'ranged', forSale:false },
+  singularity: { name: 'SINGULARITY · CORE', cost: 900000, power: 6000, fireRate: 650, maxAmmo:8000, range: 1000, type:'ranged', forSale:false },
+  omega: { name: 'OMEGA · ASCENSION', cost: 2000000, power: 8000, fireRate: 650, maxAmmo:8000, range:1000, type:'ranged', forSale:false },
+
+  sword_neo: { name:'ESPADA NEO', cost:300, power:140, fireRate:700, maxAmmo:0, range:150, arc:1.05, type:'melee', forSale:true },
+  sword_pulse: { name:'ESPADA PULSO', cost:1200, power:280, fireRate:700, maxAmmo:0, range:160, arc:1.10, type:'melee', forSale:true },
+  sword_void: { name:'ESPADA VACÍO', cost:4500, power:520, fireRate:760, maxAmmo:0, range:170, arc:1.15, type:'melee', forSale:true },
+  sword_solar: { name:'ESPADA SOLAR', cost:15000, power:850, fireRate:820, maxAmmo:0, range:180, arc:1.20, type:'melee', forSale:true },
+  sword_omega: { name:'ESPADA OMEGA', cost:50000, power:1400, fireRate:900, maxAmmo:0, range:195, arc:1.25, type:'melee', forSale:true }
 };
+
+const SHOP_FIREARM_IDS = Object.freeze(['blaster','pulse','cannon','railgun','nova']);
+const SHOP_SWORD_IDS = Object.freeze(['sword_neo','sword_pulse','sword_void','sword_solar','sword_omega']);
+const SHOP_ARMOR_IDS = Object.freeze(['pixel_cyan','rust_core','toxic_orb','plasma_violet','aurora']);
+const BACKPACK_ITEM_ID = 'backpack_basic';
+const BACKPACK_ITEM = Object.freeze({
+  id: BACKPACK_ITEM_ID, name:'MOCHILA BÁSICA', rarity:'Común', category:'backpack',
+  equipSlot:'backpack', priceGold:250, priceDiamonds:0, slotsBonus:16, stackable:false
+});
+const SHOP_STOCK = new Map([[BACKPACK_ITEM_ID,10]]);
+
+function getItemDefinition(itemId){
+  const id=String(itemId||'');
+  if(id==='ammo')return {id:'ammo',name:'MUNICIÓN',rarity:'Común',category:'consumable',equipSlot:'',stackable:true,stackMax:INVENTORY_STACK_MAX,sellPriceGold:1};
+  if(id===BACKPACK_ITEM_ID)return BACKPACK_ITEM;
+  const weapon=WEAPONS[id];
+  if(weapon&&weapon.forSale!==false){
+    return {
+      id,name:weapon.name,rarity:weapon.type==='melee'?'Arma blanca':'Arma',
+      category:'weapon',equipSlot:'weapon',weaponType:weapon.type,
+      priceGold:Number(weapon.cost)||0,priceDiamonds:0,stackable:false,
+      power:Number(weapon.power)||0,fireRate:Number(weapon.fireRate)||650,
+      range:Number(weapon.range)||1000,arc:Number(weapon.arc)||0
+    };
+  }
+  if(SHOP_ARMOR_IDS.includes(id)){
+    const armor=cosmetics.getArmor(id);
+    if(!armor)return null;
+    return {
+      id,name:armor.name,rarity:armor.rarity,category:'armor',equipSlot:'armor',
+      priceGold:Number(armor.priceGold)||0,priceDiamonds:Number(armor.priceDiamonds)||0,
+      stackable:false,armorRating:Number(armor.armorRating)||0
+    };
+  }
+  return null;
+}
+function publicItemCatalog(){
+  return [
+    getItemDefinition(BACKPACK_ITEM_ID),
+    ...SHOP_FIREARM_IDS.map(getItemDefinition),
+    ...SHOP_SWORD_IDS.map(getItemDefinition),
+    ...SHOP_ARMOR_IDS.map(getItemDefinition)
+  ].filter(Boolean).map(item=>({...item}));
+}
 
 function damageForPower(power) {
   return Math.max(1, Math.round((Number(power) || 0) * 0.35));
@@ -308,7 +361,8 @@ function publicPlayer(p) {
     pistoleroLevel: pistoleroLevelFromXp(p.pistoleroXp),
     pistoleroXp: Math.max(0, Number(p.pistoleroXp) || 0),
     equippedSkin: cosmetics.getSkin(p.equippedSkin) ? p.equippedSkin : 'core_default',
-    equippedArmor: cosmetics.getArmor(p.equippedArmor) ? p.equippedArmor : ''
+    equippedArmor: cosmetics.getArmor(p.equippedArmor) ? p.equippedArmor : '',
+    equippedBackpack: p.equippedBackpack || ''
   };
 }
 
@@ -360,14 +414,16 @@ function sendStats(p) {
     gold: p.gold || 0,
     diamonds: p.diamonds || 0,
     ammo: inventoryTotal(p,"ammo"),
-    maxAmmo: MAX_AMMO,
+    maxAmmo: maxAmmoForPlayer(p),
     inventory: inventoryPayload(p),
+    inventoryCapacity: inventoryCapacity(p),
     weapon: p.weapon,
     ownedWeapons: normalizeOwnedWeapons(p.ownedWeapons, p.weapon || ''),
     shopNpc: SHOP_NPC,
     bankEnabled: BANK_ENABLED,
     equippedSkin: cosmetics.getSkin(p.equippedSkin) ? p.equippedSkin : 'core_default',
     equippedArmor: cosmetics.getArmor(p.equippedArmor) ? p.equippedArmor : '',
+    equippedBackpack: p.equippedBackpack || '',
     ownedSkins: cosmetics.normalizeOwnedSkins(p.ownedSkins),
     ownedArmors: cosmetics.normalizeOwnedArmors(p.ownedArmors),
     redeemedCodes: cosmetics.normalizeRedeemedCodes(p.redeemedCodes),
@@ -406,6 +462,7 @@ function capturePlayerData(p) {
     equippedSkin: cosmetics.getSkin(p.equippedSkin) ? p.equippedSkin : 'core_default',
     ownedArmors: cosmetics.normalizeOwnedArmors(p.ownedArmors),
     equippedArmor: cosmetics.getArmor(p.equippedArmor) ? p.equippedArmor : '',
+    equippedBackpack: p.equippedBackpack || '',
     redeemedCodes: cosmetics.normalizeRedeemedCodes(p.redeemedCodes)
   };
 }
@@ -457,14 +514,73 @@ async function loadSavedPlayer(saveKey, playerName = '') {
   return null;
 }
 
-function emptyInventory(){return Array.from({length:INVENTORY_SLOTS},()=>null);}
-function normalizeInventory(value){const out=emptyInventory(),src=Array.isArray(value)?value:[];for(let i=0;i<src.length&&i<INVENTORY_SLOTS;i++){const raw=src[i];if(!raw)continue;const itemId=String(raw.itemId||raw.id||'');let remaining=Math.max(0,Math.floor(Number(raw.qty)||0));if(itemId!=='ammo'||remaining<=0)continue;for(let j=0;j<INVENTORY_SLOTS&&remaining>0;j++){const slot=out[j];if(slot&&slot.itemId===itemId&&slot.qty<INVENTORY_STACK_MAX){const take=Math.min(remaining,INVENTORY_STACK_MAX-slot.qty);slot.qty+=take;remaining-=take;}}for(let j=0;j<INVENTORY_SLOTS&&remaining>0;j++){if(!out[j]){const take=Math.min(remaining,INVENTORY_STACK_MAX);out[j]={itemId,qty:take};remaining-=take;}}}return out;}
-function inventoryTotal(p,itemId='ammo'){const inv=normalizeInventory(p?.inventory);if(p)p.inventory=inv;let total=0;for(const slot of inv)if(slot&&slot.itemId===itemId)total+=Math.max(0,Number(slot.qty)||0);return total;}
-function syncAmmoFromInventory(p){if(!p)return 0;p.inventory=normalizeInventory(p.inventory);p.ammo=inventoryTotal(p,'ammo');return p.ammo;}
-function addInventoryItem(p,itemId,qty){if(!p)return Math.max(0,Math.floor(Number(qty)||0));p.inventory=normalizeInventory(p.inventory);let remaining=Math.max(0,Math.floor(Number(qty)||0));if(itemId!=='ammo'||remaining<=0)return remaining;for(let i=0;i<p.inventory.length&&remaining>0;i++){const slot=p.inventory[i];if(slot&&slot.itemId===itemId&&slot.qty<INVENTORY_STACK_MAX){const take=Math.min(remaining,INVENTORY_STACK_MAX-slot.qty);slot.qty+=take;remaining-=take;}}for(let i=0;i<p.inventory.length&&remaining>0;i++){if(!p.inventory[i]){const take=Math.min(remaining,INVENTORY_STACK_MAX);p.inventory[i]={itemId,qty:take};remaining-=take;}}syncAmmoFromInventory(p);return remaining;}
-function removeInventoryAmount(p,itemId,qty){if(!p)return 0;p.inventory=normalizeInventory(p.inventory);let remaining=Math.max(0,Math.floor(Number(qty)||0)),removed=0;for(let i=0;i<p.inventory.length&&remaining>0;i++){const slot=p.inventory[i];if(!slot||slot.itemId!==itemId)continue;const take=Math.min(remaining,slot.qty);slot.qty-=take;removed+=take;remaining-=take;if(slot.qty<=0)p.inventory[i]=null;}syncAmmoFromInventory(p);return removed;}
-function inventoryPayload(p){syncAmmoFromInventory(p);return p.inventory.map(slot=>slot?{itemId:slot.itemId,qty:slot.qty}:null);}
-function sendInventoryState(p,message=''){if(!p?.ws)return;send(p.ws,{type:'inventory_state',message,inventory:inventoryPayload(p),ammo:inventoryTotal(p,'ammo'),maxAmmo:MAX_AMMO,slots:INVENTORY_SLOTS,stackMax:INVENTORY_STACK_MAX});}
+function inventoryCapacity(p){return p?.equippedBackpack===BACKPACK_ITEM_ID?MAX_INVENTORY_SLOTS:BASE_INVENTORY_SLOTS;}
+function emptyInventory(capacity=MAX_INVENTORY_SLOTS){return Array.from({length:Math.max(BASE_INVENTORY_SLOTS,Math.min(MAX_INVENTORY_SLOTS,Number(capacity)||BASE_INVENTORY_SLOTS))},()=>null);}
+function normalizeInventory(value,capacity=MAX_INVENTORY_SLOTS){
+  const cap=Math.max(BASE_INVENTORY_SLOTS,Math.min(MAX_INVENTORY_SLOTS,Math.floor(Number(capacity)||BASE_INVENTORY_SLOTS)));
+  const out=emptyInventory(cap),src=Array.isArray(value)?value:[];
+  for(const raw of src){
+    if(!raw)continue;
+    const itemId=String(raw.itemId||raw.id||'');
+    const def=getItemDefinition(itemId);if(!def)continue;
+    let remaining=Math.max(0,Math.floor(Number(raw.qty)||0));if(remaining<=0)continue;
+    const stackable=def.stackable===true,maxStack=stackable?Math.max(1,Number(def.stackMax)||INVENTORY_STACK_MAX):1;
+    if(stackable)for(let i=0;i<out.length&&remaining>0;i++){const slot=out[i];if(slot&&slot.itemId===itemId&&slot.qty<maxStack){const take=Math.min(remaining,maxStack-slot.qty);slot.qty+=take;remaining-=take;}}
+    while(remaining>0){const idx=out.findIndex(slot=>!slot);if(idx<0)break;const take=Math.min(remaining,maxStack);out[idx]={itemId,qty:take};remaining-=take;if(!stackable)remaining=0;}
+  }
+  return out;
+}
+function inventoryTotal(p,itemId='ammo'){if(!p)return 0;p.inventory=normalizeInventory(p.inventory,inventoryCapacity(p));let total=0;for(const slot of p.inventory)if(slot&&slot.itemId===itemId)total+=Math.max(0,Number(slot.qty)||0);return total;}
+function syncAmmoFromInventory(p){if(!p)return 0;p.inventory=normalizeInventory(p.inventory,inventoryCapacity(p));p.ammo=inventoryTotal(p,'ammo');return p.ammo;}
+function maxAmmoForPlayer(p){return inventoryCapacity(p)*INVENTORY_STACK_MAX;}
+function addInventoryItem(p,itemId,qty){
+  if(!p)return Math.max(0,Math.floor(Number(qty)||0));
+  const def=getItemDefinition(itemId);let remaining=Math.max(0,Math.floor(Number(qty)||0));if(!def||remaining<=0)return remaining;
+  p.inventory=normalizeInventory(p.inventory,inventoryCapacity(p));
+  const maxStack=def.stackable?Math.max(1,Number(def.stackMax)||INVENTORY_STACK_MAX):1;
+  if(def.stackable)for(let i=0;i<p.inventory.length&&remaining>0;i++){const slot=p.inventory[i];if(slot&&slot.itemId===def.id&&slot.qty<maxStack){const take=Math.min(remaining,maxStack-slot.qty);slot.qty+=take;remaining-=take;}}
+  while(remaining>0){const idx=p.inventory.findIndex(slot=>!slot);if(idx<0)break;const take=def.stackable?Math.min(remaining,maxStack):1;p.inventory[idx]={itemId:def.id,qty:take};remaining-=take;}
+  syncAmmoFromInventory(p);return remaining;
+}
+function removeInventoryAmount(p,itemId,qty){
+  if(!p)return 0;p.inventory=normalizeInventory(p.inventory,inventoryCapacity(p));let remaining=Math.max(0,Math.floor(Number(qty)||0)),removed=0;
+  for(let i=0;i<p.inventory.length&&remaining>0;i++){const slot=p.inventory[i];if(!slot||slot.itemId!==String(itemId))continue;const take=Math.min(remaining,Math.max(0,Number(slot.qty)||0));slot.qty-=take;removed+=take;remaining-=take;if(slot.qty<=0)p.inventory[i]=null;}
+  syncAmmoFromInventory(p);return removed;
+}
+function inventoryPayload(p){syncAmmoFromInventory(p);return p.inventory.slice(0,inventoryCapacity(p)).map(slot=>slot?{itemId:slot.itemId,qty:slot.qty}:null);}
+function sendInventoryState(p,message=''){
+  if(!p?.ws)return;
+  send(p.ws,{type:'inventory_state',message,inventory:inventoryPayload(p),ammo:inventoryTotal(p,'ammo'),maxAmmo:maxAmmoForPlayer(p),slots:inventoryCapacity(p),stackMax:INVENTORY_STACK_MAX,inventoryCapacity:inventoryCapacity(p),equippedBackpack:p.equippedBackpack||'',equippedWeapon:p.weapon||'',equippedArmor:p.equippedArmor||'',itemCatalog:publicItemCatalog(),shopStock:Object.fromEntries(SHOP_STOCK)});
+}
+function syncOwnedCollections(p){
+  const weapons=new Set(Array.isArray(p.ownedWeapons)?p.ownedWeapons:[]),armors=new Set(Array.isArray(p.ownedArmors)?p.ownedArmors:[]);
+  if(p.weapon)weapons.add(p.weapon);if(p.equippedArmor)armors.add(p.equippedArmor);
+  for(const slot of p.inventory||[]){if(!slot)continue;const def=getItemDefinition(slot.itemId);if(def?.category==='weapon')weapons.add(slot.itemId);if(def?.category==='armor')armors.add(slot.itemId);}
+  p.ownedWeapons=normalizeOwnedWeapons([...weapons],p.weapon||'');p.ownedArmors=cosmetics.normalizeOwnedArmors([...armors]);
+}
+function findFreeInventorySlot(p){p.inventory=normalizeInventory(p.inventory,inventoryCapacity(p));return p.inventory.findIndex(slot=>!slot);}
+function equipInventoryItem(p,slotIndex){
+  if(!p)return {ok:false,message:'Jugador no encontrado.'};
+  const idx=Math.floor(Number(slotIndex));if(!Number.isInteger(idx)||idx<0||idx>=inventoryCapacity(p))return {ok:false,message:'Espacio inválido.'};
+  p.inventory=normalizeInventory(p.inventory,inventoryCapacity(p));const slot=p.inventory[idx];if(!slot)return {ok:false,message:'Ese espacio está vacío.'};
+  const def=getItemDefinition(slot.itemId);if(!def?.equipSlot)return {ok:false,message:'Ese objeto no se puede equipar.'};
+  if(def.equipSlot==='weapon'){const previous=p.weapon||'';p.weapon=def.id;p.equippedWeaponSkin='';p.inventory[idx]=previous&&previous!==def.id?{itemId:previous,qty:1}:null;}
+  else if(def.equipSlot==='armor'){const previous=p.equippedArmor||'';p.equippedArmor=def.id;p.inventory[idx]=previous&&previous!==def.id?{itemId:previous,qty:1}:null;}
+  else if(def.equipSlot==='backpack'){const previous=p.equippedBackpack||'';p.equippedBackpack=def.id;const expanded=inventoryCapacity(p);p.inventory.length=expanded;while(p.inventory.length<expanded)p.inventory.push(null);p.inventory[idx]=previous&&previous!==def.id?{itemId:previous,qty:1}:null;}
+  p.inventory=normalizeInventory(p.inventory,inventoryCapacity(p));syncOwnedCollections(p);applyCombatStats(p);return {ok:true};
+}
+function unequipEquipment(p,slot){
+  if(!p)return {ok:false,message:'Jugador no encontrado.'};
+  const equipSlot=String(slot||'');let itemId='';
+  if(equipSlot==='weapon'){itemId=p.weapon||'';p.weapon='';}
+  else if(equipSlot==='armor'){itemId=p.equippedArmor||'';p.equippedArmor='';}
+  else if(equipSlot==='backpack'){
+    if(p.equippedBackpack===BACKPACK_ITEM_ID)for(const slotItem of (p.inventory||[]).slice(BASE_INVENTORY_SLOTS))if(slotItem)return {ok:false,message:'No hay espacio para quitar la mochila. Vacía los espacios adicionales primero.'};
+    itemId=p.equippedBackpack||'';p.equippedBackpack='';
+  }else return {ok:false,message:'Equipo inválido.'};
+  if(itemId){p.inventory=normalizeInventory(p.inventory,inventoryCapacity(p));const idx=findFreeInventorySlot(p);if(idx<0){if(equipSlot==='weapon')p.weapon=itemId;else if(equipSlot==='armor')p.equippedArmor=itemId;else p.equippedBackpack=itemId;return {ok:false,message:'No hay espacio libre en el inventario.'};}p.inventory[idx]={itemId,qty:1};}
+  p.inventory=normalizeInventory(p.inventory,inventoryCapacity(p));syncOwnedCollections(p);applyCombatStats(p);return {ok:true};
+}
 function dropItem(roomCode,p,itemId,qty,x,y){
   const list=roomDrops.get(roomCode)||[];
   const id=String(itemId||'');
@@ -498,7 +614,15 @@ function spawnGoldDrops(roomCode,amount,x,y){
 }
 function sendDropState(roomCode){broadcastRoom(roomCode,{type:'drop_state',drops:(roomDrops.get(roomCode)||[]).map(d=>({...d}))});}
 function cleanupDrops(roomCode){const now=Date.now(),list=roomDrops.get(roomCode)||[],next=list.filter(d=>now-(Number(d.createdAt)||now)<DROP_LIFETIME_MS);if(next.length!==list.length){roomDrops.set(roomCode,next);sendDropState(roomCode);}}
-function dropInventoryItem(ws,slotIndex){const p=clients.get(ws);if(!p||!p.room||!p.alive)return;const idx=Math.floor(Number(slotIndex));if(!Number.isInteger(idx)||idx<0||idx>=INVENTORY_SLOTS)return;p.inventory=normalizeInventory(p.inventory);const slot=p.inventory[idx];if(!slot||slot.itemId!=='ammo'||slot.qty<=0)return sendInventoryState(p,'Ese espacio está vacío.');const qty=slot.qty;p.inventory[idx]=null;syncAmmoFromInventory(p);dropItem(p.room,p,'ammo',qty,p.x,p.y);void persistPlayer(p);sendInventoryState(p,'Soltaste '+qty+' balas en el suelo.');sendDropState(p.room);}
+function dropInventoryItem(ws,slotIndex){
+  const p=clients.get(ws);if(!p||!p.room||!p.alive)return;
+  const idx=Math.floor(Number(slotIndex));if(!Number.isInteger(idx)||idx<0||idx>=inventoryCapacity(p))return;
+  p.inventory=normalizeInventory(p.inventory,inventoryCapacity(p));const slot=p.inventory[idx];if(!slot)return sendInventoryState(p,'Ese espacio está vacío.');
+  if(slot.itemId===p.weapon||slot.itemId===p.equippedArmor||slot.itemId===p.equippedBackpack)return sendInventoryState(p,'Ese objeto está equipado.');
+  const qty=Math.max(1,Math.floor(Number(slot.qty)||1));p.inventory[idx]=null;syncAmmoFromInventory(p);
+  dropItem(p.room,p,slot.itemId,qty,p.x,p.y);void persistPlayer(p);
+  sendInventoryState(p,'Soltaste '+qty+' '+(getItemDefinition(slot.itemId)?.name||'objeto')+' en el suelo.');sendDropState(p.room);
+}
 function pickupNearby(ws){
   const p=clients.get(ws);if(!p||!p.room||!p.alive)return;
   cleanupDrops(p.room);
@@ -532,9 +656,8 @@ function pickupNearby(ws){
   sendInventoryState(p,'Recogiste '+added+' '+drop.name+'.');
   sendDropState(p.room);
 }
-function maxAmmoForWeapon() {
-  // La munición pertenece al jugador, no al arma equipada.
-  return MAX_AMMO;
+function maxAmmoForWeapon(p) {
+  return maxAmmoForPlayer(p);
 }
 
 function normalizeOwnedWeapons(value, fallbackWeapon = '') {
@@ -1293,6 +1416,59 @@ function findPlayer(id, room) {
   return null;
 }
 
+function sendItemShopState(p,message=''){
+  if(!p?.ws)return;
+  send(p.ws,{type:'item_shop_state',message,items:publicItemCatalog(),stock:Object.fromEntries(SHOP_STOCK),gold:Math.max(0,Number(p.gold)||0),diamonds:Math.max(0,Number(p.diamonds)||0),inventory:inventoryPayload(p),inventoryCapacity:inventoryCapacity(p),equippedWeapon:p.weapon||'',equippedArmor:p.equippedArmor||'',equippedBackpack:p.equippedBackpack||''});
+}
+function buyShopItem(ws,itemId){
+  const p=clients.get(ws);if(!p)return;
+  if(!p.room||!p.alive)return send(ws,{type:'item_shop_result',ok:false,message:'No puedes comprar ahora.'});
+  if(!cosmeticShopNearby(p))return send(ws,{type:'item_shop_result',ok:false,message:'Párate sobre el SHOP.'});
+  const id=String(itemId||''),item=getItemDefinition(id);if(!item)return send(ws,{type:'item_shop_result',ok:false,message:'Ese objeto no está a la venta.'});
+  const stock=SHOP_STOCK.get(id);if(stock!==undefined&&stock<=0)return send(ws,{type:'item_shop_result',ok:false,message:'Ese objeto se agotó por ahora.'});
+  const owned=inventoryTotal(p,id)+(p.weapon===id?1:0)+(p.equippedArmor===id?1:0)+(p.equippedBackpack===id?1:0);
+  if(item.category!=='consumable'&&owned>0)return send(ws,{type:'item_shop_result',ok:false,message:'Ya tienes '+item.name+' en tu equipo o inventario.'});
+  const goldCost=Math.max(0,Number(item.priceGold)||0),diamondCost=Math.max(0,Number(item.priceDiamonds)||0);
+  const gold=Math.max(0,Number(p.gold)||0),diamonds=Math.max(0,Number(p.diamonds)||0);
+  if(gold<goldCost||diamonds<diamondCost)return send(ws,{type:'item_shop_result',ok:false,message:'No tienes suficiente moneda para '+item.name+'.'});
+  if(addInventoryItem(p,id,1)!==0)return send(ws,{type:'item_shop_result',ok:false,message:'No hay espacio en el inventario.'});
+  p.gold=gold-goldCost;p.diamonds=diamonds-diamondCost;
+  if(stock!==undefined)SHOP_STOCK.set(id,Math.max(0,stock-1));
+  syncOwnedCollections(p);void persistPlayer(p);
+  send(ws,{type:'item_shop_result',ok:true,message:'Compraste '+item.name+'. Ve al inventario para equiparlo.',gold:p.gold,diamonds:p.diamonds,stock:SHOP_STOCK.get(id),inventory:inventoryPayload(p),inventoryCapacity:inventoryCapacity(p),equippedWeapon:p.weapon||'',equippedArmor:p.equippedArmor||'',equippedBackpack:p.equippedBackpack||''});
+  sendStats(p);sendPlayerList(p.room);
+}
+function sellInventoryItem(ws,slotIndex,qtyRequested=1){
+  const p=clients.get(ws);if(!p)return;
+  if(!p.room||!p.alive)return send(ws,{type:'item_shop_result',ok:false,message:'No puedes vender ahora.'});
+  if(!cosmeticShopNearby(p))return send(ws,{type:'item_shop_result',ok:false,message:'Párate sobre el SHOP.'});
+  const idx=Math.floor(Number(slotIndex));if(!Number.isInteger(idx)||idx<0||idx>=inventoryCapacity(p))return send(ws,{type:'item_shop_result',ok:false,message:'Espacio inválido.'});
+  p.inventory=normalizeInventory(p.inventory,inventoryCapacity(p));const slot=p.inventory[idx];if(!slot)return send(ws,{type:'item_shop_result',ok:false,message:'Ese espacio está vacío.'});
+  if(slot.itemId===p.weapon||slot.itemId===p.equippedArmor||slot.itemId===p.equippedBackpack)return send(ws,{type:'item_shop_result',ok:false,message:'No puedes vender un objeto equipado.'});
+  const item=getItemDefinition(slot.itemId);if(!item)return send(ws,{type:'item_shop_result',ok:false,message:'Objeto no reconocido.'});
+  const available=Math.max(1,Math.floor(Number(slot.qty)||1)),qty=item.stackable?Math.max(1,Math.min(available,Math.floor(Number(qtyRequested)||1))):1;
+  const goldValue=Math.max(0,Math.floor(qty*(Number(item.sellPriceGold)||0))),diamondValue=Math.max(0,Math.floor((Number(item.priceDiamonds)||0)*0.6));
+  if(item.priceDiamonds>0){p.diamonds=Math.max(0,Number(p.diamonds)||0)+Math.max(1,diamondValue);}
+  else p.gold=Math.max(0,Number(p.gold)||0)+Math.max(1,goldValue||Math.floor((Number(item.priceGold)||0)*0.6));
+  removeInventoryAmount(p,item.id,qty);
+  if(item.id===BACKPACK_ITEM_ID)SHOP_STOCK.set(item.id,(SHOP_STOCK.get(item.id)||0)+1);
+  syncOwnedCollections(p);void persistPlayer(p);
+  send(ws,{type:'item_shop_result',ok:true,message:'Vendiste '+qty+' '+item.name+'.',gold:p.gold,diamonds:p.diamonds,stock:SHOP_STOCK.get(item.id),inventory:inventoryPayload(p),inventoryCapacity:inventoryCapacity(p),equippedWeapon:p.weapon||'',equippedArmor:p.equippedArmor||'',equippedBackpack:p.equippedBackpack||''});
+  sendStats(p);
+}
+function handleEquipInventory(ws,slotIndex){
+  const p=clients.get(ws);if(!p)return;
+  if(!p.room||!p.alive)return send(ws,{type:'inventory_result',ok:false,message:'No puedes cambiar equipo ahora.'});
+  const result=equipInventoryItem(p,slotIndex);if(!result.ok)return send(ws,{type:'inventory_result',ok:false,message:result.message});
+  void persistPlayer(p);sendInventoryState(p,'Equipo actualizado.');sendStats(p);sendPlayerList(p.room);
+}
+function handleUnequipEquipment(ws,slot){
+  const p=clients.get(ws);if(!p)return;
+  if(!p.room||!p.alive)return send(ws,{type:'inventory_result',ok:false,message:'No puedes cambiar equipo ahora.'});
+  const result=unequipEquipment(p,slot);if(!result.ok)return send(ws,{type:'inventory_result',ok:false,message:result.message});
+  void persistPlayer(p);sendInventoryState(p,'Equipo actualizado.');sendStats(p);sendPlayerList(p.room);
+}
+
 function shopBuy(ws, requestedWeapon) {
   const p = clients.get(ws);
   if (!p) return;
@@ -1594,16 +1770,10 @@ async function withdrawBank(ws) {
   });
 }
 
-function buyAmmo(ws){const p=clients.get(ws);if(!p)return;if(!p.room)return send(ws,{type:'shop_result',ok:false,message:'No estás dentro de una sala.'});if(!p.alive)return send(ws,{type:'shop_result',ok:false,message:'No puedes comprar estando destruido.'});if(Math.hypot(p.x-SHOP_NPC.x,p.y-SHOP_NPC.y)>SHOP_INTERACTION_RADIUS)return send(ws,{type:'shop_result',ok:false,message:'Párate sobre el SHOP.'});const ammo=inventoryTotal(p,'ammo'),gold=Math.max(0,Number(p.gold)||0);if(ammo>=MAX_AMMO)return send(ws,{type:'shop_result',ok:false,message:'La mochila está llena de munición.'});if(gold<AMMO_PACK_COST)return send(ws,{type:'shop_result',ok:false,message:'Necesitas '+AMMO_PACK_COST+' de oro.'});const before=ammo;addInventoryItem(p,'ammo',AMMO_PACK_SIZE);const purchased=inventoryTotal(p,'ammo')-before;if(purchased<=0)return send(ws,{type:'shop_result',ok:false,message:'No hay espacio para más munición.'});p.gold=gold-AMMO_PACK_COST;void persistPlayer(p);send(ws,{type:'shop_result',ok:true,message:'Compraste '+purchased+' balas y fueron guardadas en tu mochila.',gold:p.gold,ammo:inventoryTotal(p,'ammo'),maxAmmo:MAX_AMMO});sendInventoryState(p,'Munición guardada en la mochila.');sendStats(p);}function handleShot(ws, requestedAngle) {
+function buyAmmo(ws){const p=clients.get(ws);if(!p)return;if(!p.room)return send(ws,{type:'shop_result',ok:false,message:'No estás dentro de una sala.'});if(!p.alive)return send(ws,{type:'shop_result',ok:false,message:'No puedes comprar estando destruido.'});if(Math.hypot(p.x-SHOP_NPC.x,p.y-SHOP_NPC.y)>SHOP_INTERACTION_RADIUS)return send(ws,{type:'shop_result',ok:false,message:'Párate sobre el SHOP.'});const ammo=inventoryTotal(p,'ammo'),gold=Math.max(0,Number(p.gold)||0);if(ammo>=maxAmmoForPlayer(p))return send(ws,{type:'shop_result',ok:false,message:'La mochila está llena de munición.'});if(gold<AMMO_PACK_COST)return send(ws,{type:'shop_result',ok:false,message:'Necesitas '+AMMO_PACK_COST+' de oro.'});const before=ammo;addInventoryItem(p,'ammo',AMMO_PACK_SIZE);const purchased=inventoryTotal(p,'ammo')-before;if(purchased<=0)return send(ws,{type:'shop_result',ok:false,message:'No hay espacio para más munición.'});p.gold=gold-AMMO_PACK_COST;void persistPlayer(p);send(ws,{type:'shop_result',ok:true,message:'Compraste '+purchased+' balas y fueron guardadas en el inventario.',gold:p.gold,ammo:inventoryTotal(p,'ammo'),maxAmmo:maxAmmoForPlayer(p)});sendInventoryState(p,'Munición guardada en la mochila.');sendStats(p);}function handleShot(ws, requestedAngle) {
   const shooter = clients.get(ws);
   if (!shooter || !shooter.room || !shooter.alive) return;
   if (inSafeZone(shooter.x, shooter.y, 24)) return send(ws, { type: 'shot_result', ok: false, reason: 'safe_zone', ammo: shooter.ammo || 0 });
-  const availableAmmo = inventoryTotal(shooter, "ammo");
-  shooter.ammo = availableAmmo;
-  if (availableAmmo <= 0) return send(ws, { type: 'ammo_empty' });
-
-  const now = Date.now();
-
   let weapon = WEAPONS[shooter.weapon];
   if (!weapon) {
     shooter.weapon = 'blaster';
@@ -1611,6 +1781,10 @@ function buyAmmo(ws){const p=clients.get(ws);if(!p)return;if(!p.room)return send
     applyCombatStats(shooter);
   }
 
+  const isMelee=weapon.type==='melee';
+  const availableAmmo=inventoryTotal(shooter,'ammo');shooter.ammo=availableAmmo;
+  if(!isMelee&&availableAmmo<=0)return send(ws,{type:'ammo_empty'});
+  const now=Date.now();
   const cooldown = Math.max(WEAPON_FIRE_RATE, Number(weapon.fireRate) || WEAPON_FIRE_RATE);
   if (now - shooter.lastShot < cooldown) return send(ws, { type: 'shot_result', ok: false, reason: 'cooldown', ammo: shooter.ammo || 0 });
   shooter.lastShot = now;
@@ -1620,7 +1794,7 @@ function buyAmmo(ws){const p=clients.get(ws);if(!p)return;if(!p.room)return send
 
   shooter.fireRate = WEAPON_FIRE_RATE;
   const damage = clamp(Number(shooter.damage) || 1, 1, 1000);
-  const maxRange = PROJECTILE_RANGE;
+  const maxRange = Math.max(40, Number(weapon.range) || PROJECTILE_RANGE);
   const shotX = Number(shooter.x) || 0, shotY = Number(shooter.y) || 0;
   const requested = Number(requestedAngle);
   const shotAngle = Number.isFinite(requested) && Math.abs(requested) <= Math.PI * 4
@@ -1632,24 +1806,30 @@ function buyAmmo(ws){const p=clients.get(ws);if(!p)return;if(!p.room)return send
   const walls = ensureRoomWalls(shooter.room);
 
   let targetPlayer = null, targetEnemy = null, best = Infinity;
-
-  for (const otherWs of room) {
-    const target = clients.get(otherWs);
-    if (!target || target === shooter || !target.alive || inSafeZone(target.x, target.y, 24)) continue;
-    const d = rayCircleDistance(shotX, shotY, dirX, dirY, target.x, target.y, 28);
-    if (d <= maxRange && d < best) { best=d; targetPlayer={ws:otherWs,p:target}; targetEnemy=null; }
+  const arc=Number(weapon.arc)||1.1;
+  const angleDiff=(a,b)=>Math.abs(Math.atan2(Math.sin(a-b),Math.cos(a-b)));
+  const acceptMelee=(tx,ty,radius)=>{
+    const dx=tx-shotX,dy=ty-shotY,distance=Math.hypot(dx,dy);
+    if(distance>maxRange||distance<1)return Infinity;
+    if(angleDiff(Math.atan2(dy,dx),shotAngle)>arc*.5)return Infinity;
+    return Math.max(0,distance-Math.max(10,radius));
+  };
+  for(const otherWs of room){
+    const target=clients.get(otherWs);
+    if(!target||target===shooter||!target.alive||inSafeZone(target.x,target.y,24))continue;
+    const d=isMelee?acceptMelee(target.x,target.y,30):rayCircleDistance(shotX,shotY,dirX,dirY,target.x,target.y,28);
+    if(d<=maxRange&&d<best){best=d;targetPlayer={ws:otherWs,p:target};targetEnemy=null;}
   }
-  for (const enemy of enemies) {
-    const d = rayCircleDistance(shotX, shotY, dirX, dirY, enemy.x, enemy.y, Math.max(18, Number(enemy.r)||22)+4);
-    if (d <= maxRange && d < best) { best=d; targetEnemy=enemy; targetPlayer=null; }
+  for(const enemy of enemies){
+    const radius=Math.max(18,Number(enemy.r)||22)+4;
+    const d=isMelee?acceptMelee(enemy.x,enemy.y,radius):rayCircleDistance(shotX,shotY,dirX,dirY,enemy.x,enemy.y,radius);
+    if(d<=maxRange&&d<best){best=d;targetEnemy=enemy;targetPlayer=null;}
   }
-
   let nearestWall=null, nearestWallDistance=Infinity;
-  for (const wall of walls) {
+  if(!isMelee)for(const wall of walls){
     const d=rayAabbDistance(shotX,shotY,dirX,dirY,wall);
     if(d>=0&&d<=maxRange&&d<nearestWallDistance){nearestWallDistance=d;nearestWall=wall;}
   }
-
   const impactDistance=Math.min(maxRange,nearestWallDistance,best);
   const impactX=shotX+dirX*impactDistance, impactY=shotY+dirY*impactDistance;
   const blockedByWall=!!(nearestWall&&nearestWallDistance<=best);
@@ -1658,16 +1838,17 @@ function buyAmmo(ws){const p=clients.get(ws);if(!p)return;if(!p.room)return send
   const travelSpeed=PROJECTILE_SPEED;
   const travelMs=Math.max(70,Math.round((impactDistance/travelSpeed)*1000));
 
-  const removedAmmo=removeInventoryAmount(shooter,"ammo",1);
-  if(removedAmmo!==1){
-    shooter.lastShot=0;
-    syncAmmoFromInventory(shooter);
-    return send(ws,{type:'shot_result',ok:false,reason:'ammo_sync',ammo:shooter.ammo||0});
+  let consumedAmmo=0;
+  if(!isMelee){
+    const removedAmmo=removeInventoryAmount(shooter,'ammo',1);
+    if(removedAmmo!==1){shooter.lastShot=0;syncAmmoFromInventory(shooter);return send(ws,{type:'shot_result',ok:false,reason:'ammo_sync',ammo:shooter.ammo||0});}
+    consumedAmmo=1;
   }
-  send(ws,{type:'shot_result',ok:true,ammo:shooter.ammo,maxAmmo:maxAmmoForWeapon(shooter.weapon),x:shotX,y:shotY,angle:shotAngle,damage,range:maxRange,travelDistance:impactDistance,impactX,impactY,hitKind,hitTarget,travelMs});
+  const melee=isMelee;
+  send(ws,{type:'shot_result',ok:true,ammo:shooter.ammo,maxAmmo:maxAmmoForPlayer(shooter),x:shotX,y:shotY,angle:shotAngle,damage,range:maxRange,travelDistance:isMelee?Math.max(1,best<Infinity?best:maxRange):impactDistance,impactX,impactY,hitKind,hitTarget,travelMs:isMelee?0:travelMs,weapon:shooter.weapon,weaponType:weapon.type,melee,consumedAmmo});
   sendInventoryState(shooter);
   sendStats(shooter);
-  broadcastRoom(shooter.room,{type:'player_shot',shotId:'s_'+Math.random().toString(36).slice(2,10),id:shooter.id,power:shooter.power,damage,projectileSpeed:PROJECTILE_SPEED,x:shotX,y:shotY,angle:shotAngle,weapon:shooter.weapon,range:maxRange,travelDistance:impactDistance,impactX,impactY,hitKind,hitTarget,travelMs});
+  broadcastRoom(shooter.room,{type:'player_shot',shotId:'s_'+Math.random().toString(36).slice(2,10),id:shooter.id,power:shooter.power,damage,projectileSpeed:PROJECTILE_SPEED,x:shotX,y:shotY,angle:shotAngle,weapon:shooter.weapon,weaponType:weapon.type,melee,isMelee,range:maxRange,travelDistance:impactDistance,impactX,impactY,hitKind,hitTarget,travelMs});
 
   // El disparo ya fue validado y consumió munición. El daño se aplica de inmediato.
   // El proyectil que ve el jugador es únicamente la representación visual del impacto.
@@ -2182,7 +2363,8 @@ wss.on('connection', async (ws) => {
           p.pvpKills = Number(saved.pvpKills) || 0;
           p.gold = Math.max(0, Number(saved.gold) || 0);
           p.diamonds = Math.max(0, Number(saved.diamonds) || 0);
-          if(Array.isArray(saved.inventory)){p.inventory=normalizeInventory(saved.inventory);}else{p.inventory=emptyInventory();addInventoryItem(p,'ammo',Math.max(0,Number(saved.ammo)||0));}syncAmmoFromInventory(p);
+          if(Array.isArray(saved.inventory)){p.inventory=normalizeInventory(saved.inventory,BASE_INVENTORY_SLOTS);}else{p.inventory=emptyInventory(BASE_INVENTORY_SLOTS);addInventoryItem(p,'ammo',Math.max(0,Number(saved.ammo)||0));}syncAmmoFromInventory(p);
+          p.equippedBackpack = saved.equippedBackpack===BACKPACK_ITEM_ID ? BACKPACK_ITEM_ID : '';
           p.pistoleroXp = Math.max(0, Number(saved.pistoleroXp) || 0);
           p.pistoleroLevel = pistoleroLevelFromXp(p.pistoleroXp);
           p.bankedGold = Math.max(0, Number(saved.bankedGold) || 0);
@@ -2195,9 +2377,19 @@ wss.on('connection', async (ws) => {
           p.equippedArmor=cosmetics.getArmor(saved.equippedArmor)?.id||(cosmetics.getArmor(saved.equippedSkin)?.id||'');
           p.redeemedCodes = cosmetics.normalizeRedeemedCodes(saved.redeemedCodes);
           p.ownedWeapons = normalizeOwnedWeapons(saved.ownedWeapons, saved.weapon || '');
-          p.weapon = WEAPONS[saved.weapon] ? saved.weapon : null;
+          p.weapon = WEAPONS[saved.weapon] ? saved.weapon : 'blaster';
           p.ownedWeaponSkins = cosmetics.normalizeOwnedWeaponSkins(saved.ownedWeaponSkins);
           p.equippedWeaponSkin = cosmetics.getWeaponSkin(saved.equippedWeaponSkin) && p.ownedWeaponSkins.includes(saved.equippedWeaponSkin) ? saved.equippedWeaponSkin : '';
+          p.inventory=normalizeInventory(p.inventory,inventoryCapacity(p));
+          const legacyItems=[...(p.ownedWeapons||[]),...(p.ownedArmors||[])];
+          for(const legacyId of legacyItems){
+            const def=getItemDefinition(legacyId);
+            if(!def||def.category==='consumable')continue;
+            if(legacyId===p.weapon||legacyId===p.equippedArmor)continue;
+            if(inventoryTotal(p,legacyId)>0)continue;
+            addInventoryItem(p,legacyId,1);
+          }
+          syncOwnedCollections(p);
           p.damagePenalty = Math.max(0, Number(saved.damagePenalty) || 0);
           p.defensePenalty = Math.max(0, Number(saved.defensePenalty) || 0);
         }
@@ -2389,6 +2581,27 @@ wss.on('connection', async (ws) => {
           ws
         );
 
+        return;
+      }
+
+      if (msg.type === 'equip_inventory_item') {
+        if (!p.frozen) handleEquipInventory(ws,msg.slotIndex);
+        return;
+      }
+      if (msg.type === 'unequip_equipment') {
+        if (!p.frozen) handleUnequipEquipment(ws,msg.slot);
+        return;
+      }
+      if (msg.type === 'sell_inventory_item') {
+        if (!p.frozen) sellInventoryItem(ws,msg.slotIndex,msg.qty);
+        return;
+      }
+      if (msg.type === 'buy_item') {
+        if (!p.frozen) buyShopItem(ws,msg.itemId);
+        return;
+      }
+      if (msg.type === 'open_item_shop') {
+        if (!p.frozen) sendItemShopState(p,'Items disponibles y venta de inventario.');
         return;
       }
 
