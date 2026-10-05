@@ -1,6 +1,6 @@
 const { test, expect } = require('@playwright/test');
 
-test('menu principal: JUGAR abre el cliente completo de Sala 1 v172', async ({ browser }) => {
+test('menu principal: JUGAR abre el cliente completo de Sala 1 actual', async ({ browser }) => {
   const context = await browser.newContext({
     viewport: { width: 390, height: 844 },
     isMobile: true,
@@ -37,11 +37,11 @@ test('menu principal: JUGAR abre el cliente completo de Sala 1 v172', async ({ b
   await expect.poll(async () => page.evaluate(() => window.NEON_CORE_BUILD), {
     timeout: 15000,
     intervals: [500, 1000]
-  }).toBe('BUILD-29');
+  }).toBe('BUILD-30');
 
   await expect(page.locator('#moveJoy')).toBeVisible({ timeout: 30000 });
   await expect(page.locator('#connectionOverlay')).toBeHidden({ timeout: 30000 });
-  expect(await page.evaluate(() => window.NEON_CORE_BUILD)).toBe('BUILD-29');
+  expect(await page.evaluate(() => window.NEON_CORE_BUILD)).toBe('BUILD-30');
 
   await expect.poll(async () => page.locator('#playersList').innerText(), {
     timeout: 15000,
@@ -51,6 +51,6 @@ test('menu principal: JUGAR abre el cliente completo de Sala 1 v172', async ({ b
 
   expect(sockets.some(url => /neon-core-multiplayer\.onrender\.com\/ws/.test(url))).toBeTruthy();
 
-  if (errors.length) throw new Error('Errores en menú/Sala 1 v172:\n' + errors.join('\n'));
+  if (errors.length) throw new Error('Errores en menú/Sala 1 actual:\n' + errors.join('\n'));
   await context.close();
 });
