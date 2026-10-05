@@ -9,7 +9,7 @@
 <script>
 (function(){
   try{
-    var v="BUILD-25",checking=false,updating=false,timer=null,base=new URL("../../../",location.href),manifestUrl=new URL("/NeonCore/release.json",location.origin);
+    var v="BUILD-26",checking=false,updating=false,timer=null,base=new URL("../../../",location.href),manifestUrl=new URL("/NeonCore/release.json",location.origin);
     window.NEON_CORE_BUILD=v;localStorage.setItem("neon_core_build",v);
     function notice(remote){
       if(updating)return;updating=true;
@@ -423,7 +423,7 @@ let neonAudio={
   enabled:true,ready:false
 };
 const NEON_MUSIC_BASE="https://opengameart.org/sites/default/files/";
-const NEON_MUSIC_CREDIT="MUSIC · tricksntraps · OpenGameArt · CC0 · BUILD-25";
+const NEON_MUSIC_CREDIT="MUSIC · tricksntraps · OpenGameArt · CC0 · BUILD-26";
 const neonMusic={
   tracks:{
     menu:{file:"Currents.ogg",name:"NEON CORE"}, exploration:{file:"Currents.ogg",name:"NEON CORE"}, tension:{file:"Currents.ogg",name:"NEON CORE"}, combat:{file:"Currents.ogg",name:"NEON CORE"}, boss:{file:"Currents.ogg",name:"NEON CORE"}, bonus:{file:"Currents.ogg",name:"NEON CORE"}
@@ -918,7 +918,7 @@ function connectMultiplayer(roomMode="quick",roomCode=""){ const publicRoomAuto=
       if(multiplayerConnectTimer){clearTimeout(multiplayerConnectTimer);multiplayerConnectTimer=null;}
 
       setConnectionStatus("CONECTADO","Entrando a la sala…");
-      socket.send(JSON.stringify({type:"join",name:playerName||"Jugador",saveKey:saveKey,color:"#39e7ff",room:roomMode==="join"?roomCode:"",createRoom:roomMode==="create"}));
+      socket.send(JSON.stringify({type:"join",name:playerName||"Jugador",saveKey:saveKey,color:"#39e7ff",room:roomMode==="join"?roomCode:"",createRoom:roomMode==="create",clientBuild:window.NEON_CORE_BUILD||"BUILD-26"}));
     });
     socket.addEventListener("message",e=>{
        if(multiplayerSocket!==socket)return;
@@ -926,11 +926,11 @@ function connectMultiplayer(roomMode="quick",roomCode=""){ const publicRoomAuto=
         const m=JSON.parse(e.data);
         if(m.type==="server_update_notice"){
           const target=String(m.clientBuild||m.serverVersion||"");
-          if(target&&target!=="BUILD-25"&&typeof window.__neonForceUpdate==="function"){if(m.clientPath){window.__NEON_RELEASE_MANIFEST={clientPath:String(m.clientPath)}}window.__neonForceUpdate(target);}
+          if(target&&target!=="BUILD-26"&&typeof window.__neonForceUpdate==="function"){window.__neonForceUpdate(target);}
           return;
         }
         if(m.type==="room_joined"){
-          if(m.safeZone){safeZone=m.safeZone;}
+          if(m.safeZone){safeZone=m.safeZone;} if(m.name){try{localStorage.setItem("neon_core_player_name",String(m.name).slice(0,20));localStorage.setItem("neon_core_name_locked","1");}catch{}}
           spawnProtectionUntil=performance.now()+(Number(m.spawnProtectionMs)||5000);
           setConnectionStatus("CONECTADO","Listo. Entrando a la arena…");
           multiplayerReady=true;
@@ -1500,7 +1500,7 @@ function update(dt){
   const visualMoving=actualSpeed>7;
   if(visualMoving){
     if(!movementTelemetry.inputSince)movementTelemetry.inputSince=performance.now();
-    // BUILD-25: el joystick izquierdo solo mueve; el derecho controla la mira.
+    // BUILD-26: el joystick izquierdo solo mueve; el derecho controla la mira.
   }else{
     movementTelemetry.inputSince=0;
   }
