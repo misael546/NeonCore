@@ -2,7 +2,7 @@ const { test, expect } = require('@playwright/test');
 const fs = require('fs');
 const RELEASE = JSON.parse(fs.readFileSync('release.json','utf8'));
 const GAME_PATH = String(RELEASE.clientPath||'').replace(/^\/+/, '');
-const CURRENT_BUILD = String(RELEASE.clientBuild||RELEASE.releaseId||'');
+const CURRENT_VERSION = String(RELEASE.clientVersion||RELEASE.releaseId||'');
 
 test('menu principal: JUGAR abre el cliente completo de Sala 1 actual', async ({ browser }) => {
   const context = await browser.newContext({
@@ -38,14 +38,14 @@ test('menu principal: JUGAR abre el cliente completo de Sala 1 actual', async ({
     intervals: [250, 500]
   }).toContain('/NeonCore/'+GAME_PATH);
 
-  await expect.poll(async () => page.evaluate(() => window.NEON_CORE_BUILD), {
+  await expect.poll(async () => page.evaluate(() => window.NEON_CORE_VERSION), {
     timeout: 15000,
     intervals: [500, 1000]
-  }).toBe(CURRENT_BUILD);
+  }).toBe(CURRENT_VERSION);
 
   await expect(page.locator('#moveJoy')).toBeVisible({ timeout: 30000 });
   await expect(page.locator('#connectionOverlay')).toBeHidden({ timeout: 30000 });
-  expect(await page.evaluate(() => window.NEON_CORE_BUILD)).toBe(CURRENT_BUILD);
+  expect(await page.evaluate(() => window.NEON_CORE_VERSION)).toBe(CURRENT_VERSION);
 
   await expect.poll(async () => page.locator('#playersList').innerText(), {
     timeout: 15000,
