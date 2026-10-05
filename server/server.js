@@ -1,4 +1,4 @@
-/* BUILD-26 · nombre bloqueado y actualizaciones al menu */
+/* BUILD-27 · sistemas unidos y curacion mejorada */
 'use strict';
 
 const http = require('http');
@@ -74,6 +74,8 @@ function damageForPower(power) {
 }
 
 const HP_REGEN_PER_SEC = 3;
+const SAFE_ZONE_HP_REGEN_PER_SEC = 30;
+const NAME_MAX_LENGTH = 20;
 const WORLD_WALL_COUNT = 24;
 const WORLD_WALL_SEED = 739281;
 const WALL_RESPAWN_MS = 5 * 60 * 1000;
@@ -341,6 +343,7 @@ function capturePlayerData(p) {
   return {
     name: p.name,
     nameLocked: !!p.nameLocked,
+    accountId: String(p.accountId || p.saveKey || '').slice(0, 96),
     level: p.level,
     hp: p.hp,
     damage: p.damage,
@@ -1507,16 +1510,20 @@ function buyAmmo(ws){const p=clients.get(ws);if(!p)return;if(!p.room)return send
   if ((shooter.ammo || 0) <= 0) return send(ws, { type: 'ammo_empty' });
 
   const now = Date.now();
-  const cooldown = WEAPON_FIRE_RATE;
+  const cooldown = Math.max(WEAPON_FIRE_RATE, Number(weapon.fireRate) || WEAPON_FIRE_RATE);
   if (now - shooter.lastShot < cooldown) return send(ws, { type: 'shot_result', ok: false, reason: 'cooldown', ammo: shooter.ammo || 0 });
   shooter.lastShot = now;
 
   const room = rooms.get(shooter.room);
   if (!room) return;
 
-  const weapon = WEAPONS[shooter.weapon];
-  if (!weapon) return send(ws, { type: 'shot_result', ok: false, reason: 'no_weapon', ammo: 0, maxAmmo: 0 });
-
+  let weapon = WEAPONS[shooter.weapon];
+  if (!weapon) {
+    shooter.weapon = 'blaster';
+    weapon = WEAPONS.blaster;
+    applyCombatStats(shooter);
+  }
+  shooter.fireRate = WEAPON_FIRE_RATE;
   const damage = clamp(Number(shooter.damage) || 1, 1, 1000);
   const maxRange = PROJECTILE_RANGE;
   const shotX = Number(shooter.x) || 0, shotY = Number(shooter.y) || 0;
@@ -1798,6 +1805,7 @@ function createPlayer(ws) {
     id,
     name: 'Jugador',
     nameLocked: false,
+    accountId: '',
     saveKey: '',
     x: SAFE_ZONE.x,
     y: SAFE_ZONE.y,
@@ -1981,10 +1989,16 @@ wss.on('connection', async (ws) => {
           return;
         }
 
-        p.name = String(msg.name || 'Jugador').trim().slice(0, 20) || 'Jugador';
+        const requestedName = String(msg.name || 'Jugador')
+          .replace(/[\\u0000-\\u001F\\u007F]/g, ' ')
+          .replace(/\\s+/g, ' ')
+          .trim()
+          .slice(0, NAME_MAX_LENGTH) || 'Jugador';
+        p.name = requestedName;
         p.saveKey = String(msg.saveKey || '')
           .replace(/[^a-zA-Z0-9_-]/g, '')
           .slice(0, 80);
+        p.accountId = p.saveKey;
 
         if (p.saveKey) {
           // Una reconexión válida puede llegar antes de que el cierre de la
@@ -2020,14 +2034,35 @@ wss.on('connection', async (ws) => {
         p.migratedProfile = Boolean(loadedProfile?.migrated);
         p.hasSaved = !!saved;
 
-        if (saved) {
-          const savedName = String(saved.name || '').trim().slice(0, 20);
-          if (savedName) {
-            p.name = savedName;
-            p.nameLocked = true;
-          } else {
-            p.nameLocked = true;
+        if (!saved) {
+          const owner = await storage.findPlayerByName(p.name);
+          if (owner?.ambiguous || (owner?.saveKey && owner.saveKey !== p.saveKey)) {
+            send(ws, {
+              type: 'room_error',
+              reason: 'name_taken',
+              message: 'Ese nombre ya está ocupado. Elige otro nombre.'
+            });
+            return;
           }
+
+          for (const [otherWs, otherP] of clients) {
+            if (otherWs === ws || !otherP?.name) continue;
+            if (String(otherP.name).trim().toLowerCase() === p.name.toLowerCase()) {
+              send(ws, {
+                type: 'room_error',
+                reason: 'name_taken',
+                message: 'Ese nombre ya está en uso.'
+              });
+              return;
+            }
+          }
+        }
+
+        if (saved) {
+          const savedName = String(saved.name || '').trim().slice(0, NAME_MAX_LENGTH);
+          if (savedName) p.name = savedName;
+          p.nameLocked = true;
+          p.accountId = String(saved.accountId || p.saveKey || '').slice(0, 96) || p.saveKey;
 
           // La posición nunca se persiste: cada nueva conexión empieza en la zona segura.
           p.level = clamp(Number(saved.level) || 1, 1, 1000);
@@ -2063,6 +2098,7 @@ wss.on('connection', async (ws) => {
 
         if (!saved) {
           p.nameLocked = true;
+          p.accountId = p.saveKey;
         }
 
         if (msg.color) {
@@ -2445,12 +2481,16 @@ setInterval(() => {
     const maxHp = maxHpForLevel(p.level);
 
     if (p.hp < maxHp) {
-      p.hp = Math.min(maxHp, p.hp + HP_REGEN_PER_SEC * dt);
+      const safe = inSafeZone(p.x, p.y, 24);
+      const regenPerSecond = safe ? SAFE_ZONE_HP_REGEN_PER_SEC : HP_REGEN_PER_SEC;
+      p.hp = Math.min(maxHp, p.hp + regenPerSecond * dt);
 
       send(p.ws, {
         type: 'hp_regen',
         hp: p.hp,
-        maxHp
+        maxHp,
+        safeZone: safe,
+        regenPerSecond
       });
     }
 
@@ -2962,6 +3002,8 @@ function runServerDiagnostics() {
   if (PUBLIC_ROOMS.some((code) => !rooms.has(code))) problems.push('Sala pública ausente');
   if (WORLD_WALLS.length < 20) problems.push('Muy pocos muros');
   if (Object.keys(WEAPONS).length < 10) problems.push('Arsenal incompleto');
+  if (!(SAFE_ZONE_HP_REGEN_PER_SEC > HP_REGEN_PER_SEC)) problems.push('Curación de zona segura inválida');
+  if (NAME_MAX_LENGTH < 3) problems.push('Límite de nombre inválido');
   if (!cosmetics.getSkin('core_default')) problems.push('Skin base ausente');
   if (Object.keys(cosmetics.SKINS).length < 8) problems.push('Catálogo de skins incompleto');
   if (!cosmetics.REDEEM_CODES.NEONSTART) problems.push('Código NEONSTART ausente');
