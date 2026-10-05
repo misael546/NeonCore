@@ -29,9 +29,9 @@ small{display:block;margin-top:10px;color:#71819a;font-size:10px}
 <script>
 (async function(){
   const RAW="https://raw.githubusercontent.com/misael546/NeonCore/main/";
-  const fallbackPath="neoncore/12345/BUILD-35/index.html";
+  const fallbackPath="neoncore/12345/V35/index.html";
   const nameKey="neon_core_player_name";
-  const buildKey="neon_core_build";
+  const versionKey="neon_core_version";
   function status(t){const e=document.getElementById("status");if(e)e.textContent=t;}
   function cb(u){return u+(u.includes("?")?"&":"?")+"t="+Date.now()+"-"+Math.random().toString(36).slice(2);}
   async function get(u){const r=await fetch(cb(u),{cache:"no-store"});if(!r.ok)throw new Error(String(r.status));return r;}
@@ -48,14 +48,14 @@ small{display:block;margin-top:10px;color:#71819a;font-size:10px}
   }
   try{
     const manifest=await (await get(RAW+"release.json")).json();
-    const targetRaw=String(manifest.clientBuild||manifest.releaseId||manifest.serverBuild||"").trim().toUpperCase();
-    const match=targetRaw.match(/^V([1-9]|[1-4][0-9]|50)$/) || targetRaw.match(/^BUILD-?([1-9]|[1-4][0-9]|50)$/);
+    const targetRaw=String(manifest.version||manifest.releaseId||manifest.clientVersion||manifest.serverVersion||"").trim().toUpperCase();
+    const match=targetRaw.match(/^V([1-9]|[1-4][0-9]|50)$/);
     const target=match ? "V"+Number(match[1]) : "";
     const clientPath=String(manifest.clientPath||fallbackPath).replace(/^\/+?/,"");
     if(!target)throw new Error("release inválida: se esperaba V1-V50");
 
     let installed="";
-    try{installed=String(localStorage.getItem(buildKey)||"").trim();}catch{}
+    try{installed=String(localStorage.getItem(versionKey)||"").trim();}catch{}
 
     // Si el cliente ya conoce exactamente la misma build, NO se vuelve a instalar.
     if(installed===target){
@@ -66,10 +66,10 @@ small{display:block;margin-top:10px;color:#71819a;font-size:10px}
 
     status("Verificando la build "+target+"…");
     const html=await (await get(RAW+clientPath)).text();
-    const m=html.match(/window\.NEON_CORE_BUILD\s*=\s*["']([^"']+)["']/);
+    const m=html.match(/window\.NEON_CORE_VERSION\s*=\s*["']([^"']+)["']/);
     if(!m||String(m[1]).trim()!==target)throw new Error("cliente desfasado");
 
-    try{localStorage.setItem(buildKey,target);}catch{}
+    try{localStorage.setItem(versionKey,target);}catch{}
     status("V" + target+" verificada. Entrando…");
     goDirect(clientPath,savedName(),target);
   }catch(e){
