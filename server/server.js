@@ -1,4 +1,4 @@
-/* V43 · inventario, items y equipo */
+/* V44 · inventario, items, venta y equipo */
 'use strict';
 
 const http = require('http');
@@ -2634,7 +2634,7 @@ wss.on('connection', async (ws) => {
       }
 
       if (msg.type === 'buy_weapon') {
-        if (!p.frozen) shopBuy(ws, msg.weapon);
+        if (!p.frozen) buyShopItem(ws, msg.weapon);
         return;
       }
 
@@ -2664,7 +2664,7 @@ wss.on('connection', async (ws) => {
       }
 
       if (msg.type === 'buy_armor') {
-        if (!p.frozen) buyCosmeticArmor(ws, msg.armorId);
+        if (!p.frozen) buyShopItem(ws, msg.armorId);
         return;
       }
 
