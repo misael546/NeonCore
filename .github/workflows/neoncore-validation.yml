@@ -79,10 +79,14 @@ jobs:
           if (!server.includes('WEAPON_FIRE_RATE = 650') || !server.includes('fireRate: 650') || !server.includes('account_authenticated')) {
             throw new Error('Server combat tuning is not synchronized');
           }
-          const obsolete = ['neoncore/12345/v1','neoncore/12345/v2','neoncore/12345/v3'];
-          for (const dir of obsolete) {
-            const fs = require('fs');
-            if (fs.existsSync(dir)) throw new Error('Obsolete build directory still exists: '+dir);
+          const roomRoot = 'neoncore/12345';
+          const expectedDir = require('path').dirname(clientPath);
+          const expectedName = require('path').basename(expectedDir);
+          const actualDirs = fs.readdirSync(roomRoot, {withFileTypes:true})
+            .filter(entry => entry.isDirectory())
+            .map(entry => entry.name);
+          if (actualDirs.length !== 1 || actualDirs[0] !== expectedName) {
+            throw new Error('Room client directory must contain only current release folder: '+JSON.stringify(actualDirs)+' expected '+expectedName);
           }
           console.log('Current complete release synchronization: OK -> '+build);
           NODE
