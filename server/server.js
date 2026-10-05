@@ -1510,12 +1510,6 @@ function buyAmmo(ws){const p=clients.get(ws);if(!p)return;if(!p.room)return send
   if ((shooter.ammo || 0) <= 0) return send(ws, { type: 'ammo_empty' });
 
   const now = Date.now();
-  const cooldown = Math.max(WEAPON_FIRE_RATE, Number(weapon.fireRate) || WEAPON_FIRE_RATE);
-  if (now - shooter.lastShot < cooldown) return send(ws, { type: 'shot_result', ok: false, reason: 'cooldown', ammo: shooter.ammo || 0 });
-  shooter.lastShot = now;
-
-  const room = rooms.get(shooter.room);
-  if (!room) return;
 
   let weapon = WEAPONS[shooter.weapon];
   if (!weapon) {
@@ -1523,6 +1517,14 @@ function buyAmmo(ws){const p=clients.get(ws);if(!p)return;if(!p.room)return send
     weapon = WEAPONS.blaster;
     applyCombatStats(shooter);
   }
+
+  const cooldown = Math.max(WEAPON_FIRE_RATE, Number(weapon.fireRate) || WEAPON_FIRE_RATE);
+  if (now - shooter.lastShot < cooldown) return send(ws, { type: 'shot_result', ok: false, reason: 'cooldown', ammo: shooter.ammo || 0 });
+  shooter.lastShot = now;
+
+  const room = rooms.get(shooter.room);
+  if (!room) return;
+
   shooter.fireRate = WEAPON_FIRE_RATE;
   const damage = clamp(Number(shooter.damage) || 1, 1, 1000);
   const maxRange = PROJECTILE_RANGE;
