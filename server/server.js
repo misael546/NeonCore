@@ -1,4 +1,4 @@
-/* V35 · release completo */
+/* V36 · release completo */
 'use strict';
 
 const http = require('http');
@@ -465,11 +465,71 @@ function addInventoryItem(p,itemId,qty){if(!p)return Math.max(0,Math.floor(Numbe
 function removeInventoryAmount(p,itemId,qty){if(!p)return 0;p.inventory=normalizeInventory(p.inventory);let remaining=Math.max(0,Math.floor(Number(qty)||0)),removed=0;for(let i=0;i<p.inventory.length&&remaining>0;i++){const slot=p.inventory[i];if(!slot||slot.itemId!==itemId)continue;const take=Math.min(remaining,slot.qty);slot.qty-=take;removed+=take;remaining-=take;if(slot.qty<=0)p.inventory[i]=null;}syncAmmoFromInventory(p);return removed;}
 function inventoryPayload(p){syncAmmoFromInventory(p);return p.inventory.map(slot=>slot?{itemId:slot.itemId,qty:slot.qty}:null);}
 function sendInventoryState(p,message=''){if(!p?.ws)return;send(p.ws,{type:'inventory_state',message,inventory:inventoryPayload(p),ammo:inventoryTotal(p,'ammo'),maxAmmo:MAX_AMMO,slots:INVENTORY_SLOTS,stackMax:INVENTORY_STACK_MAX});}
-function dropItem(roomCode,p,itemId,qty,x,y){const list=roomDrops.get(roomCode)||[];const drop={id:'d_'+Math.random().toString(36).slice(2,10),itemId:String(itemId||''),name:itemId==='ammo'?'MUNICIÓN':'OBJETO',qty:Math.max(1,Math.floor(Number(qty)||0)),x:clamp(Number(x)||0,35,WORLD.w-35),y:clamp(Number(y)||0,35,WORLD.h-35),createdAt:Date.now()};list.push(drop);roomDrops.set(roomCode,list);return drop;}
+function dropItem(roomCode,p,itemId,qty,x,y){
+  const list=roomDrops.get(roomCode)||[];
+  const id=String(itemId||'');
+  const drop={
+    id:'d_'+Math.random().toString(36).slice(2,10),
+    itemId:id,
+    name:id==='gold'?'ORO':id==='ammo'?'MUNICIÓN':'OBJETO',
+    qty:Math.max(1,Math.floor(Number(qty)||0)),
+    x:clamp(Number(x)||0,35,WORLD.w-35),
+    y:clamp(Number(y)||0,35,WORLD.h-35),
+    createdAt:Date.now()
+  };
+  list.push(drop);roomDrops.set(roomCode,list);return drop;
+}
+function spawnGoldDrops(roomCode,amount,x,y){
+  let remaining=Math.max(0,Math.floor(Number(amount)||0));
+  const drops=[];
+  let index=0;
+  while(remaining>0){
+    const qty=Math.min(INVENTORY_STACK_MAX,remaining);
+    const angle=(index%12)*(Math.PI*2/12);
+    const radius=index===0?0:38+((index%4)*16);
+    drops.push(dropItem(roomCode,null,'gold',qty,
+      clamp(Number(x)||0+Math.cos(angle)*radius,35,WORLD.w-35),
+      clamp(Number(y)||0+Math.sin(angle)*radius,35,WORLD.h-35)));
+    remaining-=qty;index++;
+  }
+  return drops;
+}
 function sendDropState(roomCode){broadcastRoom(roomCode,{type:'drop_state',drops:(roomDrops.get(roomCode)||[]).map(d=>({...d}))});}
 function cleanupDrops(roomCode){const now=Date.now(),list=roomDrops.get(roomCode)||[],next=list.filter(d=>now-(Number(d.createdAt)||now)<DROP_LIFETIME_MS);if(next.length!==list.length){roomDrops.set(roomCode,next);sendDropState(roomCode);}}
 function dropInventoryItem(ws,slotIndex){const p=clients.get(ws);if(!p||!p.room||!p.alive)return;const idx=Math.floor(Number(slotIndex));if(!Number.isInteger(idx)||idx<0||idx>=INVENTORY_SLOTS)return;p.inventory=normalizeInventory(p.inventory);const slot=p.inventory[idx];if(!slot||slot.itemId!=='ammo'||slot.qty<=0)return sendInventoryState(p,'Ese espacio está vacío.');const qty=slot.qty;p.inventory[idx]=null;syncAmmoFromInventory(p);dropItem(p.room,p,'ammo',qty,p.x,p.y);void persistPlayer(p);sendInventoryState(p,'Soltaste '+qty+' balas en el suelo.');sendDropState(p.room);}
-function pickupNearby(ws){const p=clients.get(ws);if(!p||!p.room||!p.alive)return;cleanupDrops(p.room);const list=roomDrops.get(p.room)||[];let bestIndex=-1,bestDistance=Infinity;for(let i=0;i<list.length;i++){const d=list[i],distance=Math.hypot(p.x-d.x,p.y-d.y);if(distance<=PICKUP_RADIUS&&distance<bestDistance){bestDistance=distance;bestIndex=i;}}if(bestIndex<0)return sendInventoryState(p,'No hay objetos cerca.');const drop=list[bestIndex],before=inventoryTotal(p,drop.itemId),leftover=addInventoryItem(p,drop.itemId,drop.qty),added=inventoryTotal(p,drop.itemId)-before;if(added<=0)return sendInventoryState(p,'La mochila está llena.');drop.qty=leftover;if(drop.qty<=0)list.splice(bestIndex,1);roomDrops.set(p.room,list);void persistPlayer(p);sendInventoryState(p,'Recogiste '+added+' '+drop.name+'.');sendDropState(p.room);}
+function pickupNearby(ws){
+  const p=clients.get(ws);if(!p||!p.room||!p.alive)return;
+  cleanupDrops(p.room);
+  const list=roomDrops.get(p.room)||[];
+  let bestIndex=-1,bestDistance=Infinity;
+  for(let i=0;i<list.length;i++){
+    const d=list[i],distance=Math.hypot(p.x-d.x,p.y-d.y);
+    if(distance<=95&&distance<bestDistance){bestDistance=distance;bestIndex=i;}
+  }
+  if(bestIndex<0)return sendInventoryState(p,'No hay objetos cerca.');
+  const drop=list[bestIndex];
+  if(String(drop.itemId)==='gold'){
+    const amount=Math.max(1,Math.min(INVENTORY_STACK_MAX,Math.floor(Number(drop.qty)||0)));
+    p.gold=Math.max(0,Number(p.gold)||0)+amount;
+    list.splice(bestIndex,1);
+    roomDrops.set(p.room,list);
+    void persistPlayer(p);
+    send(ws,{type:'currency_pickup',amount,gold:p.gold});
+    sendStats(p);
+    sendDropState(p.room);
+    return;
+  }
+  const before=inventoryTotal(p,drop.itemId);
+  const leftover=addInventoryItem(p,drop.itemId,drop.qty);
+  const added=inventoryTotal(p,drop.itemId)-before;
+  if(added<=0)return sendInventoryState(p,'La mochila está llena.');
+  drop.qty=leftover;
+  if(drop.qty<=0)list.splice(bestIndex,1);
+  roomDrops.set(p.room,list);
+  void persistPlayer(p);
+  sendInventoryState(p,'Recogiste '+added+' '+drop.name+'.');
+  sendDropState(p.room);
+}
 function maxAmmoForWeapon() {
   // La munición pertenece al jugador, no al arma equipada.
   return MAX_AMMO;
@@ -1786,7 +1846,8 @@ applyCombatStats(shooter);
       const reward = isBoss ? BOSS_GOLD_REWARD : targetEnemy.kind === 'elite' ? 500 : 40;
       const xp = isBoss ? BOSS_XP_REWARD : targetEnemy.kind === 'elite' ? 250 : 70;
 
-      shooter.gold = (shooter.gold || 0) + reward;
+      // El oro de los mobs ya no entra directo: cae físicamente al suelo.
+      spawnGoldDrops(shooter.room,targetEnemy.kind === 'boss' ? BOSS_GOLD_REWARD : reward,targetEnemy.x,targetEnemy.y);
 
       const index = enemies.findIndex((enemy) => enemy.id === targetEnemy.id);
       if (index >= 0) enemies.splice(index, 1);
@@ -1802,7 +1863,7 @@ applyCombatStats(shooter);
       void persistPlayer(shooter);
       sendStats(shooter);
       // Sincroniza nivel, score y kills con la lista de jugadores después de cada baja PvE.
-      if (shooter.room) sendPlayerList(shooter.room);
+      if (shooter.room) { sendPlayerList(shooter.room); sendDropState(shooter.room); }
 
       if (isBoss) {
         roomBossProjectiles.set(shooter.room, []);
@@ -1811,7 +1872,7 @@ applyCombatStats(shooter);
           gold: reward,
           diamonds: 0,
           xp,
-          message: '☄️ DESTRUCTOR ESTELAR DESTRUIDO · +15,000 🪙 · +5,000 XP'
+          message: '☄️ DESTRUCTOR ESTELAR DESTRUIDO · ORO EN EL SUELO · +5,000 XP'
         });
       }
 
@@ -1929,7 +1990,7 @@ const httpServer = http.createServer(async (req, res) => {
 
   if (pathname === '/client') {
     try {
-      const manifestClientPath = String(UNIFIED_RELEASE_MANIFEST.clientPath || '/NeonCore/neoncore/12345/V35/index.html').replace(/^\/NeonCore\//, '').replace(/^\/+/, '');
+      const manifestClientPath = String(UNIFIED_RELEASE_MANIFEST.clientPath || '/NeonCore/neoncore/12345/V36/index.html').replace(/^\/NeonCore\//, '').replace(/^\/+/, '');
       const clientPath = path.join(__dirname, '..', manifestClientPath);
       const html = fs.readFileSync(clientPath, 'utf8');
       res.writeHead(200, {
@@ -2187,7 +2248,7 @@ wss.on('connection', async (ws) => {
           serverStartedAt: SERVER_STARTED_AT,
           message: SERVER_UPDATE_MESSAGE,
           required: true,
-          clientPath: String(UNIFIED_RELEASE_MANIFEST.clientPath || '/NeonCore/neoncore/12345/V35/index.html')
+          clientPath: String(UNIFIED_RELEASE_MANIFEST.clientPath || '/NeonCore/neoncore/12345/V36/index.html')
         });
 
         return;
@@ -2995,7 +3056,7 @@ function announceServerUpdate() {
     serverStartedAt: SERVER_STARTED_AT,
     message: SERVER_UPDATE_MESSAGE,
     required: true,
-    clientPath: String(UNIFIED_RELEASE_MANIFEST.clientPath || 'neoncore/12345/V35/index.html')
+    clientPath: String(UNIFIED_RELEASE_MANIFEST.clientPath || 'neoncore/12345/V36/index.html')
   };
   for (const p of clients.values()) {
     send(p.ws, payload);
