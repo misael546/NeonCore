@@ -2083,7 +2083,7 @@ wss.on('connection', async (ws) => {
           await joinRoom(ws, 'OPEN', false);
         }
 
-        if (p.migratedProfile) {
+        if (!saved || p.migratedProfile) {
           await persistPlayer(p);
           p.migratedProfile = false;
         }
