@@ -1,5 +1,5 @@
 name: Deploy Neon Core to GitHub Pages
-# Release-driven Pages deployment — no hardcoded build number
+# Release-driven Pages deployment — no hardcoded version number
 
 on:
   push:
@@ -112,7 +112,7 @@ jobs:
               echo "[PAGES] LIVE ROOT VERIFIED: current standalone main menu is being served."
               exit 0
             fi
-            echo "[PAGES] Live root check $i/12 did not match current build; waiting..."
+            echo "[PAGES] Live root check $i/12 did not match current version; waiting..."
             sleep 5
           done
           echo "[PAGES] LIVE ROOT CHECK FAILED."
