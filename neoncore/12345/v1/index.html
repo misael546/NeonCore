@@ -963,17 +963,6 @@ function updatePlayersFromList(list){
   for(const q of (list||[])) if(q.id!==multiplayerId) remotePlayers.set(q.id,q);
   renderPlayers(list||[]);
 }
-async function roomStillExists(code){
-  const room=String(code||'').toUpperCase();
-  if(!room||room==="OPEN")return true;
-  try{
-    const base=RENDER_HEALTH_URL.replace(/\/health$/,"");
-    const res=await fetch(base+"/rooms?reconnect="+Date.now(),{cache:"no-store"});
-    if(!res.ok)return null;
-    const data=await res.json();
-    return Array.isArray(data.rooms)&&data.rooms.some(r=>String(r.code||"").toUpperCase()===room);
-  }catch{return null;}
-}
 function stopSmartReconnect(){reconnectActive=false;reconnectStartedAt=0;reconnectAttempt=0;reconnectRoom="";if(reconnectTimer){clearTimeout(reconnectTimer);reconnectTimer=null;}}
 function smartReconnectStart(){
   if(!currentRoom||reconnectActive)return;
@@ -996,13 +985,6 @@ async function smartReconnectTry(){
     return;
   }
   const room=currentRoom;
-  const exists=await roomStillExists(room);
-  if(exists===false){
-    stopSmartReconnect();
-    setConnectionStatus("SALA FINALIZADA","La partida ya no existe. Volviendo al menú…",true);
-    setTimeout(()=>returnToMenu(),900);
-    return;
-  }
   setConnectionStatus("RECONEXIÓN","Reconectando a "+(room==="OPEN"?"la sala":"la sala "+room)+"… ("+Math.min(5,reconnectAttempt)+"/5)",true);
   const mode=room==="OPEN"?"quick":"join";
   connectMultiplayer(mode,room==="OPEN"?"":room);
