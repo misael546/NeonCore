@@ -37,11 +37,11 @@ test('menu principal: JUGAR abre el cliente completo de Sala 1 actual', async ({
   await expect.poll(async () => page.evaluate(() => window.NEON_CORE_BUILD), {
     timeout: 15000,
     intervals: [500, 1000]
-  }).toBe('BUILD-31');
+  }).toBe('BUILD-32');
 
   await expect(page.locator('#moveJoy')).toBeVisible({ timeout: 30000 });
   await expect(page.locator('#connectionOverlay')).toBeHidden({ timeout: 30000 });
-  expect(await page.evaluate(() => window.NEON_CORE_BUILD)).toBe('BUILD-31');
+  expect(await page.evaluate(() => window.NEON_CORE_BUILD)).toBe('BUILD-32');
 
   await expect.poll(async () => page.locator('#playersList').innerText(), {
     timeout: 15000,
