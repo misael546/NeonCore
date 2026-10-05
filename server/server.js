@@ -3005,8 +3005,8 @@ function announceServerUpdate() {
 var serverUpdateHeartbeat = null;
 function startServerUpdateHeartbeat() {
   if (serverUpdateHeartbeat) clearInterval(serverUpdateHeartbeat);
-  // Old clients may already be inside a room when a new build goes live.
-  // Keep announcing the current build so those clients can migrate without
+  // Old clients may already be inside a room when a new version goes live.
+  // Keep announcing the current version so those clients can migrate without
   // a manual refresh. Current clients ignore notices for their own build.
   serverUpdateHeartbeat = setInterval(() => {
     if (clients.size > 0) announceServerUpdate();
@@ -3062,7 +3062,7 @@ function runServerDiagnostics() {
   }
 
   console.log(
-    '[DIAGNOSTIC] PASS build=' + SERVER_VERSION +
+    '[DIAGNOSTIC] PASS version=' + SERVER_VERSION +
     ' rooms=' + rooms.size +
     ' walls=' + WORLD_WALLS.length +
     ' weapons=' + Object.keys(WEAPONS).length +
