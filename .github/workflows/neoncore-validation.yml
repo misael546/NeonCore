@@ -70,7 +70,8 @@ jobs:
           if (clientMarker !== build || !root.includes('launchLatest') || !root.includes('release.json')) {
             throw new Error('Main menu/current client are not release-driven');
           }
-          if (!/^neoncore\\/12345\\/BUILD-\\d+\\/index\\.html$/.test(clientPath)) {
+          const clientParts = clientPath.split('/');
+          if (clientParts.length !== 4 || clientParts[0] !== 'neoncore' || clientParts[1] !== '12345' || !clientParts[2].startsWith('BUILD-') || clientParts[2] === 'BUILD-' || clientParts[3] !== 'index.html') {
             throw new Error('Current client path must use BUILD-* folder: '+clientPath);
           }
           if (!sessions.includes('Neon Core · Sesiones') || !sessions.includes('const WS=')) {
