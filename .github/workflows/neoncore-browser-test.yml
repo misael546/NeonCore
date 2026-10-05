@@ -27,7 +27,7 @@ jobs:
           expected="$(python3 -c 'import json; print(json.load(open("release.json", encoding="utf-8"))["version"])')"
           for i in $(seq 1 30); do
             live="$(curl -fsSL "https://misael546.github.io/NeonCore/release.json?ci=$i" || true)"
-            if grep -Fq "\"clientBuild\": \"$expected\"" <<<"$live"; then
+            if grep -Fq "\"version\": \"$expected\"" <<<"$live"; then
               echo "NeonCore current release is public: $expected"
               exit 0
             fi
