@@ -48,16 +48,18 @@ small{display:block;margin-top:10px;color:#71819a;font-size:10px}
   }
   try{
     const manifest=await (await get(RAW+"release.json")).json();
-    const target=String(manifest.clientBuild||manifest.releaseId||"").trim();
+    const targetRaw=String(manifest.clientBuild||manifest.releaseId||manifest.serverBuild||"").trim().toUpperCase();
+    const match=targetRaw.match(/^V([1-9]|[1-4][0-9]|50)$/) || targetRaw.match(/^BUILD-?([1-9]|[1-4][0-9]|50)$/);
+    const target=match ? "V"+Number(match[1]) : "";
     const clientPath=String(manifest.clientPath||fallbackPath).replace(/^\/+?/,"");
-    if(!target)throw new Error("release vacío");
+    if(!target)throw new Error("release inválida: se esperaba V1-V50");
 
     let installed="";
     try{installed=String(localStorage.getItem(buildKey)||"").trim();}catch{}
 
     // Si el cliente ya conoce exactamente la misma build, NO se vuelve a instalar.
     if(installed===target){
-      status("BUILD "+target+" ya está instalada. Entrando…");
+      status("V" + target+" ya está instalada. Entrando…");
       goDirect(clientPath,savedName(),target);
       return;
     }
@@ -68,7 +70,7 @@ small{display:block;margin-top:10px;color:#71819a;font-size:10px}
     if(!m||String(m[1]).trim()!==target)throw new Error("cliente desfasado");
 
     try{localStorage.setItem(buildKey,target);}catch{}
-    status("BUILD "+target+" verificada. Entrando…");
+    status("V" + target+" verificada. Entrando…");
     goDirect(clientPath,savedName(),target);
   }catch(e){
     // No dejamos al jugador atrapado en el cargador.
