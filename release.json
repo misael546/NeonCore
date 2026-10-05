@@ -1,8 +1,8 @@
 {
   "game": "Neon Core",
-  "releaseId": "BUILD-33",
-  "clientBuild": "BUILD-33",
-  "serverBuild": "BUILD-33",
+  "releaseId": "BUILD-34",
+  "clientBuild": "BUILD-34",
+  "serverBuild": "BUILD-34",
   "databaseSchema": 3,
-  "clientPath": "/NeonCore/neoncore/12345/v2/index.html"
+  "clientPath": "/NeonCore/neoncore/12345/v3/index.html"
 }
