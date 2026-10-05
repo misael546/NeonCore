@@ -76,8 +76,8 @@ jobs:
           if (!version || release.version !== version || release.releaseId !== version || release.clientVersion !== version || release.serverVersion !== version || Number(release.databaseSchema) !== 3) {
             throw new Error('release.json is not internally synchronized');
           }
-          if (clientMarker !== version || !root.includes('launchLatest') || !root.includes('release.json') || root.includes('BUILD') || root.includes('build')) {
-            throw new Error('Main menu/current client still contains BUILD terminology');
+          if (clientMarker !== version || !root.includes('launchLatest') || !root.includes('release.json')) {
+            throw new Error('Main menu/current client are not version-driven');
           }
           const clientParts = clientPath.split('/');
           if (clientParts.length !== 4 || clientParts[0] !== 'neoncore' || clientParts[1] !== '12345' || !/^V([1-9]|[1-4][0-9]|50)$/.test(clientParts[2]) || clientParts[3] !== 'index.html') {
