@@ -1,13 +1,17 @@
 const { test, expect } = require('@playwright/test');
+const fs = require('fs');
+const RELEASE = JSON.parse(fs.readFileSync('release.json','utf8'));
+const GAME_PATH = String(RELEASE.clientPath||'').replace(/^\/+/, '');
+const CURRENT_BUILD = String(RELEASE.clientBuild||RELEASE.releaseId||'');
 
-const GAME_URL='https://misael546.github.io/NeonCore/neoncore/12345/v1/?ci=';
+const GAME_URL='https://misael546.github.io/NeonCore/'+GAME_PATH+'?ci=';
 const SESSIONS_URL='https://misael546.github.io/NeonCore/sessions/?ci=';
 const ROOT_URL='https://misael546.github.io/NeonCore/?ci=';
 
 async function waitForLiveGame(page, errors) {
   await expect(page.locator('#game')).toBeVisible({timeout:30000});
   await expect(page.locator('#connectionOverlay')).toBeHidden({timeout:45000});
-  await expect.poll(async()=>page.evaluate(()=>window.NEON_CORE_BUILD),{timeout:15000,intervals:[500,1000]}).toBe('BUILD-32');
+  await expect.poll(async()=>page.evaluate(()=>window.NEON_CORE_BUILD),{timeout:15000,intervals:[500,1000]}).toBe(CURRENT_BUILD);
   await expect(page.locator('#moveJoy')).toBeVisible({timeout:30000});
   await expect(page.locator('#aimJoy')).toBeVisible({timeout:10000});
   if(errors.length)throw new Error('Errores de navegador: '+errors.join(' | '));
@@ -50,7 +54,7 @@ test('sala #1: salir y volver a entrar reconecta',async({page})=>{
   await page.goto(SESSIONS_URL+Date.now(),{waitUntil:'domcontentloaded',timeout:45000});
   await expect(page.locator('.room[data-room="12345"]')).toBeVisible({timeout:15000});
   await page.locator('.room[data-room="12345"]').click();
-  await expect.poll(async()=>page.url(),{timeout:15000,intervals:[250,500]}).toContain('/NeonCore/neoncore/12345/v1/');
+  await expect.poll(async()=>page.url(),{timeout:15000,intervals:[250,500]}).toContain('/NeonCore/'+GAME_PATH);
   await waitForLiveGame(page,errors);
   expect(sockets.length).toBeGreaterThan(first);
   if(errors.length)throw new Error('Errores durante reingreso: '+errors.join(' | '));
@@ -78,7 +82,7 @@ test('menu principal: JUGAR abre la Sala 1 actual',async({browser})=>{
   await expect(page.locator('#name')).toBeVisible({timeout:15000});
   await page.locator('#name').fill('PruebaNeon');
   await page.locator('#play').click();
-  await expect.poll(async()=>page.url(),{timeout:15000,intervals:[250,500]}).toContain('/NeonCore/neoncore/12345/v1/');
+  await expect.poll(async()=>page.url(),{timeout:15000,intervals:[250,500]}).toContain('/NeonCore/'+GAME_PATH);
   await waitForLiveGame(page,errors);
   await context.close();
 });
@@ -92,7 +96,7 @@ test('SHOP: interfaz principal disponible',async({page})=>{
   const health=await page.request.get('https://neon-core-multiplayer.onrender.com/health?ci='+Date.now());
   expect(health.ok()).toBeTruthy();
   const h=await health.json();
-  expect(h.version).toBe('BUILD-32');
+  expect(h.version).toBe(CURRENT_BUILD);
   expect(h.diagnostics.bossTarget).toBe(1);
   expect(h.diagnostics.eliteTarget).toBe(10);
   await expect(page.locator('.shopTab[data-shop-section="arsenal"]')).toBeVisible({timeout:15000});
@@ -107,7 +111,7 @@ test('mobile emulation: interfaz táctil y controles visibles',async({browser})=
   page.on('pageerror',e=>errors.push('PAGEERROR: '+e.message));
   page.on('console',m=>{if(m.type()==='error'&&!/favicon/i.test(m.text()))errors.push('CONSOLE: '+m.text());});
   await page.goto(ROOT_URL+'room=12345&mobileci='+Date.now(),{waitUntil:'domcontentloaded',timeout:45000});
-  await expect.poll(async()=>page.url(),{timeout:15000,intervals:[250,500]}).toContain('/NeonCore/neoncore/12345/v1/');
+  await expect.poll(async()=>page.url(),{timeout:15000,intervals:[250,500]}).toContain('/NeonCore/'+GAME_PATH);
   await waitForLiveGame(page,errors);
   const body=await page.locator('body').evaluate(el=>({width:el.clientWidth,height:el.clientHeight,scrollWidth:el.scrollWidth,scrollHeight:el.scrollHeight}));
   expect(body.scrollWidth).toBeLessThanOrEqual(body.width+2);
