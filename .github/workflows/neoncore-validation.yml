@@ -33,7 +33,7 @@ jobs:
           node - <<'NODE'
           const fs = require('fs');
           const release = JSON.parse(fs.readFileSync('release.json','utf8'));
-          const currentClient = String(release.clientPath || '').replace(/^\/+/, '');
+          const currentClient = String(release.clientPath || '').replace(/^\/NeonCore\//,'');
           const files = [
             currentClient,
             'index.html',
@@ -58,7 +58,7 @@ jobs:
           const release = JSON.parse(fs.readFileSync('release.json','utf8'));
           const root = fs.readFileSync('index.html','utf8');
           const sessions = fs.readFileSync('sessions/index.html','utf8');
-          const clientPath = String(release.clientPath || '').replace(/^\/+/, '');
+          const clientPath = String(release.clientPath || '').replace(/^\/NeonCore\//,'');
           const client = fs.readFileSync(clientPath,'utf8');
           const server = fs.readFileSync('server/server.js','utf8');
 
