@@ -693,47 +693,82 @@ function drawNeonProjectiles(){
   const now=performance.now();
   for(let i=neonProjectiles.length-1;i>=0;i--){
     const q=neonProjectiles[i];
-    const duration=Math.max(180,Number(q.duration)||760);
+    const duration=Math.max(120,Number(q.duration)||520);
     const t=Math.max(0,Math.min(1,(now-q.startAt)/duration));
     const x=q.x+(q.tx-q.x)*t;
     const y=q.y+(q.ty-q.y)*t;
-    const trailT=Math.max(0,t-(q.pending?.20:.14));
+    const trailT=Math.max(0,t-(q.pending?.18:.12));
+    const midT=Math.max(0,t-(q.pending?.08:.055));
     const tx=q.x+(q.tx-q.x)*trailT;
     const ty=q.y+(q.ty-q.y)*trailT;
+    const mx=q.x+(q.tx-q.x)*midT;
+    const my=q.y+(q.ty-q.y)*midT;
     const color=q.color||"#39e7ff";
-    const head=Math.max(8,Number(q.size)||13);
+    const accent=q.accent||"#fff";
+    const head=Math.max(6,Math.min(11,Number(q.size)||7));
+    const angle=Number(q.angle)||0;
 
     ctx.save();
     ctx.globalCompositeOperation="lighter";
-    ctx.strokeStyle=color;
     ctx.lineCap="round";
-    ctx.globalAlpha=q.pending?.95:.9;
-    ctx.shadowBlur=q.pending?34:28;
+
+    // Cola suave: dos capas, sin forma de flecha.
+    ctx.strokeStyle=color;
     ctx.shadowColor=color;
-    ctx.lineWidth=q.pending?13:10;
+    ctx.shadowBlur=q.pending?18:14;
+    ctx.globalAlpha=q.pending?.30:.22;
+    ctx.lineWidth=head*1.25;
     ctx.beginPath();
     ctx.moveTo(sx(tx),sy(ty));
     ctx.lineTo(sx(x),sy(y));
     ctx.stroke();
 
-    ctx.globalAlpha=1;
-    ctx.translate(sx(x),sy(y));
-    ctx.rotate(Number(q.angle)||0);
-    ctx.shadowBlur=34;
-    ctx.fillStyle=color;
+    ctx.globalAlpha=q.pending?.72:.60;
+    ctx.shadowBlur=q.pending?10:8;
+    ctx.lineWidth=Math.max(2.2,head*.48);
     ctx.beginPath();
-    ctx.moveTo(head*1.55,0);
-    ctx.lineTo(-head*.75,-head*.52);
-    ctx.lineTo(-head*.15,0);
-    ctx.lineTo(-head*.75,head*.52);
-    ctx.closePath();
+    ctx.moveTo(sx(mx),sy(my));
+    ctx.lineTo(sx(x),sy(y));
+    ctx.stroke();
+
+    // Núcleo de energía compacto y claramente separado de la cola.
+    ctx.translate(sx(x),sy(y));
+    ctx.rotate(angle);
+
+    ctx.globalAlpha=.16;
+    ctx.fillStyle=color;
+    ctx.shadowBlur=22;
+    ctx.beginPath();
+    ctx.arc(0,0,head*2.05,0,Math.PI*2);
     ctx.fill();
 
-    ctx.fillStyle="#fff";
+    ctx.globalAlpha=.95;
+    ctx.strokeStyle=color;
     ctx.shadowBlur=18;
+    ctx.lineWidth=head*.78;
     ctx.beginPath();
-    ctx.arc(head*.28,0,Math.max(2.5,head*.22),0,Math.PI*2);
+    ctx.moveTo(-head*.72,0);
+    ctx.lineTo(head*.92,0);
+    ctx.stroke();
+
+    ctx.globalAlpha=1;
+    ctx.strokeStyle=accent;
+    ctx.shadowColor=accent;
+    ctx.shadowBlur=9;
+    ctx.lineWidth=Math.max(2,head*.30);
+    ctx.beginPath();
+    ctx.moveTo(-head*.58,0);
+    ctx.lineTo(head*.66,0);
+    ctx.stroke();
+
+    ctx.globalAlpha=1;
+    ctx.fillStyle="#fff";
+    ctx.shadowColor="#fff";
+    ctx.shadowBlur=7;
+    ctx.beginPath();
+    ctx.arc(head*.74,0,Math.max(1.4,head*.18),0,Math.PI*2);
     ctx.fill();
+
     ctx.restore();
 
     if(t>=1)neonProjectiles.splice(i,1);
@@ -1070,8 +1105,10 @@ function connectMultiplayer(roomMode="quick",roomCode=""){ const publicRoomAuto=
             const iy=Number.isFinite(Number(m.impactY))?Number(m.impactY):sy0+Math.sin(angle)*travelDistance;
             neonProjectiles.push({
               id:m.shotId||Math.random(),x:sx0,y:sy0,tx:ix,ty:iy,angle,
-              startAt:performance.now(),duration:Math.max(220,Number(m.travelMs)||760),
-              color:"#39e7ff",size:13,pending:false
+              startAt:performance.now(),duration:Math.max(120,Number(m.travelMs)||520),
+              color:(weaponVisuals[String(m.weapon)]||weaponVisuals.blaster).glow,
+              accent:(weaponVisuals[String(m.weapon)]||weaponVisuals.blaster).base,
+              size:8,pending:false
             });
             const other=remotePlayers.get(m.id);
             if(other)other.shootPulse=1;
@@ -1454,11 +1491,13 @@ function fire(){
   const range=Math.max(300,Number(weapon.range)||1000);
   const tx=p.x+Math.cos(angle)*range;
   const ty=p.y+Math.sin(angle)*range;
+  const localWeaponVisual=weaponVisuals[String(p.weapon)]||weaponVisuals.blaster;
   neonProjectiles.push({
     id:"local_"+Math.random().toString(36).slice(2),
     x:p.x,y:p.y,tx,ty,angle,
-    startAt:performance.now(),duration:Math.max(560,range/1200*1000),
-    color:"#fff",size:15,pending:true
+    startAt:performance.now(),duration:Math.max(120,range/1200*1000),
+    color:localWeaponVisual.glow,accent:localWeaponVisual.accent||localWeaponVisual.base,
+    size:8,pending:true
   });
 
   multiplayerSocket.send(JSON.stringify({type:"fire"}));
