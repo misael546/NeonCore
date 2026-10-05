@@ -17,9 +17,9 @@
       if(!el){el=document.createElement("div");el.id="neonUpdateOverlay";el.innerHTML='<div class="neonUpdateCard"><div class="neonUpdatePulse"></div><strong>NUEVA ACTUALIZACIÓN DISPONIBLE</strong><span id="neonUpdateText"></span><b id="neonUpdateCount">3</b></div>';document.body.appendChild(el);}
       el.style.display="flex";document.documentElement.classList.add("neon-update-lock");
       var t=el.querySelector("#neonUpdateText"),n=3,count=el.querySelector("#neonUpdateCount");
-      if(t)t.textContent="Versión "+remote+" detectada. Esta pestaña se recargará automáticamente.";
+      if(t)t.textContent="Versión "+remote+" detectada. Volviendo al menú principal para instalar la actualización.";
       if(count)count.textContent=n;clearInterval(timer);
-      timer=setInterval(function(){n--;if(count)count.textContent=Math.max(0,n);if(n<=0){clearInterval(timer);var m=window.__NEON_RELEASE_MANIFEST||{},target=String(m.clientPath||"/NeonCore/neoncore/12345/v1/index.html"),u=/^\//.test(target)?new URL(target,location.origin):new URL(target,base);u.searchParams.set("neon_release",remote);u.searchParams.set("neon_force",String(Date.now()));u.searchParams.set("neon_reload","1");location.replace(u.href);}},1000);
+      timer=setInterval(function(){n--;if(count)count.textContent=Math.max(0,n);if(n<=0){clearInterval(timer);location.replace("/NeonCore/");}},1000);
     }
     window.__neonForceUpdate=notice;
     window.__neonCheckRelease=function(){
