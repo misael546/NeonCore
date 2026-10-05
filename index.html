@@ -59,14 +59,36 @@ button span{margin-right:7px}
   const input=document.getElementById("name");
   const button=document.getElementById("play");
   const msg=document.getElementById("msg");
+  const restriction=document.getElementById("nameRestriction");
+  const nameField=input.parentElement;
   const key="neon_core_player_name";
-  try{input.value=(localStorage.getItem(key)||"").slice(0,20);}catch{}
+  const lockKey="neon_core_name_locked";
+  function applyLock(){
+    let savedName="";
+    let locked=false;
+    try{
+      savedName=(localStorage.getItem(key)||"").slice(0,20);
+      locked=localStorage.getItem(lockKey)==="1" || !!savedName;
+    }catch{}
+    input.value=savedName;
+    input.readOnly=locked;
+    nameField.classList.toggle("locked",locked);
+    if(restriction)restriction.style.display=locked?"block":"none";
+    if(locked && savedName)msg.textContent="Tu nombre está restringido. Cambio de nombre: $1 USD.";
+  }
+  applyLock();
   function enter(){
     const n=String(input.value||"").trim().slice(0,20);
     if(!n){msg.textContent="Escribe tu nombre para entrar.";input.focus();return;}
-    try{localStorage.setItem(key,n);}catch{}
+    try{
+      localStorage.setItem(key,n);
+      localStorage.setItem(lockKey,"1");
+    }catch{}
+    input.readOnly=true;
+    nameField.classList.add("locked");
+    if(restriction)restriction.style.display="block";
     msg.textContent="Entrando a Sesión 1…";
-    const url="./neoncore/12345/v1/?name="+encodeURIComponent(n)+"&neon_release="+encodeURIComponent("BUILD-26")+"&neon_force="+Date.now();
+    const url="./neoncore/12345/v1/?name="+encodeURIComponent(n)+"&neon_cache="+Date.now();
     window.location.assign(url);
   }
   button.addEventListener("click",enter);
