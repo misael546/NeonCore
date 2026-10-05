@@ -48,7 +48,7 @@ jobs:
           }
           NODE
 
-      - name: Verify BUILD-22 synchronization
+      - name: Verify BUILD-29 synchronization
         working-directory: .
         run: |
           node - <<'NODE'
@@ -60,20 +60,20 @@ jobs:
           const server = fs.readFileSync('server/server.js','utf8');
 
           const build = String(release.clientBuild || '');
-          if (build !== 'BUILD-22' || release.releaseId !== 'BUILD-22' || release.serverBuild !== 'BUILD-22') {
-            throw new Error('release.json is not BUILD-22');
+          if (build !== 'BUILD-29' || release.releaseId !== 'BUILD-29' || release.serverBuild !== 'BUILD-29' || Number(release.databaseSchema) !== 3) {
+            throw new Error('release.json is not BUILD-29');
           }
-          if (!root.includes('BUILD-22') || !root.includes('id="name"') || !root.includes('id="play"')) {
-            throw new Error('Main menu is not BUILD-22');
+          if (!root.includes('BUILD-29') || !root.includes('id="name"') || !root.includes('id="play"')) {
+            throw new Error('Main menu is not BUILD-29');
           }
           if (!sessions.includes('Neon Core · Sesiones') || !sessions.includes('const WS=')) {
             throw new Error('Sessions page is not synchronized');
           }
-          if (!client.includes('BUILD-22') || !client.includes('FIRST_SHOT_DELAY=180') || !client.includes('fireRate:650')) {
+          if (!client.includes('BUILD-29') || !client.includes('FIRST_SHOT_DELAY=180') || !client.includes('fireRate:650') || !client.includes('account_authenticated')) {
             throw new Error('Client combat tuning is not synchronized');
           }
-          if (!server.includes('BUILD-22') || !server.includes('const WEAPON_FIRE_RATE = 650') || !server.includes('fireRate: 650')) {
+          if (!server.includes('BUILD-29') || !server.includes('const WEAPON_FIRE_RATE = 650') || !server.includes('fireRate: 650') || !server.includes('account_authenticated')) {
             throw new Error('Server combat tuning is not synchronized');
           }
-          console.log('BUILD-22 synchronization: OK');
+          console.log('BUILD-29 synchronization: OK');
           NODE

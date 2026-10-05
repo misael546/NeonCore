@@ -9,7 +9,7 @@
 <script>
 (function(){
   try{
-    var v="BUILD-28",checking=false,updating=false,timer=null,base=new URL("../../../",location.href),manifestUrl=new URL("/NeonCore/release.json",location.origin);
+    var v="BUILD-29",checking=false,updating=false,timer=null,base=new URL("../../../",location.href),manifestUrl=new URL("/NeonCore/release.json",location.origin);
     window.NEON_CORE_BUILD=v;localStorage.setItem("neon_core_build",v);
     function notice(remote){
       if(updating)return;updating=true;
@@ -33,7 +33,7 @@
   }catch(e){}
 })();
 </script>
-<title>Neon Core · Build 26</title>
+<title>Neon Core · Build 29</title>
 <style>
 *{box-sizing:border-box}html,body{margin:0;width:100%;height:100%;overflow:hidden;background:#050811;color:#fff;font-family:Arial,sans-serif;touch-action:none}
 #game{display:block;width:100vw;height:100vh}
@@ -357,9 +357,25 @@ html.pc-controls .aimJoy{display:none!important}html.touch-controls .aimJoy{disp
         <div id="roomActions"><button type="button" id="createRoom">CREAR SALA PRIVADA</button><button type="button" id="joinRoom">UNIRME A PRIVADA</button></div>
         <input id="roomCodeInput" maxlength="4" autocomplete="off" placeholder="CÓDIGO DE SALA · EJ. N7K4">
       </div>
+      <button id="accountRecoveryOpen" type="button" style="margin-top:8px;background:#0d1727;border:1px solid #33415d;color:#9fb0c7">RECUPERAR CUENTA</button>
+      <div id="accountRecoveryPanel" style="display:none;margin-top:8px">
+        <input id="accountRecoveryInput" maxlength="32" autocomplete="off" placeholder="CÓDIGO · NEON-XXXXXXXX-XXXXXXXX-XXXXXXXX">
+        <button id="accountRecoverySubmit" type="button" style="margin-top:8px">RECUPERAR CUENTA</button>
+        <div id="accountRecoveryMsg" style="font-size:11px;color:#7f91aa;min-height:18px;margin-top:7px"></div>
+      </div>
       <div id="nameMsg"></div>
     </div>
   </form>
+</div>
+
+<div id="accountRecoveryNotice" style="display:none;position:fixed;inset:0;background:#000b;align-items:center;justify-content:center;padding:20px;z-index:120">
+  <div style="width:min(430px,100%);background:#0b1020;border:1px solid #39e7ff;border-radius:18px;padding:22px;box-shadow:0 20px 80px #000;text-align:center">
+    <h2 style="margin:0;color:#39e7ff;letter-spacing:1.5px">CUENTA CREADA</h2>
+    <p style="color:#b8c6d8;font-size:12px;line-height:1.5">Guarda este código. Te permitirá recuperar tu cuenta si borras los datos del navegador.</p>
+    <div id="accountRecoveryCode" style="margin:16px 0;padding:14px;border:1px solid #39e7ff66;border-radius:12px;background:#06101a;color:#fff;font-size:18px;font-weight:900;letter-spacing:2px;word-break:break-all">—</div>
+    <button id="accountRecoveryCopy" type="button" style="width:100%;min-height:44px;border:0;border-radius:10px;background:#183d58;color:#fff;font-weight:bold">COPIAR CÓDIGO</button>
+    <button id="accountRecoveryClose" type="button" style="width:100%;min-height:44px;border:1px solid #33415d;border-radius:10px;margin-top:8px;background:#0d1727;color:#fff;font-weight:bold">YA LO GUARDÉ</button>
+  </div>
 </div>
 
 <div id="death">
@@ -424,7 +440,7 @@ let neonAudio={
   enabled:true,ready:false
 };
 const NEON_MUSIC_BASE="https://opengameart.org/sites/default/files/";
-const NEON_MUSIC_CREDIT="MUSIC · tricksntraps · OpenGameArt · CC0 · BUILD-28";
+const NEON_MUSIC_CREDIT="MUSIC · tricksntraps · OpenGameArt · CC0 · BUILD-29";
 const neonMusic={
   tracks:{
     menu:{file:"Currents.ogg",name:"NEON CORE"}, exploration:{file:"Currents.ogg",name:"NEON CORE"}, tension:{file:"Currents.ogg",name:"NEON CORE"}, combat:{file:"Currents.ogg",name:"NEON CORE"}, boss:{file:"Currents.ogg",name:"NEON CORE"}, bonus:{file:"Currents.ogg",name:"NEON CORE"}
@@ -985,7 +1001,7 @@ function connectMultiplayer(roomMode="quick",roomCode=""){ const publicRoomAuto=
       if(multiplayerConnectTimer){clearTimeout(multiplayerConnectTimer);multiplayerConnectTimer=null;}
 
       setConnectionStatus("CONECTADO","Entrando a la sala…");
-      socket.send(JSON.stringify({type:"join",name:playerName||"Jugador",accountToken:accountToken,saveKey:accountToken?"":saveKey,color:"#39e7ff",room:roomMode==="join"?roomCode:"",createRoom:roomMode==="create",clientBuild:window.NEON_CORE_BUILD||"BUILD-28"}));
+      socket.send(JSON.stringify({type:"join",name:playerName||"Jugador",accountToken:accountToken,saveKey:accountToken?"":saveKey,color:"#39e7ff",room:roomMode==="join"?roomCode:"",createRoom:roomMode==="create",clientBuild:window.NEON_CORE_BUILD||"BUILD-29"}));
     });
     socket.addEventListener("message",e=>{
        if(multiplayerSocket!==socket)return;
@@ -994,12 +1010,12 @@ function connectMultiplayer(roomMode="quick",roomCode=""){ const publicRoomAuto=
         if(m.type==="account_authenticated"){
           if(m.accountId){accountId=String(m.accountId).slice(0,96);try{localStorage.setItem("neon_core_account_id",accountId);}catch{}}
           if(m.accountToken){accountToken=String(m.accountToken).slice(0,128);try{localStorage.setItem("neon_core_account_token",accountToken);}catch{}}
-          if(m.name){playerName=String(m.name).slice(0,20);username.value=playerName;try{localStorage.setItem("neon_core_player_name",playerName);localStorage.setItem("neon_core_name_locked","1")}catch{}}
+          if(m.name){playerName=String(m.name).slice(0,20);username.value=playerName;try{localStorage.setItem("neon_core_player_name",playerName);localStorage.setItem("neon_core_name_locked","1")}catch{}}          if(m.recoveryCode){showAccountRecoveryCode(String(m.recoveryCode));}
           return;
         }
         if(m.type==="server_update_notice"){
           const target=String(m.clientBuild||m.serverVersion||"");
-          if(target&&target!=="BUILD-28"&&typeof window.__neonForceUpdate==="function"){window.__neonForceUpdate(target);}
+          if(target&&target!=="BUILD-29"&&typeof window.__neonForceUpdate==="function"){window.__neonForceUpdate(target);}
           return;
         }
         if(m.type==="room_joined"){
@@ -1644,7 +1660,7 @@ function update(dt){
   const visualMoving=actualSpeed>7;
   if(visualMoving){
     if(!movementTelemetry.inputSince)movementTelemetry.inputSince=performance.now();
-    // BUILD-28: el joystick izquierdo solo mueve; el derecho controla la mira.
+    // BUILD-29: el joystick izquierdo solo mueve; el derecho controla la mira.
   }else{
     movementTelemetry.inputSince=0;
   }
@@ -2547,6 +2563,42 @@ chatForm.addEventListener("submit",e=>{
 chatInput.addEventListener("keydown",e=>{if(e.key==="Escape"){chatInput.blur();setChatOpen(false);}});
 setChatOpen(false);
 if(proximityVoiceBtn)proximityVoiceBtn.addEventListener("click",e=>{e.preventDefault();e.stopPropagation();showToast("🎙 CHAT DE VOZ POR PROXIMIDAD · PRÓXIMAMENTE");});
+const accountRecoveryNotice=document.getElementById("accountRecoveryNotice");
+const accountRecoveryCodeEl=document.getElementById("accountRecoveryCode");
+const accountRecoveryOpen=document.getElementById("accountRecoveryOpen");
+const accountRecoveryPanel=document.getElementById("accountRecoveryPanel");
+const accountRecoveryInput=document.getElementById("accountRecoveryInput");
+const accountRecoverySubmit=document.getElementById("accountRecoverySubmit");
+const accountRecoveryMsg=document.getElementById("accountRecoveryMsg");
+const accountRecoveryCopy=document.getElementById("accountRecoveryCopy");
+const accountRecoveryClose=document.getElementById("accountRecoveryClose");
+function showAccountRecoveryCode(code){if(!accountRecoveryNotice||!accountRecoveryCodeEl)return;accountRecoveryCodeEl.textContent=String(code||"—").slice(0,32);accountRecoveryNotice.style.display="flex";}
+if(accountRecoveryCopy)accountRecoveryCopy.addEventListener("click",async()=>{const code=String(accountRecoveryCodeEl?.textContent||"").trim();try{await navigator.clipboard.writeText(code);accountRecoveryCopy.textContent="CÓDIGO COPIADO";setTimeout(()=>accountRecoveryCopy.textContent="COPIAR CÓDIGO",1400);}catch{accountRecoveryCopy.textContent="SELECCIONA Y COPIA EL CÓDIGO";setTimeout(()=>accountRecoveryCopy.textContent="COPIAR CÓDIGO",1800);}});
+if(accountRecoveryClose)accountRecoveryClose.addEventListener("click",()=>{if(accountRecoveryNotice)accountRecoveryNotice.style.display="none";});
+if(accountRecoveryOpen)accountRecoveryOpen.addEventListener("click",()=>{if(accountRecoveryPanel)accountRecoveryPanel.style.display=accountRecoveryPanel.style.display==="block"?"none":"block";if(accountRecoveryPanel?.style.display==="block")accountRecoveryInput?.focus();});
+if(accountRecoveryInput)accountRecoveryInput.addEventListener("input",()=>{accountRecoveryInput.value=accountRecoveryInput.value.toUpperCase().replace(/[^A-Z0-9-]/g,"").slice(0,32);});
+async function recoverAccountFromCode(){
+ const code=String(accountRecoveryInput?.value||"").trim();
+ if(code.length<20){if(accountRecoveryMsg)accountRecoveryMsg.textContent="Escribe un código válido.";return;}
+ if(accountRecoverySubmit)accountRecoverySubmit.disabled=true;
+ if(accountRecoveryMsg)accountRecoveryMsg.textContent="Validando recuperación…";
+ try{
+  const base=MULTIPLAYER_SERVER.replace(/^wss:/,"https:").replace(/^ws:/,"http:").replace(//ws$/,"");
+  const res=await fetch(base+"/account/recover",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({code}),cache:"no-store"});
+  const data=await res.json().catch(()=>({}));
+  if(!res.ok||!data.ok)throw new Error(data.message||"No se pudo recuperar la cuenta.");
+  accountToken=String(data.accountToken||"").slice(0,128);
+  accountId=String(data.accountId||"").slice(0,96);
+  playerName=String(data.name||"Jugador").slice(0,20);
+  try{localStorage.setItem("neon_core_account_token",accountToken);localStorage.setItem("neon_core_account_id",accountId);localStorage.setItem("neon_core_player_name",playerName);localStorage.setItem("neon_core_name_locked","1");localStorage.removeItem("neon_core_save_key");}catch{}
+  username.value=playerName;
+  nameMsg.textContent="Cuenta recuperada. Entrando…";
+  setTimeout(()=>connectMultiplayer("join",PUBLIC_ROOM_CODE),250);
+ }catch(error){if(accountRecoveryMsg)accountRecoveryMsg.textContent=error?.message||"No se pudo recuperar la cuenta.";}
+ finally{if(accountRecoverySubmit)accountRecoverySubmit.disabled=false;}
+}
+if(accountRecoverySubmit)accountRecoverySubmit.addEventListener("click",recoverAccountFromCode);
+if(accountRecoveryInput)accountRecoveryInput.addEventListener("keydown",e=>{if(e.key==="Enter"){e.preventDefault();recoverAccountFromCode();}});
 const nameBox=document.getElementById("nameBox");
 const nameForm=document.getElementById("nameForm");
 const username=document.getElementById("username");

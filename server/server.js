@@ -1,4 +1,4 @@
-/* BUILD-28 · sistemas unidos y curacion mejorada */
+/* BUILD-29 · sistemas unidos y curacion mejorada */
 'use strict';
 
 const http = require('http');
@@ -34,7 +34,7 @@ try {
 }
 
 const RELEASE_ID = String(UNIFIED_RELEASE_MANIFEST.releaseId || 'unknown');
-const DATABASE_SCHEMA_VERSION = Math.max(2, Number(UNIFIED_RELEASE_MANIFEST.databaseSchema) || 2);
+const DATABASE_SCHEMA_VERSION = Math.max(3, Number(UNIFIED_RELEASE_MANIFEST.databaseSchema) || 3);
 const SERVER_VERSION = RELEASE_ID;
 const SERVER_UPDATE_MESSAGE = 'NUEVA ACTUALIZACIÓN DISPONIBLE. Neon Core se actualizará automáticamente en unos segundos. No cierres la pestaña.';
 
@@ -114,18 +114,19 @@ const SERVER_STARTED_AT = Date.now();
 const clients = new Map();
 const savedPlayers = new Map();
 const memoryAccountsByToken=new Map();
+const memoryRecoveryByCode=new Map();
 const memoryAccountNames=new Map();
 const RESERVED_ACCOUNT_NAMES=new Set(['admin','administrator','owner','system','staff','support','moderator','mod','gm','gamemaster','game-master','god','neoncore','developer','dev']);
 function normalizeAccountName(name){return String(name||'').normalize('NFKC').replace(/[\u0000-\u001F\u007F]/g,' ').replace(/\s+/g,' ').trim().slice(0,NAME_MAX_LENGTH);}
 function accountNameKey(name){return normalizeAccountName(name).toLocaleLowerCase('en-US');}
 function isReservedAccountName(name){const key=accountNameKey(name).replace(/[ _-]+/g,'');return RESERVED_ACCOUNT_NAMES.has(key)||key.startsWith('admin')||key.startsWith('owner');}
 function sanitizeAccountToken(token){return String(token||'').trim().slice(0,128);}
-function newMemoryAccount(name){const cleanName=normalizeAccountName(name),accountId='acc_'+crypto.randomUUID().replace(/-/g,''),accountToken=crypto.randomBytes(32).toString('base64url'),a={accountId,accountToken,name:cleanName,playerSaveKey:accountId,createdAt:new Date().toISOString(),updatedAt:new Date().toISOString()};memoryAccountsByToken.set(accountToken,a);memoryAccountNames.set(accountNameKey(cleanName),a);return {ok:true,created:true,...a};}
+function newMemoryAccount(name){const cleanName=normalizeAccountName(name),accountId='acc_'+crypto.randomUUID().replace(/-/g,''),accountToken=crypto.randomBytes(32).toString('base64url'),raw=crypto.randomBytes(12).toString('hex').toUpperCase(),recoveryCode='NEON-'+raw.slice(0,8)+'-'+raw.slice(8,16)+'-'+raw.slice(16,24),a={accountId,accountToken,name:cleanName,playerSaveKey:accountId,recoveryCode,createdAt:new Date().toISOString(),updatedAt:new Date().toISOString()};memoryAccountsByToken.set(accountToken,a);memoryAccountNames.set(accountNameKey(cleanName),a);memoryRecoveryByCode.set(recoveryCode.replace(/[^A-Z0-9]/g,''),a);return {ok:true,created:true,...a};}
 async function authenticateOrCreateAccount(requestedName,accountToken,legacySaveKey){
   const token=sanitizeAccountToken(accountToken);
   if(token){
     const db=await storage.findAccountByToken(token);
-    if(db)return {ok:true,created:false,...db};
+    if(db){const recovery=await storage.ensureAccountRecovery(db.accountId);return {ok:true,created:false,...db,recoveryCode:recovery?.recoveryCode||''};}
     const mem=memoryAccountsByToken.get(token);
     if(mem)return {ok:true,created:false,...mem};
     return {ok:false,reason:'account_invalid'};
@@ -139,7 +140,10 @@ async function authenticateOrCreateAccount(requestedName,accountToken,legacySave
   const existing=await storage.findAccountByName(desiredName);
   if(existing)return {ok:false,reason:'name_taken'};
   if(!storage.enabled){if(memoryAccountNames.has(key))return {ok:false,reason:'name_taken'};return newMemoryAccount(desiredName);}
-  return storage.createAccount(desiredName);
+  const created=await storage.createAccount(desiredName);
+  if(!created?.ok)return created;
+  const recovery=await storage.ensureAccountRecovery(created.accountId);
+  return {...created,recoveryCode:recovery?.recoveryCode||''};
 }
 
 
@@ -1889,8 +1893,38 @@ function createPlayer(ws) {
   return player;
 }
 
+const recoveryAttemptsByIp = new Map();
+function recoveryClientKey(req){const forwarded=String(req.headers?.['x-forwarded-for']||'').split(',')[0].trim();return forwarded||String(req.socket?.remoteAddress||'unknown').slice(0,80);}
+function recoveryAllowed(req){const key=recoveryClientKey(req),now=Date.now(),row=recoveryAttemptsByIp.get(key)||{start:now,count:0};if(now-row.start>10*60*1000){row.start=now;row.count=0;}row.count++;recoveryAttemptsByIp.set(key,row);return row.count<=12;}
+function readRequestBody(req,maxBytes=1024){return new Promise((resolve,reject)=>{let size=0,body='';req.on('data',chunk=>{size+=Buffer.byteLength(chunk);if(size>maxBytes){reject(new Error('payload_too_large'));try{req.destroy();}catch{};return;}body+=chunk.toString('utf8');});req.on('end',()=>resolve(body));req.on('error',reject);});}
+
 const httpServer = http.createServer(async (req, res) => {
   const pathname = String(req.url || '').split('?')[0];
+
+  if (pathname === '/account/recover' && req.method === 'OPTIONS') {
+    res.writeHead(204, {'Access-Control-Allow-Origin':'*','Access-Control-Allow-Methods':'POST, OPTIONS','Access-Control-Allow-Headers':'Content-Type','Access-Control-Max-Age':'600'});
+    return res.end();
+  }
+
+  if (pathname === '/account/recover' && req.method === 'POST') {
+    res.setHeader('Access-Control-Allow-Origin','*');
+    res.setHeader('Cache-Control','no-store');
+    if(!recoveryAllowed(req)){res.writeHead(429,{'Content-Type':'application/json; charset=utf-8'});return res.end(JSON.stringify({ok:false,reason:'rate_limited',message:'Demasiados intentos de recuperación. Intenta más tarde.'}));}
+    try{
+      await storage.ready;
+      const body=JSON.parse(await readRequestBody(req));
+      const recovered=await storage.recoverAccountByCode(String(body?.code||''));
+      if(!recovered){res.writeHead(401,{'Content-Type':'application/json; charset=utf-8'});return res.end(JSON.stringify({ok:false,reason:'invalid_code',message:'El código de recuperación no es válido.'}));}
+      res.writeHead(200,{'Content-Type':'application/json; charset=utf-8'});
+      return res.end(JSON.stringify({ok:true,accountId:recovered.accountId,name:recovered.name,accountToken:recovered.accountToken}));
+    }catch(error){
+      console.error('[ACCOUNT RECOVER HTTP]',error?.message||error);
+      res.writeHead(400,{'Content-Type':'application/json; charset=utf-8'});
+      return res.end(JSON.stringify({ok:false,reason:'invalid_request',message:'Solicitud de recuperación inválida.'}));
+    }
+  }
+
+
 
   if (pathname === '/client') {
     try {
@@ -2112,7 +2146,7 @@ wss.on('connection', async (ws) => {
         applyCombatStats(p);
         p.joined = true;
 
-        send(ws,{type:'account_authenticated',accountId:p.accountId,name:p.name,nameLocked:true,created:!!account.created,accountToken:account.created?String(account.accountToken||''):''});
+        send(ws,{type:'account_authenticated',accountId:p.accountId,name:p.name,nameLocked:true,created:!!account.created,accountToken:account.created?String(account.accountToken||''):'',recoveryCode:String(account.recoveryCode||'')});
 
         if (msg.room) {
           await joinRoom(ws, msg.room, false);

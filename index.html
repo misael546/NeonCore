@@ -8,7 +8,7 @@
 <meta http-equiv="Expires" content="0">
 <script>
 (function(){
-  window.NEON_CORE_BUILD="BUILD-28";
+  window.NEON_CORE_BUILD="BUILD-29";
   window.__NEON_CORE_OFFICIAL_ENTRY="/NeonCore/";
 })();
 </script>
@@ -52,10 +52,40 @@ button span{margin-right:7px}
   <div id="nameRestriction" class="nameRestriction">NOMBRE RESTRINGIDO · CAMBIO BLOQUEADO</div>
   <div id="msg" class="msg">Escribe tu nombre para entrar a la Sesión 1.</div>
   <button id="play" type="button"><span>▶</span>JUGAR</button>
+  <button id="accountRecoveryOpen" type="button" style="margin-top:8px;background:#0d1727;border:1px solid #33415d;color:#9fb0c7">RECUPERAR CUENTA</button>
+  <div id="accountRecoveryPanel" style="display:none;margin-top:8px"><input id="accountRecoveryInput" maxlength="32" autocomplete="off" placeholder="CÓDIGO DE RECUPERACIÓN"><button id="accountRecoverySubmit" type="button" style="margin-top:8px">RECUPERAR CUENTA</button><div id="accountRecoveryMsg" class="msg"></div></div>
   <div class="foot"><span>SESIÓN 1</span><span>•</span><span>BUILD 28</span></div>
 </main>
 <script>
 (function(){
+  const recoveryOpen=document.getElementById("accountRecoveryOpen");
+  const recoveryPanel=document.getElementById("accountRecoveryPanel");
+  const recoveryInput=document.getElementById("accountRecoveryInput");
+  const recoverySubmit=document.getElementById("accountRecoverySubmit");
+  const recoveryMsg=document.getElementById("accountRecoveryMsg");
+  if(recoveryOpen)recoveryOpen.addEventListener("click",()=>{if(recoveryPanel)recoveryPanel.style.display=recoveryPanel.style.display==="block"?"none":"block";if(recoveryPanel?.style.display==="block")recoveryInput?.focus();});
+  if(recoveryInput)recoveryInput.addEventListener("input",()=>recoveryInput.value=recoveryInput.value.toUpperCase().replace(/[^A-Z0-9-]/g,"").slice(0,32));
+  async function recoverAccountFromCode(){
+    const code=String(recoveryInput?.value||"").trim();
+    if(code.length<20){if(recoveryMsg)recoveryMsg.textContent="Escribe un código válido.";return;}
+    if(recoverySubmit)recoverySubmit.disabled=true;
+    if(recoveryMsg)recoveryMsg.textContent="Recuperando cuenta…";
+    try{
+      const res=await fetch("https://neon-core-multiplayer.onrender.com/account/recover",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({code}),cache:"no-store"});
+      const data=await res.json().catch(()=>({}));
+      if(!res.ok||!data.ok)throw new Error(data.message||"No se pudo recuperar la cuenta.");
+      try{
+        localStorage.setItem("neon_core_account_token",String(data.accountToken||""));
+        localStorage.setItem("neon_core_account_id",String(data.accountId||""));
+        localStorage.setItem("neon_core_player_name",String(data.name||"Jugador").slice(0,20));
+        localStorage.setItem("neon_core_name_locked","1");
+        localStorage.removeItem("neon_core_save_key");
+      }catch{}
+      if(recoveryMsg)recoveryMsg.textContent="Cuenta recuperada. Entrando…";
+      window.location.assign("./neoncore/12345/v1/?name="+encodeURIComponent(String(data.name||"Jugador"))+"&neon_cache="+Date.now());
+    }catch(error){if(recoveryMsg)recoveryMsg.textContent=error?.message||"No se pudo recuperar la cuenta.";}
+    finally{if(recoverySubmit)recoverySubmit.disabled=false;}
+  }
   const input=document.getElementById("name");
   const button=document.getElementById("play");
   const msg=document.getElementById("msg");

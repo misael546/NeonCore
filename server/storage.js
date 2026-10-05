@@ -64,6 +64,10 @@ async function initStorage(releaseId = '', schemaVersion = 1) {
   );
 
   await pool.query(
+    'ALTER TABLE neoncore_accounts ADD COLUMN IF NOT EXISTS recovery_hash CHAR(64)'
+  );
+
+  await pool.query(
     'CREATE TABLE IF NOT EXISTS neoncore_runtime (' +
       'id SMALLINT PRIMARY KEY CHECK (id = 1),' +
       'release_id VARCHAR(128) NOT NULL,' +
@@ -252,6 +256,48 @@ async function findAccountByName(name) {
   }catch(error){console.error('[STORAGE ACCOUNT NAME]',error?.message||error);return null;}
 }
 
+function normalizeRecoveryCode(code) {
+  return String(code || '').toUpperCase().replace(/[^A-Z0-9]/g, '').slice(0, 40);
+}
+function hashRecoveryCode(code) {
+  return crypto.createHash('sha256').update(normalizeRecoveryCode(code), 'utf8').digest('hex');
+}
+function createRecoveryCode() {
+  const raw = crypto.randomBytes(12).toString('hex').toUpperCase();
+  return 'NEON-' + raw.slice(0, 8) + '-' + raw.slice(8, 16) + '-' + raw.slice(16, 24);
+}
+async function ensureAccountRecovery(accountId) {
+  if (!storageReady || !pool || !accountId) return null;
+  try {
+    const current = await pool.query('SELECT recovery_hash FROM neoncore_accounts WHERE account_id=$1 LIMIT 1',[String(accountId)]);
+    if (!current.rows[0] || current.rows[0].recovery_hash) return null;
+    const recoveryCode = createRecoveryCode();
+    const result = await pool.query('UPDATE neoncore_accounts SET recovery_hash=$2,updated_at=NOW() WHERE account_id=$1 AND recovery_hash IS NULL RETURNING account_id',[String(accountId),hashRecoveryCode(recoveryCode)]);
+    return result.rows.length===1 ? {recoveryCode} : null;
+  } catch (error) {
+    console.error('[STORAGE RECOVERY CREATE]', error?.message || error);
+    return null;
+  }
+}
+async function recoverAccountByCode(code) {
+  if (!storageReady || !pool) return null;
+  const clean = normalizeRecoveryCode(code);
+  if (clean.length < 20) return null;
+  try {
+    const result = await pool.query('SELECT account_id,name,player_save_key,created_at,updated_at FROM neoncore_accounts WHERE recovery_hash=$1 LIMIT 1',[hashRecoveryCode(clean)]);
+    const row = result.rows[0];
+    if (!row) return null;
+    const accountToken = crypto.randomBytes(32).toString('base64url');
+    const tokenHash = crypto.createHash('sha256').update(accountToken,'utf8').digest('hex');
+    const updated = await pool.query('UPDATE neoncore_accounts SET token_hash=$2,updated_at=NOW() WHERE account_id=$1 RETURNING account_id,name,player_save_key,created_at,updated_at',[String(row.account_id),tokenHash]);
+    const next = updated.rows[0];
+    if (!next) return null;
+    return {accountId:String(next.account_id),name:normalizeAccountName(next.name),playerSaveKey:String(next.player_save_key||next.account_id||''),accountToken,createdAt:next.created_at?new Date(next.created_at).toISOString():'',updatedAt:next.updated_at?new Date(next.updated_at).toISOString():''};
+  } catch (error) {
+    console.error('[STORAGE ACCOUNT RECOVER]',error?.message||error);
+    return null;
+  }
+}
 async function savePlayerData(saveKey, data) {
   if (!storageReady || !pool || !saveKey) return false;
 
@@ -292,6 +338,8 @@ module.exports = {
   createAccount,
   findAccountByToken,
   findAccountByName,
+  ensureAccountRecovery,
+  recoverAccountByCode,
   savePlayerData,
   closeStorage,
   get enabled() {
