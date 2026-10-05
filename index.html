@@ -8,14 +8,14 @@
 <meta http-equiv="Expires" content="0">
 <script>
 (function(){
-  window.NEON_CORE_BUILD="BUILD-25";
+  window.NEON_CORE_BUILD="BUILD-26";
   const here=new URL(location.href);
   const bust=Date.now()+"-"+Math.random().toString(36).slice(2);
   fetch(new URL("release.json",location.href).href+"?neon_check="+bust,{cache:"no-store",headers:{"Cache-Control":"no-cache"}})
     .then(r=>{if(!r.ok)throw new Error("manifest "+r.status);return r.json();})
     .then(m=>{
       const remote=String(m.releaseId||m.clientBuild||"");
-      if(remote && remote!=="BUILD-25"){
+      if(remote && remote!=="BUILD-26"){
         const overlay=document.getElementById("globalUpdate"),count=document.getElementById("globalUpdateCount"),msg=document.getElementById("globalUpdateText");
         if(overlay){
           overlay.style.display="grid";
@@ -50,7 +50,7 @@ h1{margin:0;text-align:center;font-size:42px;letter-spacing:7px;color:#e9fdff;te
 .sub{text-align:center;color:#8ea0b8;font-size:12px;letter-spacing:3px;font-weight:900;margin:8px 0 22px}
 label{display:block;color:#a9b8cc;font-size:10px;font-weight:900;letter-spacing:2px;margin:0 0 7px}
 input{width:100%;height:50px;padding:0 15px;background:#060e1a;border:1px solid #2a405c;border-radius:10px;font-size:16px;color:#fff;outline:none}
-input:focus{border-color:#39e7ff;box-shadow:0 0 0 2px #39e7ff18,0 0 22px #39e7ff12,inset 0 0 18px #0008}
+input:focus{border-color:#39e7ff;box-shadow:0 0 0 2px #39e7ff18,0 0 22px #39e7ff12,inset 0 0 18px #0008}.nameField{position:relative;margin:0}.nameField input{padding-right:58px}.nameLock{position:absolute;right:11px;top:50%;transform:translateY(-50%);display:none;width:34px;height:34px;border:1px solid #33415d;border-radius:9px;background:#0a1220;color:#73839b;font-size:17px;place-items:center;pointer-events:none}.nameRestriction{display:none;margin:7px 0 0;text-align:center;color:#6f7f95;font-size:9px;font-weight:900;letter-spacing:1.5px}.nameField.locked input{color:#b9c4d4;border-color:#202f43;background:#080f1a;cursor:not-allowed}.nameField.locked .nameLock{display:grid}.nameField.locked+.nameRestriction{display:block}
 button{width:100%;height:52px;margin-top:12px;border:1px solid #39e7ff;border-radius:11px;background:linear-gradient(135deg,#0d3044,#15536a);color:#fff;font-size:15px;font-weight:900;letter-spacing:1px;box-shadow:0 0 22px #39e7ff18,0 8px 24px #000}
 button:active{transform:scale(.985)}
 button span{margin-right:7px}
@@ -68,10 +68,11 @@ button span{margin-right:7px}
   <h1>NEON CORE</h1>
   <div class="sub">MENÚ PRINCIPAL</div>
   <label for="name">NOMBRE DEL TANQUE</label>
-  <input id="name" maxlength="20" autocomplete="nickname" placeholder="Escribe tu nombre">
+  <div class="nameField"><input id="name" maxlength="20" autocomplete="nickname" placeholder="Escribe tu nombre"><span id="nameLock" class="nameLock" aria-hidden="true">🔒</span></div>
+  <div id="nameRestriction" class="nameRestriction">NOMBRE RESTRINGIDO · CAMBIO BLOQUEADO</div>
   <div id="msg" class="msg">Escribe tu nombre para entrar a la Sesión 1.</div>
   <button id="play" type="button"><span>▶</span>JUGAR</button>
-  <div class="foot"><span>SESIÓN 1</span><span>•</span><span>BUILD 25</span></div>
+  <div class="foot"><span>SESIÓN 1</span><span>•</span><span>BUILD 26</span></div>
 </main>
 <script>
 (function(){
@@ -85,7 +86,7 @@ button span{margin-right:7px}
     if(!n){msg.textContent="Escribe tu nombre para entrar.";input.focus();return;}
     try{localStorage.setItem(key,n);}catch{}
     msg.textContent="Entrando a Sesión 1…";
-    const url="./neoncore/12345/v1/?name="+encodeURIComponent(n)+"&neon_release="+encodeURIComponent("BUILD-25")+"&neon_force="+Date.now();
+    const url="./neoncore/12345/v1/?name="+encodeURIComponent(n)+"&neon_release="+encodeURIComponent("BUILD-26")+"&neon_force="+Date.now();
     window.location.assign(url);
   }
   button.addEventListener("click",enter);
