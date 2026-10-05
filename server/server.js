@@ -1,4 +1,4 @@
-/* BUILD-30 · sistemas unidos y curacion mejorada */
+/* BUILD-31 · sistemas unidos y reconexion estabilizada */
 'use strict';
 
 const http = require('http');
