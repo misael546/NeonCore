@@ -1,4 +1,4 @@
-/* V37 · release completo */
+/* V38 · release completo */
 'use strict';
 
 const http = require('http');
@@ -1594,7 +1594,7 @@ async function withdrawBank(ws) {
   });
 }
 
-function buyAmmo(ws){const p=clients.get(ws);if(!p)return;if(!p.room)return send(ws,{type:'shop_result',ok:false,message:'No estás dentro de una sala.'});if(!p.alive)return send(ws,{type:'shop_result',ok:false,message:'No puedes comprar estando destruido.'});if(Math.hypot(p.x-SHOP_NPC.x,p.y-SHOP_NPC.y)>SHOP_INTERACTION_RADIUS)return send(ws,{type:'shop_result',ok:false,message:'Párate sobre el SHOP.'});const ammo=inventoryTotal(p,'ammo'),gold=Math.max(0,Number(p.gold)||0);if(ammo>=MAX_AMMO)return send(ws,{type:'shop_result',ok:false,message:'La mochila está llena de munición.'});if(gold<AMMO_PACK_COST)return send(ws,{type:'shop_result',ok:false,message:'Necesitas '+AMMO_PACK_COST+' de oro.'});const before=ammo;addInventoryItem(p,'ammo',AMMO_PACK_SIZE);const purchased=inventoryTotal(p,'ammo')-before;if(purchased<=0)return send(ws,{type:'shop_result',ok:false,message:'No hay espacio para más munición.'});p.gold=gold-AMMO_PACK_COST;void persistPlayer(p);send(ws,{type:'shop_result',ok:true,message:'Compraste '+purchased+' balas y fueron guardadas en tu mochila.',gold:p.gold,ammo:inventoryTotal(p,'ammo'),maxAmmo:MAX_AMMO});sendInventoryState(p,'Munición guardada en la mochila.');sendStats(p);}function handleShot(ws) {
+function buyAmmo(ws){const p=clients.get(ws);if(!p)return;if(!p.room)return send(ws,{type:'shop_result',ok:false,message:'No estás dentro de una sala.'});if(!p.alive)return send(ws,{type:'shop_result',ok:false,message:'No puedes comprar estando destruido.'});if(Math.hypot(p.x-SHOP_NPC.x,p.y-SHOP_NPC.y)>SHOP_INTERACTION_RADIUS)return send(ws,{type:'shop_result',ok:false,message:'Párate sobre el SHOP.'});const ammo=inventoryTotal(p,'ammo'),gold=Math.max(0,Number(p.gold)||0);if(ammo>=MAX_AMMO)return send(ws,{type:'shop_result',ok:false,message:'La mochila está llena de munición.'});if(gold<AMMO_PACK_COST)return send(ws,{type:'shop_result',ok:false,message:'Necesitas '+AMMO_PACK_COST+' de oro.'});const before=ammo;addInventoryItem(p,'ammo',AMMO_PACK_SIZE);const purchased=inventoryTotal(p,'ammo')-before;if(purchased<=0)return send(ws,{type:'shop_result',ok:false,message:'No hay espacio para más munición.'});p.gold=gold-AMMO_PACK_COST;void persistPlayer(p);send(ws,{type:'shop_result',ok:true,message:'Compraste '+purchased+' balas y fueron guardadas en tu mochila.',gold:p.gold,ammo:inventoryTotal(p,'ammo'),maxAmmo:MAX_AMMO});sendInventoryState(p,'Munición guardada en la mochila.');sendStats(p);}function handleShot(ws, requestedAngle) {
   const shooter = clients.get(ws);
   if (!shooter || !shooter.room || !shooter.alive) return;
   if (inSafeZone(shooter.x, shooter.y, 24)) return send(ws, { type: 'shot_result', ok: false, reason: 'safe_zone', ammo: shooter.ammo || 0 });
@@ -1620,7 +1620,11 @@ function buyAmmo(ws){const p=clients.get(ws);if(!p)return;if(!p.room)return send
   const damage = clamp(Number(shooter.damage) || 1, 1, 1000);
   const maxRange = PROJECTILE_RANGE;
   const shotX = Number(shooter.x) || 0, shotY = Number(shooter.y) || 0;
-  const shotAngle = Number(shooter.angle) || 0;
+  const requested = Number(requestedAngle);
+  const shotAngle = Number.isFinite(requested) && Math.abs(requested) <= Math.PI * 4
+    ? Math.atan2(Math.sin(requested), Math.cos(requested))
+    : (Number(shooter.angle) || 0);
+  shooter.angle = shotAngle;
   const dirX = Math.cos(shotAngle), dirY = Math.sin(shotAngle);
   const enemies = ensureRoomEnemies(shooter.room);
   const walls = ensureRoomWalls(shooter.room);
@@ -1659,7 +1663,9 @@ function buyAmmo(ws){const p=clients.get(ws);if(!p)return;if(!p.room)return send
 
   // La bala YA NO hace daño al instante. Viaja durante travelMs y el objetivo
   // puede apartarse antes del impacto.
-  setTimeout(()=>{
+  // El daño es server-authoritative e inmediato. El proyectil visual viaja solo para feedback.
+  try{
+
     try{
       if(!clients.has(ws)||!shooter.room||!shooter.alive)return;
       const tolerance=targetPlayer?34:targetEnemy?Math.max(24,Number(targetEnemy.r||22)+8):0;
@@ -1888,9 +1894,7 @@ applyCombatStats(shooter);
       });
     }
   }
-
-    }catch(error){ console.error('[PROJECTILE HIT]',error?.message||error); }
-  },0);
+  }catch(error){ console.error('[PROJECTILE HIT]',error?.message||error); }
 }
 
 function createPlayer(ws) {
@@ -1993,7 +1997,7 @@ const httpServer = http.createServer(async (req, res) => {
 
   if (pathname === '/client') {
     try {
-      const manifestClientPath = String(UNIFIED_RELEASE_MANIFEST.clientPath || '/NeonCore/neoncore/12345/V37/index.html').replace(/^\/NeonCore\//, '').replace(/^\/+/, '');
+      const manifestClientPath = String(UNIFIED_RELEASE_MANIFEST.clientPath || '/NeonCore/neoncore/12345/V38/index.html').replace(/^\/NeonCore\//, '').replace(/^\/+/, '');
       const clientPath = path.join(__dirname, '..', manifestClientPath);
       const html = fs.readFileSync(clientPath, 'utf8');
       res.writeHead(200, {
@@ -2251,7 +2255,7 @@ wss.on('connection', async (ws) => {
           serverStartedAt: SERVER_STARTED_AT,
           message: SERVER_UPDATE_MESSAGE,
           required: true,
-          clientPath: String(UNIFIED_RELEASE_MANIFEST.clientPath || '/NeonCore/neoncore/12345/V37/index.html')
+          clientPath: String(UNIFIED_RELEASE_MANIFEST.clientPath || '/NeonCore/neoncore/12345/V38/index.html')
         });
 
         return;
@@ -2402,7 +2406,7 @@ wss.on('connection', async (ws) => {
       }
 
       if (msg.type === 'fire') {
-        if (!p.frozen) handleShot(ws);
+        if (!p.frozen) handleShot(ws, msg.angle);
         return;
       }
 
@@ -3059,7 +3063,7 @@ function announceServerUpdate() {
     serverStartedAt: SERVER_STARTED_AT,
     message: SERVER_UPDATE_MESSAGE,
     required: true,
-    clientPath: String(UNIFIED_RELEASE_MANIFEST.clientPath || 'neoncore/12345/V37/index.html')
+    clientPath: String(UNIFIED_RELEASE_MANIFEST.clientPath || 'neoncore/12345/V38/index.html')
   };
   for (const p of clients.values()) {
     send(p.ws, payload);
