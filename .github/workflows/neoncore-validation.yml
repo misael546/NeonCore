@@ -62,24 +62,25 @@ jobs:
           const client = fs.readFileSync(clientPath,'utf8');
           const server = fs.readFileSync('server/server.js','utf8');
 
-          const version = String(release.clientVersion || release.releaseId || '');
+          const version = String(release.version || release.clientVersion || release.releaseId || '').toUpperCase();
           const clientMarker = client.match(/\bvar\s+v\s*=\s*["']([^"']+)["']/)?.[1]
             || client.match(/window\.NEON_CORE_VERSION\s*=\s*["']([^"']+)["']/)?.[1]
             || '';
-          if (!/^V([1-9]|[1-4][0-9]|50)$/.test(build)) {
+
+          if (!/^V([1-9]|[1-4][0-9]|50)$/.test(version)) {
             throw new Error('Release label must be V1-V50: '+version);
           }
           if (clientMarker !== version) {
             throw new Error('Client public version does not match release: '+clientMarker+' vs '+version);
           }
-          if (!version || release.releaseId !== build || release.serverVersion !== build || Number(release.databaseSchema) !== 3) {
+          if (!version || release.version !== version || release.releaseId !== version || release.clientVersion !== version || release.serverVersion !== version || Number(release.databaseSchema) !== 3) {
             throw new Error('release.json is not internally synchronized');
           }
-          if (clientMarker !== build || !root.includes('launchLatest') || !root.includes('release.json')) {
-            throw new Error('Main menu/current client are not release-driven');
+          if (clientMarker !== version || !root.includes('launchLatest') || !root.includes('release.json') || root.includes('BUILD') || root.includes('build')) {
+            throw new Error('Main menu/current client still contains BUILD terminology');
           }
           const clientParts = clientPath.split('/');
-          if (clientParts.length !== 4 || clientParts[0] !== 'neoncore' || clientParts[1] !== '12345' || !clientParts[2].startsWith('V') && /^V([1-9]|[1-4][0-9]|50)$/.test(clientParts[2]) || clientParts[3] !== 'index.html') {
+          if (clientParts.length !== 4 || clientParts[0] !== 'neoncore' || clientParts[1] !== '12345' || !/^V([1-9]|[1-4][0-9]|50)$/.test(clientParts[2]) || clientParts[3] !== 'index.html') {
             throw new Error('Current client path must use V1-V50 folder: '+clientPath);
           }
           if (!sessions.includes('Neon Core · Sesiones') || !sessions.includes('const WS=')) {
