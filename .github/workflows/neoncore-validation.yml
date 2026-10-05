@@ -62,25 +62,25 @@ jobs:
           const client = fs.readFileSync(clientPath,'utf8');
           const server = fs.readFileSync('server/server.js','utf8');
 
-          const build = String(release.clientBuild || release.releaseId || '');
+          const version = String(release.clientVersion || release.releaseId || '');
           const clientMarker = client.match(/\bvar\s+v\s*=\s*["']([^"']+)["']/)?.[1]
-            || client.match(/window\.NEON_CORE_BUILD\s*=\s*["']([^"']+)["']/)?.[1]
+            || client.match(/window\.NEON_CORE_VERSION\s*=\s*["']([^"']+)["']/)?.[1]
             || '';
           if (!/^V([1-9]|[1-4][0-9]|50)$/.test(build)) {
-            throw new Error('Release label must be V1-V50: '+build);
+            throw new Error('Release label must be V1-V50: '+version);
           }
-          if (clientMarker !== build) {
-            throw new Error('Client public version does not match release: '+clientMarker+' vs '+build);
+          if (clientMarker !== version) {
+            throw new Error('Client public version does not match release: '+clientMarker+' vs '+version);
           }
-          if (!build || release.releaseId !== build || release.serverBuild !== build || Number(release.databaseSchema) !== 3) {
+          if (!version || release.releaseId !== build || release.serverVersion !== build || Number(release.databaseSchema) !== 3) {
             throw new Error('release.json is not internally synchronized');
           }
           if (clientMarker !== build || !root.includes('launchLatest') || !root.includes('release.json')) {
             throw new Error('Main menu/current client are not release-driven');
           }
           const clientParts = clientPath.split('/');
-          if (clientParts.length !== 4 || clientParts[0] !== 'neoncore' || clientParts[1] !== '12345' || !clientParts[2].startsWith('BUILD-') || clientParts[2] === 'BUILD-' || clientParts[3] !== 'index.html') {
-            throw new Error('Current client path must use BUILD-* folder: '+clientPath);
+          if (clientParts.length !== 4 || clientParts[0] !== 'neoncore' || clientParts[1] !== '12345' || !clientParts[2].startsWith('V') && /^V([1-9]|[1-4][0-9]|50)$/.test(clientParts[2]) || clientParts[3] !== 'index.html') {
+            throw new Error('Current client path must use V1-V50 folder: '+clientPath);
           }
           if (!sessions.includes('Neon Core · Sesiones') || !sessions.includes('const WS=')) {
             throw new Error('Sessions page is not synchronized');
@@ -100,5 +100,5 @@ jobs:
           if (actualDirs.length !== 1 || actualDirs[0] !== expectedName) {
             throw new Error('Room client directory must contain only current release folder: '+JSON.stringify(actualDirs)+' expected '+expectedName);
           }
-          console.log('Current complete release synchronization: OK -> '+build);
+          console.log('Current complete release synchronization: OK -> '+version);
           NODE
