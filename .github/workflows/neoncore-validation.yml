@@ -67,8 +67,11 @@ jobs:
           if (!build || release.releaseId !== build || release.serverBuild !== build || Number(release.databaseSchema) !== 3) {
             throw new Error('release.json is not internally synchronized');
           }
-          if (clientMarker !== build || !root.includes('launchLatest') || !root.includes('release.json') || root.includes('neoncore/12345/v1/') || root.includes('neoncore/12345/v2/') || root.includes('neoncore/12345/v3/')) {
+          if (clientMarker !== build || !root.includes('launchLatest') || !root.includes('release.json')) {
             throw new Error('Main menu/current client are not release-driven');
+          }
+          if (!/^neoncore\\/12345\\/BUILD-\\d+\\/index\\.html$/.test(clientPath)) {
+            throw new Error('Current client path must use BUILD-* folder: '+clientPath);
           }
           if (!sessions.includes('Neon Core · Sesiones') || !sessions.includes('const WS=')) {
             throw new Error('Sessions page is not synchronized');
