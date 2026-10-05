@@ -1,4 +1,4 @@
-/* BUILD-25 · enlace oficial unico en raiz */
+/* BUILD-26 · nombre bloqueado y actualizaciones al menu */
 'use strict';
 
 const http = require('http');
