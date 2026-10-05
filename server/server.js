@@ -3007,7 +3007,7 @@ function startServerUpdateHeartbeat() {
   if (serverUpdateHeartbeat) clearInterval(serverUpdateHeartbeat);
   // Old clients may already be inside a room when a new version goes live.
   // Keep announcing the current version so those clients can migrate without
-  // a manual refresh. Current clients ignore notices for their own build.
+  // a manual refresh. Current clients ignore notices for their own version.
   serverUpdateHeartbeat = setInterval(() => {
     if (clients.size > 0) announceServerUpdate();
   }, 5000);
