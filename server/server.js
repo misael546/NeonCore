@@ -1,4 +1,4 @@
-/* V36 · release completo */
+/* V37 · release completo */
 'use strict';
 
 const http = require('http');
@@ -487,9 +487,11 @@ function spawnGoldDrops(roomCode,amount,x,y){
     const qty=Math.min(INVENTORY_STACK_MAX,remaining);
     const angle=(index%12)*(Math.PI*2/12);
     const radius=index===0?0:38+((index%4)*16);
+    const centerX=Number(x)||0;
+    const centerY=Number(y)||0;
     drops.push(dropItem(roomCode,null,'gold',qty,
-      clamp(Number(x)||0+Math.cos(angle)*radius,35,WORLD.w-35),
-      clamp(Number(y)||0+Math.sin(angle)*radius,35,WORLD.h-35)));
+      clamp(centerX+Math.cos(angle)*radius,35,WORLD.w-35),
+      clamp(centerY+Math.sin(angle)*radius,35,WORLD.h-35)));
     remaining-=qty;index++;
   }
   return drops;
@@ -1991,7 +1993,7 @@ const httpServer = http.createServer(async (req, res) => {
 
   if (pathname === '/client') {
     try {
-      const manifestClientPath = String(UNIFIED_RELEASE_MANIFEST.clientPath || '/NeonCore/neoncore/12345/V36/index.html').replace(/^\/NeonCore\//, '').replace(/^\/+/, '');
+      const manifestClientPath = String(UNIFIED_RELEASE_MANIFEST.clientPath || '/NeonCore/neoncore/12345/V37/index.html').replace(/^\/NeonCore\//, '').replace(/^\/+/, '');
       const clientPath = path.join(__dirname, '..', manifestClientPath);
       const html = fs.readFileSync(clientPath, 'utf8');
       res.writeHead(200, {
@@ -2249,7 +2251,7 @@ wss.on('connection', async (ws) => {
           serverStartedAt: SERVER_STARTED_AT,
           message: SERVER_UPDATE_MESSAGE,
           required: true,
-          clientPath: String(UNIFIED_RELEASE_MANIFEST.clientPath || '/NeonCore/neoncore/12345/V36/index.html')
+          clientPath: String(UNIFIED_RELEASE_MANIFEST.clientPath || '/NeonCore/neoncore/12345/V37/index.html')
         });
 
         return;
@@ -3057,7 +3059,7 @@ function announceServerUpdate() {
     serverStartedAt: SERVER_STARTED_AT,
     message: SERVER_UPDATE_MESSAGE,
     required: true,
-    clientPath: String(UNIFIED_RELEASE_MANIFEST.clientPath || 'neoncore/12345/V36/index.html')
+    clientPath: String(UNIFIED_RELEASE_MANIFEST.clientPath || 'neoncore/12345/V37/index.html')
   };
   for (const p of clients.values()) {
     send(p.ws, payload);
