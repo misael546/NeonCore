@@ -1,4 +1,4 @@
-/* BUILD-29 · sistemas unidos y curacion mejorada */
+/* BUILD-30 · sistemas unidos y curacion mejorada */
 'use strict';
 
 const http = require('http');
@@ -1129,12 +1129,12 @@ async function joinRoom(ws, requestedCode, create = false) {
   const room = rooms.get(code);
 
   if (!room) {
-    send(ws, { type: 'room_error', message: 'Sala no encontrada' });
+    send(ws, { type: 'room_error', reason: 'room_not_found', message: 'Sala no encontrada' });
     return;
   }
 
   if (room.size >= MAX_PLAYERS) {
-    send(ws, { type: 'room_error', message: 'Sala llena' });
+    send(ws, { type: 'room_error', reason: 'room_full', message: 'Sala llena' });
     return;
   }
 

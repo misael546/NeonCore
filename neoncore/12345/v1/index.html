@@ -9,7 +9,7 @@
 <script>
 (function(){
   try{
-    var v="BUILD-29",checking=false,updating=false,timer=null,base=new URL("../../../",location.href),manifestUrl=new URL("/NeonCore/release.json",location.origin);
+    var v="BUILD-30",checking=false,updating=false,timer=null,base=new URL("../../../",location.href),manifestUrl=new URL("/NeonCore/release.json",location.origin);
     window.NEON_CORE_BUILD=v;localStorage.setItem("neon_core_build",v);
     function notice(remote){
       if(updating)return;updating=true;
@@ -440,7 +440,7 @@ let neonAudio={
   enabled:true,ready:false
 };
 const NEON_MUSIC_BASE="https://opengameart.org/sites/default/files/";
-const NEON_MUSIC_CREDIT="MUSIC · tricksntraps · OpenGameArt · CC0 · BUILD-29";
+const NEON_MUSIC_CREDIT="MUSIC · tricksntraps · OpenGameArt · CC0 · BUILD-30";
 const neonMusic={
   tracks:{
     menu:{file:"Currents.ogg",name:"NEON CORE"}, exploration:{file:"Currents.ogg",name:"NEON CORE"}, tension:{file:"Currents.ogg",name:"NEON CORE"}, combat:{file:"Currents.ogg",name:"NEON CORE"}, boss:{file:"Currents.ogg",name:"NEON CORE"}, bonus:{file:"Currents.ogg",name:"NEON CORE"}
@@ -899,6 +899,8 @@ function updateControlMode(){
 updateControlMode();
 const remotePlayers=new Map();
 let multiplayerSocket=null,multiplayerReady=false,multiplayerId="",lastNetSend=0,currentRoom="",multiplayerConnectTimer=null;
+let reconnectActive=false,reconnectStartedAt=0,reconnectTimer=null,reconnectAttempt=0,reconnectRoom="";
+
 let movementTelemetry={inputSince:0,lastX:p.x,lastY:p.y,lastReport:0};
 const MULTIPLAYER_SERVER="wss://neon-core-multiplayer.onrender.com/ws";
 const RENDER_HEALTH_URL=MULTIPLAYER_SERVER.replace(/^wss:/,"https:").replace(/^ws:/,"http:").replace(/\/ws$/,"/health");
@@ -961,11 +963,62 @@ function updatePlayersFromList(list){
   for(const q of (list||[])) if(q.id!==multiplayerId) remotePlayers.set(q.id,q);
   renderPlayers(list||[]);
 }
+async function roomStillExists(code){
+  const room=String(code||'').toUpperCase();
+  if(!room||room==="OPEN")return true;
+  try{
+    const base=RENDER_HEALTH_URL.replace(/\/health$/,"");
+    const res=await fetch(base+"/rooms?reconnect="+Date.now(),{cache:"no-store"});
+    if(!res.ok)return null;
+    const data=await res.json();
+    return Array.isArray(data.rooms)&&data.rooms.some(r=>String(r.code||"").toUpperCase()===room);
+  }catch{return null;}
+}
+function stopSmartReconnect(){reconnectActive=false;reconnectStartedAt=0;reconnectAttempt=0;reconnectRoom="";if(reconnectTimer){clearTimeout(reconnectTimer);reconnectTimer=null;}}
+function smartReconnectStart(){
+  if(!currentRoom||reconnectActive)return;
+  reconnectActive=true;
+  reconnectStartedAt=Date.now();
+  reconnectAttempt=0;
+  reconnectRoom=currentRoom;
+  setConnectionStatus("DESCONECTADO","Conexión perdida. Intentando recuperar tu partida…",true);
+  nameBox.style.display="none";
+  smartReconnectTry();
+}
+async function smartReconnectTry(){
+  if(!reconnectActive||!currentRoom)return;
+  reconnectAttempt++;
+  const elapsed=Date.now()-reconnectStartedAt;
+  if(elapsed>=5000){
+    stopSmartReconnect();
+    setConnectionStatus("CONEXIÓN PERDIDA","No se pudo recuperar la partida. Volviendo al menú…",true);
+    setTimeout(()=>returnToMenu(),900);
+    return;
+  }
+  const room=currentRoom;
+  const exists=await roomStillExists(room);
+  if(exists===false){
+    stopSmartReconnect();
+    setConnectionStatus("SALA FINALIZADA","La partida ya no existe. Volviendo al menú…",true);
+    setTimeout(()=>returnToMenu(),900);
+    return;
+  }
+  setConnectionStatus("RECONEXIÓN","Reconectando a "+(room==="OPEN"?"la sala":"la sala "+room)+"… ("+Math.min(5,reconnectAttempt)+"/5)",true);
+  const mode=room==="OPEN"?"quick":"join";
+  connectMultiplayer(mode,room==="OPEN"?"":room);
+  if(reconnectActive && !reconnectTimer){
+    reconnectTimer=setTimeout(()=>{reconnectTimer=null;if(reconnectActive && (!multiplayerSocket || multiplayerSocket.readyState!==1))smartReconnectTry();},1000);
+  }
+}
+
 function setConnectionStatus(title,text,show=true){
   const overlay=document.getElementById("connectionOverlay"),t=document.getElementById("connectionTitle"),d=document.getElementById("connectionText");
   if(t)t.textContent=title||"CONECTANDO AL SERVIDOR";if(d)d.textContent=text||"";if(overlay)overlay.style.display=show?"flex":"none";
 }
 function connectMultiplayer(roomMode="quick",roomCode=""){ const publicRoomAuto=!!PUBLIC_ROOM_CODE && roomMode==="join" && roomCode===PUBLIC_ROOM_CODE;
+  if(reconnectActive){
+    reconnectRoom=roomMode==="quick"?"OPEN":(roomCode||"PRIVATE");
+  }
   if(multiplayerConnectTimer)clearTimeout(multiplayerConnectTimer);
   currentRoom=roomMode==="quick"?"OPEN":(roomCode||"PRIVATE");
   multiplayerReady=false;
@@ -1001,7 +1054,7 @@ function connectMultiplayer(roomMode="quick",roomCode=""){ const publicRoomAuto=
       if(multiplayerConnectTimer){clearTimeout(multiplayerConnectTimer);multiplayerConnectTimer=null;}
 
       setConnectionStatus("CONECTADO","Entrando a la sala…");
-      socket.send(JSON.stringify({type:"join",name:playerName||"Jugador",accountToken:accountToken,saveKey:accountToken?"":saveKey,color:"#39e7ff",room:roomMode==="join"?roomCode:"",createRoom:roomMode==="create",clientBuild:window.NEON_CORE_BUILD||"BUILD-29"}));
+      socket.send(JSON.stringify({type:"join",name:playerName||"Jugador",accountToken:accountToken,saveKey:accountToken?"":saveKey,color:"#39e7ff",room:roomMode==="join"?roomCode:"",createRoom:roomMode==="create",clientBuild:window.NEON_CORE_BUILD||"BUILD-30"}));
     });
     socket.addEventListener("message",e=>{
        if(multiplayerSocket!==socket)return;
@@ -1015,10 +1068,12 @@ function connectMultiplayer(roomMode="quick",roomCode=""){ const publicRoomAuto=
         }
         if(m.type==="server_update_notice"){
           const target=String(m.clientBuild||m.serverVersion||"");
-          if(target&&target!=="BUILD-29"&&typeof window.__neonForceUpdate==="function"){window.__neonForceUpdate(target);}
+          if(target&&target!=="BUILD-30"&&typeof window.__neonForceUpdate==="function"){window.__neonForceUpdate(target);}
           return;
         }
         if(m.type==="room_joined"){
+          if(reconnectActive){stopSmartReconnect();setConnectionStatus("RECONEXIÓN COMPLETA","Volviste a tu partida.",true);setTimeout(()=>setConnectionStatus("","",false),900);}
+
           if(m.safeZone){safeZone=m.safeZone;} if(m.name){try{localStorage.setItem("neon_core_player_name",String(m.name).slice(0,20));localStorage.setItem("neon_core_name_locked","1");}catch{}}
           spawnProtectionUntil=performance.now()+(Number(m.spawnProtectionMs)||5000);
           setConnectionStatus("CONECTADO","Listo. Entrando a la arena…");
@@ -1060,6 +1115,19 @@ function connectMultiplayer(roomMode="quick",roomCode=""){ const publicRoomAuto=
             setTimeout(()=>{if(!row.isConnected)return;row.classList.add("expiring");setTimeout(()=>{if(row.isConnected)row.remove();},700);},30000);
           }
         }else if(m.type==="room_error"){
+          if(m.reason==="room_not_found"){
+            stopSmartReconnect();
+            setConnectionStatus("SALA FINALIZADA","La partida ya no existe. Volviendo al menú…",true);
+            setTimeout(()=>returnToMenu(),900);
+            return;
+          }
+          if(m.reason==="room_full"){
+            stopSmartReconnect();
+            setConnectionStatus("SALA LLENA","No hay espacio para volver a entrar. Volviendo al menú…",true);
+            setTimeout(()=>returnToMenu(),900);
+            return;
+          }
+
           if(m.reason==="account_invalid"){
             nameBox.style.display="flex";
             setConnectionStatus("CUENTA NO VÁLIDA",m.message||"La credencial de cuenta no es válida.",true);
@@ -1383,28 +1451,18 @@ function connectMultiplayer(roomMode="quick",roomCode=""){ const publicRoomAuto=
       }catch{}
     });
     socket.addEventListener("error",()=>{
-       if(multiplayerSocket!==socket)return;
+      if(multiplayerSocket!==socket)return;
       multiplayerReady=false;
+      if(reconnectActive){setConnectionStatus("RECONEXIÓN","El servidor aún no responde. Buscando tu partida…",true);return;}
       setConnectionStatus("ESPERANDO AL SERVIDOR","El servidor gratuito puede estar despertando. Reintentando…");
-      multiplayerReady=false;
-      if(!publicRoomAuto){ nameBox.style.display="flex"; username.value=playerName||username.value; }
+      if(!publicRoomAuto){nameBox.style.display="flex";username.value=playerName||username.value;}
     });
     socket.addEventListener("close",()=>{
-        if(multiplayerSocket!==socket)return;
-       if(multiplayerConnectTimer){clearTimeout(multiplayerConnectTimer);multiplayerConnectTimer=null;}
-       multiplayerSocket=null;
-       if(currentRoom){
-         const reconnectMode=currentRoom==="OPEN"?"quick":"join";
-         const reconnectCode=currentRoom==="OPEN"?"":currentRoom;
-         setConnectionStatus("RECONEXIÓN","La conexión se perdió. Intentando volver a entrar…",true);
-         if(!publicRoomAuto) nameBox.style.display="none";
-         multiplayerConnectTimer=setTimeout(()=>{
-           if(multiplayerSocket===null && currentRoom){
-             connectMultiplayer(reconnectMode,reconnectCode);
-           }
-         },1800);
-       }
-     });
+      if(multiplayerSocket!==socket)return;
+      if(multiplayerConnectTimer){clearTimeout(multiplayerConnectTimer);multiplayerConnectTimer=null;}
+      multiplayerSocket=null;
+      if(currentRoom && !reconnectActive) smartReconnectStart();
+    });
    }catch{}
  }
  function sendMultiplayerState(dt){
@@ -1533,6 +1591,8 @@ function fire(){
   multiplayerSocket.send(JSON.stringify({type:"fire"}));
 }
 function returnToMenu(){
+  stopSmartReconnect();
+
   closeCosmeticShop();
   gameActive=false;
   enemies.length=0;
@@ -1660,7 +1720,7 @@ function update(dt){
   const visualMoving=actualSpeed>7;
   if(visualMoving){
     if(!movementTelemetry.inputSince)movementTelemetry.inputSince=performance.now();
-    // BUILD-29: el joystick izquierdo solo mueve; el derecho controla la mira.
+    // BUILD-30: el joystick izquierdo solo mueve; el derecho controla la mira.
   }else{
     movementTelemetry.inputSince=0;
   }
