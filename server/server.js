@@ -296,6 +296,8 @@ function sendStats(p) {
 
   send(p.ws, {
     type: 'server_stats',
+    name: p.name,
+    nameLocked: !!p.nameLocked,
     kills: p.kills,
     pvpKills: p.pvpKills,
     score: p.score,
@@ -338,6 +340,7 @@ function sendStats(p) {
 function capturePlayerData(p) {
   return {
     name: p.name,
+    nameLocked: !!p.nameLocked,
     level: p.level,
     hp: p.hp,
     damage: p.damage,
@@ -1135,6 +1138,8 @@ async function joinRoom(ws, requestedCode, create = false) {
   send(ws, {
     type: 'room_joined',
     code,
+    name: p.name,
+    nameLocked: !!p.nameLocked,
     players: publicPlayers(room),
     enemies: ensureRoomEnemies(code),
     walls: ensureRoomWalls(code),
@@ -1792,6 +1797,7 @@ function createPlayer(ws) {
   const player = {
     id,
     name: 'Jugador',
+    nameLocked: false,
     saveKey: '',
     x: SAFE_ZONE.x,
     y: SAFE_ZONE.y,
@@ -2015,6 +2021,14 @@ wss.on('connection', async (ws) => {
         p.hasSaved = !!saved;
 
         if (saved) {
+          const savedName = String(saved.name || '').trim().slice(0, 20);
+          if (savedName) {
+            p.name = savedName;
+            p.nameLocked = true;
+          } else {
+            p.nameLocked = true;
+          }
+
           // La posición nunca se persiste: cada nueva conexión empieza en la zona segura.
           p.level = clamp(Number(saved.level) || 1, 1, 1000);
           const savedHp = Number(saved.hp);
@@ -2045,6 +2059,10 @@ wss.on('connection', async (ws) => {
           p.equippedWeaponSkin = cosmetics.getWeaponSkin(saved.equippedWeaponSkin) && p.ownedWeaponSkins.includes(saved.equippedWeaponSkin) ? saved.equippedWeaponSkin : '';
           p.damagePenalty = Math.max(0, Number(saved.damagePenalty) || 0);
           p.defensePenalty = Math.max(0, Number(saved.defensePenalty) || 0);
+        }
+
+        if (!saved) {
+          p.nameLocked = true;
         }
 
         if (msg.color) {
