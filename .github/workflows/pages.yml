@@ -63,7 +63,7 @@ jobs:
           root = Path("index.html").read_text(encoding="utf-8")
           legacy = Path("neoncore/index.html").read_text(encoding="utf-8")
           release = json.loads(Path("release.json").read_text(encoding="utf-8"))
-          expected_release = str(release["clientBuild"])
+          expected_release = str(release["version"])
 
           assert 'launchLatest' in root and 'release.json' in root
           assert 'MENÚ PRINCIPAL' in root
@@ -95,7 +95,7 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          expected_release="$(python3 -c 'import json; print(json.load(open("release.json", encoding="utf-8"))["clientBuild"])')"
+          expected_release="$(python3 -c 'import json; print(json.load(open("release.json", encoding="utf-8"))["version"])')"
           expected_path="$(python3 -c 'import json; print(json.load(open("release.json", encoding="utf-8"))["clientPath"].removeprefix("/NeonCore/"))')"
           url="https://misael546.github.io/NeonCore/?livecheck=$(date +%s%N)"
           echo "[PAGES] Expected release: $expected_release"
