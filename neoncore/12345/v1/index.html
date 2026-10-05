@@ -9,7 +9,7 @@
 <script>
 (function(){
   try{
-    var v="BUILD-26",checking=false,updating=false,timer=null,base=new URL("../../../",location.href),manifestUrl=new URL("/NeonCore/release.json",location.origin);
+    var v="BUILD-27",checking=false,updating=false,timer=null,base=new URL("../../../",location.href),manifestUrl=new URL("/NeonCore/release.json",location.origin);
     window.NEON_CORE_BUILD=v;localStorage.setItem("neon_core_build",v);
     function notice(remote){
       if(updating)return;updating=true;
@@ -44,7 +44,7 @@
 #nameCard{width:min(380px,100%);background:#0b1020;border:1px solid #26344e;border-radius:18px;padding:22px;box-shadow:0 15px 60px #000}
 #nameCard h1{margin:0 0 5px;font-size:30px;letter-spacing:2px;color:#39e7ff}
 #nameCard p{color:#9ca9bd;margin:0 0 16px}
-#nameCard input{width:100%;padding:13px;border:1px solid #33415d;background:#111a2d;color:white;border-radius:10px;font-size:16px;outline:none}
+#nameCard input{width:100%;padding:13px;border:1px solid #33415d;background:#111a2d;color:white;border-radius:10px;font-size:16px;outline:none}#nameCard input.nameLocked{padding-right:48px;border-color:#202f43;color:#b9c4d4;background:#080f1a;cursor:not-allowed}
 #nameCard button,#restart{width:100%;min-height:44px;border:0;border-radius:10px;margin-top:10px;background:#183d58;color:#fff;font-weight:bold}
 #minimapWrap{position:fixed;top:10px;right:10px;width:180px;height:135px;background:rgba(5,8,17,.9);border:1px solid #26344e;border-radius:12px;padding:6px;z-index:6;pointer-events:none;backdrop-filter:blur(5px)}#minimap{display:block;width:100%;height:100%;border-radius:8px}#minimapTitle{position:absolute;left:10px;top:8px;font-size:10px;font-weight:bold;color:#dffbff;text-shadow:0 1px 2px #000}#playersPanel{position:fixed;top:10px;right:calc(min(42vw,180px) + 14px);width:min(210px,46vw);background:rgba(5,8,17,.88);border:1px solid #26344e;border-radius:12px;padding:8px 10px;font-size:12px;backdrop-filter:blur(5px);z-index:6;display:none;pointer-events:none}#playersList{display:grid;gap:4px;margin-top:6px;max-height:150px;overflow:auto}.onlinePlayer{display:flex;justify-content:space-between;gap:8px;color:#fff}.onlinePlayer small{color:#6ff3b0;font-size:10px}#roomActions{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:10px}#roomActions button{margin-top:0}#roomCodeInput{width:100%;padding:13px;border:1px solid #33415d;background:#111a2d;color:white;border-radius:10px;font-size:16px;outline:none;margin-top:8px;text-transform:uppercase}
 #nameMsg{font-size:13px;color:#ff8b8b;min-height:18px;margin-top:8px}
@@ -350,7 +350,8 @@ html.pc-controls .aimJoy{display:none!important}html.touch-controls .aimJoy{disp
     <div id="nameCard">
       <h1>NEON CORE</h1>
       <p>Escribe tu nombre y entra a las salas públicas.</p>
-      <input id="username" maxlength="20" autocomplete="off" placeholder="Nombre del tanque" required>
+      <div style="position:relative"><input id="username" maxlength="20" autocomplete="off" placeholder="Nombre del tanque" required><span id="gameNameLock" style="display:none;position:absolute;right:10px;top:50%;transform:translateY(-50%);width:32px;height:32px;border:1px solid #33415d;border-radius:8px;background:#0a1220;color:#73839b;place-items:center;pointer-events:none">🔒</span></div>
+      <div id="gameNameRestriction" style="display:none;text-align:center;margin-top:7px;color:#6f7f95;font-size:9px;font-weight:900;letter-spacing:1.2px">NOMBRE RESTRINGIDO · CAMBIO BLOQUEADO</div>
       <button id="publicRoomsBtn" type="button" onclick="enterPublicRooms();return false;">VOLVER A SALAS</button>
       <div id="privateRoomTools" style="display:none" aria-hidden="true">
         <div id="roomActions"><button type="button" id="createRoom">CREAR SALA PRIVADA</button><button type="button" id="joinRoom">UNIRME A PRIVADA</button></div>
@@ -423,7 +424,7 @@ let neonAudio={
   enabled:true,ready:false
 };
 const NEON_MUSIC_BASE="https://opengameart.org/sites/default/files/";
-const NEON_MUSIC_CREDIT="MUSIC · tricksntraps · OpenGameArt · CC0 · BUILD-26";
+const NEON_MUSIC_CREDIT="MUSIC · tricksntraps · OpenGameArt · CC0 · BUILD-27";
 const neonMusic={
   tracks:{
     menu:{file:"Currents.ogg",name:"NEON CORE"}, exploration:{file:"Currents.ogg",name:"NEON CORE"}, tension:{file:"Currents.ogg",name:"NEON CORE"}, combat:{file:"Currents.ogg",name:"NEON CORE"}, boss:{file:"Currents.ogg",name:"NEON CORE"}, bonus:{file:"Currents.ogg",name:"NEON CORE"}
@@ -887,6 +888,7 @@ function connectMultiplayer(roomMode="quick",roomCode=""){ const publicRoomAuto=
   if(multiplayerConnectTimer)clearTimeout(multiplayerConnectTimer);
   currentRoom=roomMode==="quick"?"OPEN":(roomCode||"PRIVATE");
   multiplayerReady=false;
+  applyGameNameLock();
   const keepName=playerName||String(username.value||"").trim();
   if(keepName){playerName=keepName;username.value=keepName;saveName(keepName);}
 
@@ -918,7 +920,7 @@ function connectMultiplayer(roomMode="quick",roomCode=""){ const publicRoomAuto=
       if(multiplayerConnectTimer){clearTimeout(multiplayerConnectTimer);multiplayerConnectTimer=null;}
 
       setConnectionStatus("CONECTADO","Entrando a la sala…");
-      socket.send(JSON.stringify({type:"join",name:playerName||"Jugador",saveKey:saveKey,color:"#39e7ff",room:roomMode==="join"?roomCode:"",createRoom:roomMode==="create",clientBuild:window.NEON_CORE_BUILD||"BUILD-26"}));
+      socket.send(JSON.stringify({type:"join",name:playerName||"Jugador",saveKey:saveKey,color:"#39e7ff",room:roomMode==="join"?roomCode:"",createRoom:roomMode==="create",clientBuild:window.NEON_CORE_BUILD||"BUILD-27"}));
     });
     socket.addEventListener("message",e=>{
        if(multiplayerSocket!==socket)return;
@@ -926,7 +928,7 @@ function connectMultiplayer(roomMode="quick",roomCode=""){ const publicRoomAuto=
         const m=JSON.parse(e.data);
         if(m.type==="server_update_notice"){
           const target=String(m.clientBuild||m.serverVersion||"");
-          if(target&&target!=="BUILD-26"&&typeof window.__neonForceUpdate==="function"){window.__neonForceUpdate(target);}
+          if(target&&target!=="BUILD-27"&&typeof window.__neonForceUpdate==="function"){window.__neonForceUpdate(target);}
           return;
         }
         if(m.type==="room_joined"){
@@ -1145,6 +1147,7 @@ function connectMultiplayer(roomMode="quick",roomCode=""){ const publicRoomAuto=
         }else if(m.type==="inventory_state"){syncClientInventory(m.inventory);updateResourceHud();
         }else if(m.type==="drop_state"){drops=Array.isArray(m.drops)?m.drops.map(q=>({...q})):[];updatePickupButton();
         }else if(m.type==="server_stats"){
+          if(m.name){playerName=String(m.name).slice(0,20);try{localStorage.setItem("neon_core_player_name",playerName);localStorage.setItem("neon_core_name_locked","1")}catch{}}
           if(Number.isFinite(m.kills))p.kills=m.kills;
           if(Number.isFinite(m.pvpKills))p.pvpKills=m.pvpKills;
           if(Number.isFinite(m.score))p.score=m.score;
@@ -1205,7 +1208,7 @@ function connectMultiplayer(roomMode="quick",roomCode=""){ const publicRoomAuto=
           if(m.wall){m.wall.dead=false;walls.push({...m.wall});burst(Number(m.wall.x)||0,Number(m.wall.y)||0,"#39e7ff",8);}
         }else if(m.type==="premium_purchase_result"){
           showCosmeticMsg(m.message||"Compras reales aún no activadas.");
-        }else if(m.type==="hp_regen"){p.hp=Math.min(Number(m.maxHp)||p.maxHp,Number(m.hp)||p.hp);updateHud();
+        }else if(m.type==="hp_regen"){p.hp=Math.min(Number(m.maxHp)||p.maxHp,Number(m.hp)||p.hp);if(m.safeZone){document.documentElement.classList.add("safe-zone-active");}else{document.documentElement.classList.remove("safe-zone-active");}updateHud();
         }else if(m.type==="ammo_empty"){audioTone(220,.1,"square",.05,-120);audioTone(110,.16,"square",.04,0,.06);p.ammo=0;updateResourceHud();showShopMsg("Sin munición. Ve con el vendedor.");
         }else if(m.type==="shot_result"){
           if(Number.isFinite(Number(m.ammo)))p.ammo=Math.max(0,Number(m.ammo));
@@ -1249,6 +1252,15 @@ function connectMultiplayer(roomMode="quick",roomCode=""){ const publicRoomAuto=
           audioTone(260,.09,"square",.04,160);audioTone(520,.16,"triangle",.03,260,.08);showToast((killer?.name||"Jugador")+" destruyó a "+(target?.name||"otro tanque"));
         }else if(m.type==="enemy_dead"){
           if(m.killer===multiplayerId)showToast("Enemigo destruido · recompensa añadida");
+        }else if(m.type==="room_error"){
+          if(m.reason==="name_taken"){
+            document.getElementById("nameBox").style.display="flex";
+            username.readOnly=false;username.classList.remove("nameLocked");
+            const lockEl=document.getElementById("gameNameLock"),restriction=document.getElementById("gameNameRestriction");
+            if(lockEl)lockEl.style.display="none";if(restriction)restriction.style.display="none";
+            document.getElementById("nameMsg").textContent=m.message||"Ese nombre ya está ocupado. Elige otro.";
+            setConnectionStatus("NOMBRE NO DISPONIBLE","El nombre ya pertenece a otro perfil.",true);
+          }
         }else if(m.type==="player_leave"){
           remotePlayers.delete(m.id);
         }
@@ -1290,8 +1302,22 @@ function connectMultiplayer(roomMode="quick",roomCode=""){ const publicRoomAuto=
 function rand(a,b){return a+Math.random()*(b-a)}
 function dist(a,b){return Math.hypot(a.x-b.x,a.y-b.y)}
 function clamp(v,a,b){return Math.max(a,Math.min(b,v))}
-function saveName(n){try{localStorage.setItem("neon_core_name",n)}catch(e){}}
-function loadName(){try{return localStorage.getItem("neon_core_name")||""}catch(e){return""}}
+function saveName(n){try{localStorage.setItem("neon_core_name",n);localStorage.setItem("neon_core_player_name",n);localStorage.setItem("neon_core_name_locked","1")}catch(e){}}
+function loadName(){try{return localStorage.getItem("neon_core_player_name")||localStorage.getItem("neon_core_name")||""}catch(e){return""}}
+function applyGameNameLock(){
+  const nameEl=document.getElementById("username");
+  const lockEl=document.getElementById("gameNameLock");
+  const restriction=document.getElementById("gameNameRestriction");
+  const n=loadName().slice(0,20);
+  if(n) nameEl.value=n;
+  const locked=!!n;
+  nameEl.readOnly=locked;
+  nameEl.classList.toggle("nameLocked",locked);
+  if(lockEl)lockEl.style.display=locked?"grid":"none";
+  if(restriction)restriction.style.display=locked?"block":"none";
+  return n;
+}
+
 function saveStats(){}
 function loadStats(){}
 
@@ -1500,7 +1526,7 @@ function update(dt){
   const visualMoving=actualSpeed>7;
   if(visualMoving){
     if(!movementTelemetry.inputSince)movementTelemetry.inputSince=performance.now();
-    // BUILD-26: el joystick izquierdo solo mueve; el derecho controla la mira.
+    // BUILD-27: el joystick izquierdo solo mueve; el derecho controla la mira.
   }else{
     movementTelemetry.inputSince=0;
   }
