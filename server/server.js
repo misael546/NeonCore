@@ -1,4 +1,4 @@
-/* BUILD-23 · updater GitHub Pages corregido */
+/* BUILD-24 · enlace oficial unico en raiz */
 'use strict';
 
 const http = require('http');
