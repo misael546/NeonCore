@@ -1,5 +1,5 @@
 name: Deploy Neon Core to GitHub Pages
-# Force Pages refresh from current main branch — 20261004-039-force-redeploy
+# Release-driven Pages deployment — no hardcoded build number
 
 on:
   push:
@@ -31,10 +31,10 @@ jobs:
           python3 -m pip install --disable-pip-version-check requests
           python3 - <<'PY'
           from pathlib import Path
-          import re, subprocess, tempfile
+          import re, subprocess, tempfile, json
 
           targets = [
-              Path("neoncore/12345/v1/index.html"),
+              Path(json.loads(Path("release.json").read_text(encoding="utf-8"))["clientPath"].lstrip("/")),
               Path("index.html"),
               Path("neoncore/index.html"),
           ]
@@ -65,11 +65,11 @@ jobs:
           release = json.loads(Path("release.json").read_text(encoding="utf-8"))
           expected_release = str(release["clientBuild"])
 
-          assert expected_release in root
+          assert 'launchLatest' in root and 'release.json' in root
           assert 'MENÚ PRINCIPAL' in root
           assert 'id="name"' in root
           assert 'id="play"' in root
-          assert './neoncore/12345/v1/?name=' in root
+          assert not any(f'neoncore/12345/{v}/' in root for v in ['v1','v2','v3'])
           assert 'PUBLIC_ROOM_CODE' not in root
           assert 'Sala #1' not in root
           assert '20261003-167-darkscifi' not in root
@@ -96,15 +96,18 @@ jobs:
         run: |
           set -euo pipefail
           expected_release="$(python3 -c 'import json; print(json.load(open("release.json", encoding="utf-8"))["clientBuild"])')"
+          expected_path="$(python3 -c 'import json; print(json.load(open("release.json", encoding="utf-8"))["clientPath"].lstrip("/"))')"
           url="https://misael546.github.io/NeonCore/?livecheck=$(date +%s%N)"
           echo "[PAGES] Expected release: $expected_release"
           echo "[PAGES] Checking live URL: $url"
           for i in $(seq 1 12); do
             html="$(curl -fsSL --retry 2 --retry-delay 2 "$url" || true)"
-            if grep -Fq "$expected_release" <<<"$html" \
-               && grep -Fq 'id="name"' <<<"$html" \
+            client="$(curl -fsSL --retry 2 --retry-delay 2 "https://misael546.github.io/NeonCore/${expected_path}?livecheck=$(date +%s%N)" || true)"
+            if grep -Fq 'id="name"' <<<"$html" \
                && grep -Fq 'id="play"' <<<"$html" \
-               && grep -Fq './neoncore/12345/v1/?name=' <<<"$html" \
+               && grep -Fq 'launchLatest' <<<"$html" \
+               && grep -Fq "window.NEON_CORE_BUILD=\"$expected_release\"" <<<"$client" \
+               &&
                && ! grep -Fq 'PUBLIC_ROOM_CODE' <<<"$html" \
                && ! grep -Fq '20261003-167-darkscifi' <<<"$html"; then
               echo "[PAGES] LIVE ROOT VERIFIED: current standalone main menu is being served."
