@@ -68,7 +68,7 @@ jobs:
           release = json.loads(Path("release.json").read_text(encoding="utf-8"))
           expected_release = str(release["version"])
 
-          expected_path = str(release["clientPath"]).removeprefix("/NeonCore/")
+          expected_path = str(release["clientPath"]).lstrip("/")
           assert "NEONCORE" in root
           assert expected_release in root
           assert expected_path in root
