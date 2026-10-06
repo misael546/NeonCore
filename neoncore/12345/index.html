@@ -42,7 +42,7 @@ small{display:block;margin-top:10px;color:#71819a;font-size:10px}
   function goDirect(path,name,target){
     const u=new URL("https://misael546.github.io/NeonCore/"+String(path).replace(/^\/+?/,""));
     if(name)u.searchParams.set("name",name);
-    if(u.searchParams.set("neon_cache",String(Date.now()));
+    u.searchParams.set("neon_cache",String(Date.now()));
     location.replace(u.toString());
   }
   try{
