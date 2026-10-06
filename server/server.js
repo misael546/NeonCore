@@ -45,23 +45,14 @@ const DATABASE_SCHEMA_VERSION = Math.max(3, Number(UNIFIED_RELEASE_MANIFEST.data
 const SERVER_VERSION = RELEASE_ID;
 const SERVER_UPDATE_MESSAGE = 'NUEVA ACTUALIZACIÓN DISPONIBLE. Neon Core volverá al menú para cargar la nueva versión.';
 
-const AMMO_PACK_SIZE = 0;
-const AMMO_PACK_COST = 0;
 const BASE_INVENTORY_SLOTS = 16;
 const BACKPACK_EXTRA_SLOTS = 16;
 const INVENTORY_SLOTS = BASE_INVENTORY_SLOTS;
 const MAX_INVENTORY_SLOTS = BASE_INVENTORY_SLOTS + BACKPACK_EXTRA_SLOTS;
 const INVENTORY_STACK_MAX = 500;
-const MAX_AMMO = 0;
 const PICKUP_RADIUS = 85;
 const DROP_LIFETIME_MS = 10 * 60 * 1000;
-const PROJECTILE_SPEED = 1200;
-const WEAPON_FIRE_RATE = 650;
-const PROJECTILE_RANGE = 1000;
 
-const PISTOLERO_MAX_LEVEL = 1000;
-const PISTOLERO_XP_PER_HIT = 10;
-const PISTOLERO_XP_PER_KILL = 40;
 const MELEE_MAX_LEVEL = 1000;
 const MELEE_XP_PER_HIT = 10;
 const MELEE_GRID_SIZE = 24;
@@ -87,7 +78,7 @@ const WEAPONS = {
 };
 const SHOP_FIREARM_IDS = Object.freeze([]);
 const SHOP_SWORD_IDS = Object.freeze(['sword_neo']);
-const SHOP_ARMOR_IDS = Object.freeze(['pixel_cyan','rust_core','toxic_orb','plasma_violet','aurora','nebula_prism','eclipse_gold','celestial','angel_seraph','demon_infernal','eternal_void','gm_core']);
+const SHOP_SKIN_IDS = Object.freeze(['pixel_cyan','rust_core','toxic_orb','plasma_violet','aurora','nebula_prism','eclipse_gold','celestial','angel_seraph','demon_infernal','eternal_void','gm_core']);
 const BACKPACK_ITEM_ID = 'backpack_basic';
 const BACKPACK_ITEM = Object.freeze({
   id: BACKPACK_ITEM_ID, name:'MOCHILA BÁSICA', rarity:'Común', category:'backpack',
@@ -109,13 +100,13 @@ function getItemDefinition(itemId){
       range:Number(weapon.range)||1000,arc:Number(weapon.arc)||0
     };
   }
-  if(SHOP_ARMOR_IDS.includes(id)){
-    const armor=cosmetics.getArmor(id);
+  if(SHOP_SKIN_IDS.includes(id)){
+    const armor=cosmetics.getSkin(id);
     if(!armor)return null;
     return {
-      id,name:armor.name,rarity:armor.rarity,category:'armor',equipSlot:'armor',
+      id,name:armor.name,rarity:armor.rarity,category:'skin',equipSlot:'skin',
       priceGold:Number(armor.priceGold)||0,priceDiamonds:Number(armor.priceDiamonds)||0,
-      stackable:false,armorRating:Number(armor.armorRating)||0
+      stackable:false,skinRating:Number(armor.skinRating)||0
     };
   }
   return null;
@@ -125,10 +116,6 @@ function publicItemCatalog(){
     getItemDefinition(BACKPACK_ITEM_ID),
     ...SHOP_SWORD_IDS.map(getItemDefinition)
   ].filter(Boolean).map(item=>({...item}));
-}
-
-function damageForPower(power) {
-  return Math.max(1, Math.round((Number(power) || 0) * 0.35));
 }
 
 const HP_REGEN_PER_SEC = 3;
@@ -389,8 +376,8 @@ function publicPlayer(p) {
     fatigue: Math.max(0,Math.min(Number(p.maxFatigue)||MAX_FATIGUE,Number(p.fatigue)||0)),
     maxFatigue: Number(p.maxFatigue)||MAX_FATIGUE,
     comboCount: Math.max(0,Number(p.comboCount)||0),
-    equippedSkin: cosmetics.getArmor(p.equippedArmor)?.id || (cosmetics.getSkin(p.equippedSkin) ? p.equippedSkin : 'core_default'),
-    equippedArmor: cosmetics.getArmor(p.equippedArmor) ? p.equippedArmor : '',
+    equippedSkin: cosmetics.getSkin(p.equippedSkin)?.id || (cosmetics.getSkin(p.equippedSkin) ? p.equippedSkin : 'core_default'),
+    equippedSkin: cosmetics.getSkin(p.equippedSkin) ? p.equippedSkin : '',
     equippedBackpack: p.equippedBackpack || ''
   };
 }
@@ -412,7 +399,7 @@ function sendStats(p) {
   if (!p?.ws) return;
 
   const nextKills = p.kills % 5 === 0 ? 5 : 5 - (p.kills % 5);
-  const maxAmmo = maxAmmoForPlayer(p);
+  const maxAmmo = 0;
 
   send(p.ws, {
     type: 'server_stats',
@@ -428,10 +415,7 @@ function sendStats(p) {
     damage: Number(p.damage) || 1,
     meleeLevel: masteryLevelFromXp(p.meleeXp||0),
     meleeXp: Math.max(0,Number(p.meleeXp)||0),
-    pistoleroXp: Math.max(0, Number(p.pistoleroXp) || 0),
-    pistoleroXpIntoLevel: pistoleroXpIntoLevel(p.pistoleroXp),
-    pistoleroXpNeed: pistoleroXpToNextLevel(pistoleroLevelFromXp(p.pistoleroXp)),
-    defense: Number(p.defense) || 0,
+        defense: Number(p.defense) || 0,
     defenseLevel: masteryLevelFromXp(p.defenseXp),
     defenseXp: Math.max(0,Number(p.defenseXp)||0),
     defenseXpIntoLevel: masteryXpIntoLevel(p.defenseXp),
@@ -458,11 +442,11 @@ function sendStats(p) {
     ownedWeapons: normalizeOwnedWeapons(p.ownedWeapons, p.weapon || 'sword_neo'),
     merchantNpc: MERCHANT_NPC,
     bankEnabled: BANK_ENABLED,
-    equippedSkin: cosmetics.getArmor(p.equippedArmor)?.id || 'core_default',
-    equippedArmor: cosmetics.getArmor(p.equippedArmor) ? p.equippedArmor : '',
+    equippedSkin: cosmetics.getSkin(p.equippedSkin)?.id || 'core_default',
+    equippedSkin: cosmetics.getSkin(p.equippedSkin) ? p.equippedSkin : '',
     equippedBackpack: p.equippedBackpack || '',
-    ownedSkins: [...new Set(['core_default',...cosmetics.normalizeOwnedArmors(p.ownedArmors)])],
-    ownedArmors: cosmetics.normalizeOwnedArmors(p.ownedArmors),
+    ownedSkins: [...new Set(['core_default',...cosmetics.normalizeOwnedSkins(p.ownedSkins)])],
+    ownedSkins: cosmetics.normalizeOwnedSkins(p.ownedSkins),
     redeemedCodes: cosmetics.normalizeRedeemedCodes(p.redeemedCodes),
     skinRating: 0
   });
@@ -485,8 +469,6 @@ function capturePlayerData(p) {
     gold: p.gold || 0,
     diamonds: p.diamonds || 0,
     inventory: inventoryPayload(p),
-    pistoleroLevel: pistoleroLevelFromXp(p.pistoleroXp),
-    pistoleroXp: Math.max(0, Number(p.pistoleroXp) || 0),
     weapon: WEAPONS[p.weapon] ? p.weapon : 'sword_neo',
     ownedWeapons: normalizeOwnedWeapons(p.ownedWeapons, p.weapon || ''),
     bankedGold: Math.max(0, Number(p.bankedGold) || 0),
@@ -497,8 +479,8 @@ function capturePlayerData(p) {
     defensePenalty: Math.max(0, Number(p.defensePenalty) || 0),
     ownedSkins: cosmetics.normalizeOwnedSkins(p.ownedSkins),
     equippedSkin: cosmetics.getSkin(p.equippedSkin) ? p.equippedSkin : 'core_default',
-    ownedArmors: cosmetics.normalizeOwnedArmors(p.ownedArmors),
-    equippedArmor: cosmetics.getArmor(p.equippedArmor) ? p.equippedArmor : '',
+    ownedSkins: cosmetics.normalizeOwnedSkins(p.ownedSkins),
+    equippedSkin: cosmetics.getSkin(p.equippedSkin) ? p.equippedSkin : '',
     equippedBackpack: p.equippedBackpack || '',
     redeemedCodes: cosmetics.normalizeRedeemedCodes(p.redeemedCodes)
   };
@@ -587,13 +569,13 @@ function removeInventoryAmount(p,itemId,qty){
 function inventoryPayload(p){syncAmmoFromInventory(p);return p.inventory.slice(0,inventoryCapacity(p)).map(slot=>slot?{itemId:slot.itemId,qty:slot.qty}:null);}
 function sendInventoryState(p,message=''){
   if(!p?.ws)return;
-  send(p.ws,{type:'inventory_state',message,inventory:inventoryPayload(p),ammo:inventoryTotal(p,'ammo'),maxAmmo:maxAmmoForPlayer(p),slots:inventoryCapacity(p),stackMax:INVENTORY_STACK_MAX,inventoryCapacity:inventoryCapacity(p),equippedBackpack:p.equippedBackpack||'',equippedWeapon:p.weapon||'',equippedArmor:p.equippedArmor||'',itemCatalog:publicItemCatalog(),shopStock:Object.fromEntries(SHOP_STOCK)});
+  send(p.ws,{type:'inventory_state',message,inventory:inventoryPayload(p),ammo:inventoryTotal(p,'ammo'),maxAmmo:maxAmmoForPlayer(p),slots:inventoryCapacity(p),stackMax:INVENTORY_STACK_MAX,inventoryCapacity:inventoryCapacity(p),equippedBackpack:p.equippedBackpack||'',equippedWeapon:p.weapon||'',equippedSkin:p.equippedSkin||'',itemCatalog:publicItemCatalog(),shopStock:Object.fromEntries(SHOP_STOCK)});
 }
 function syncOwnedCollections(p){
-  const weapons=new Set(Array.isArray(p.ownedWeapons)?p.ownedWeapons:[]),armors=new Set(Array.isArray(p.ownedArmors)?p.ownedArmors:[]);
-  if(p.weapon)weapons.add(p.weapon);if(p.equippedArmor)armors.add(p.equippedArmor);
+  const weapons=new Set(Array.isArray(p.ownedWeapons)?p.ownedWeapons:[]),armors=new Set(Array.isArray(p.ownedSkins)?p.ownedSkins:[]);
+  if(p.weapon)weapons.add(p.weapon);if(p.equippedSkin)armors.add(p.equippedSkin);
   for(const slot of p.inventory||[]){if(!slot)continue;const def=getItemDefinition(slot.itemId);if(def?.category==='weapon')weapons.add(slot.itemId);if(def?.category==='armor')armors.add(slot.itemId);}
-  p.ownedWeapons=normalizeOwnedWeapons([...weapons],p.weapon||'');p.ownedArmors=cosmetics.normalizeOwnedArmors([...armors]);
+  p.ownedWeapons=normalizeOwnedWeapons([...weapons],p.weapon||'');p.ownedSkins=cosmetics.normalizeOwnedSkins([...armors]);
 }
 function findFreeInventorySlot(p){p.inventory=normalizeInventory(p.inventory,inventoryCapacity(p));return p.inventory.findIndex(slot=>!slot);}
 function equipInventoryItem(p,slotIndex){
@@ -602,7 +584,7 @@ function equipInventoryItem(p,slotIndex){
   p.inventory=normalizeInventory(p.inventory,inventoryCapacity(p));const slot=p.inventory[idx];if(!slot)return {ok:false,message:'Ese espacio está vacío.'};
   const def=getItemDefinition(slot.itemId);if(!def?.equipSlot)return {ok:false,message:'Ese objeto no se puede equipar.'};
   if(def.equipSlot==='weapon'){const previous=p.weapon||'';p.weapon=def.id;p.equippedWeaponSkin='';p.inventory[idx]=previous&&previous!==def.id?{itemId:previous,qty:1}:null;}
-  else if(def.equipSlot==='armor'){const previous=p.equippedArmor||'';p.equippedArmor=def.id;p.inventory[idx]=previous&&previous!==def.id?{itemId:previous,qty:1}:null;}
+  else if(def.equipSlot==='armor'){const previous=p.equippedSkin||'';p.equippedSkin=def.id;p.inventory[idx]=previous&&previous!==def.id?{itemId:previous,qty:1}:null;}
   else if(def.equipSlot==='backpack'){const previous=p.equippedBackpack||'';p.equippedBackpack=def.id;const expanded=inventoryCapacity(p);p.inventory.length=expanded;while(p.inventory.length<expanded)p.inventory.push(null);p.inventory[idx]=previous&&previous!==def.id?{itemId:previous,qty:1}:null;}
   p.inventory=normalizeInventory(p.inventory,inventoryCapacity(p));syncOwnedCollections(p);applyCombatStats(p);return {ok:true};
 }
@@ -610,12 +592,12 @@ function unequipEquipment(p,slot){
   if(!p)return {ok:false,message:'Jugador no encontrado.'};
   const equipSlot=String(slot||'');let itemId='';
   if(equipSlot==='weapon'){itemId=p.weapon||'';p.weapon='';}
-  else if(equipSlot==='armor'){itemId=p.equippedArmor||'';p.equippedArmor='';}
+  else if(equipSlot==='armor'){itemId=p.equippedSkin||'';p.equippedSkin='';}
   else if(equipSlot==='backpack'){
     if(p.equippedBackpack===BACKPACK_ITEM_ID)for(const slotItem of (p.inventory||[]).slice(BASE_INVENTORY_SLOTS))if(slotItem)return {ok:false,message:'No hay espacio para quitar la mochila. Vacía los espacios adicionales primero.'};
     itemId=p.equippedBackpack||'';p.equippedBackpack='';
   }else return {ok:false,message:'Equipo inválido.'};
-  if(itemId){p.inventory=normalizeInventory(p.inventory,inventoryCapacity(p));const idx=findFreeInventorySlot(p);if(idx<0){if(equipSlot==='weapon')p.weapon=itemId;else if(equipSlot==='armor')p.equippedArmor=itemId;else p.equippedBackpack=itemId;return {ok:false,message:'No hay espacio libre en el inventario.'};}p.inventory[idx]={itemId,qty:1};}
+  if(itemId){p.inventory=normalizeInventory(p.inventory,inventoryCapacity(p));const idx=findFreeInventorySlot(p);if(idx<0){if(equipSlot==='weapon')p.weapon=itemId;else if(equipSlot==='armor')p.equippedSkin=itemId;else p.equippedBackpack=itemId;return {ok:false,message:'No hay espacio libre en el inventario.'};}p.inventory[idx]={itemId,qty:1};}
   p.inventory=normalizeInventory(p.inventory,inventoryCapacity(p));syncOwnedCollections(p);applyCombatStats(p);return {ok:true};
 }
 function dropItem(roomCode,p,itemId,qty,x,y){
@@ -655,7 +637,7 @@ function dropInventoryItem(ws,slotIndex){
   const p=clients.get(ws);if(!p||!p.room||!p.alive)return;
   const idx=Math.floor(Number(slotIndex));if(!Number.isInteger(idx)||idx<0||idx>=inventoryCapacity(p))return;
   p.inventory=normalizeInventory(p.inventory,inventoryCapacity(p));const slot=p.inventory[idx];if(!slot)return sendInventoryState(p,'Ese espacio está vacío.');
-  if(slot.itemId===p.weapon||slot.itemId===p.equippedArmor||slot.itemId===p.equippedBackpack)return sendInventoryState(p,'Ese objeto está equipado.');
+  if(slot.itemId===p.weapon||slot.itemId===p.equippedSkin||slot.itemId===p.equippedBackpack)return sendInventoryState(p,'Ese objeto está equipado.');
   const qty=Math.max(1,Math.floor(Number(slot.qty)||1));p.inventory[idx]=null;syncAmmoFromInventory(p);
   dropItem(p.room,p,slot.itemId,qty,p.x,p.y);void persistPlayer(p);
   sendInventoryState(p,'Soltaste '+qty+' '+(getItemDefinition(slot.itemId)?.name||'objeto')+' en el suelo.');sendDropState(p.room);
@@ -1383,7 +1365,7 @@ function findPlayer(id, room) {
 
 function sendItemShopState(p,message='',openOnly=false){
   if(!p?.ws)return;
-  send(p.ws,{type:'item_shop_state',message,openOnly:!!openOnly,near:merchantNearby(p),items:publicItemCatalog(),stock:Object.fromEntries(SHOP_STOCK),gold:Math.max(0,Number(p.gold)||0),diamonds:Math.max(0,Number(p.diamonds)||0),inventory:inventoryPayload(p),inventoryCapacity:inventoryCapacity(p),equippedWeapon:p.weapon||'',equippedArmor:p.equippedArmor||'',equippedBackpack:p.equippedBackpack||'',merchantNpc:MERCHANT_NPC});
+  send(p.ws,{type:'item_shop_state',message,openOnly:!!openOnly,near:merchantNearby(p),items:publicItemCatalog(),stock:Object.fromEntries(SHOP_STOCK),gold:Math.max(0,Number(p.gold)||0),diamonds:Math.max(0,Number(p.diamonds)||0),inventory:inventoryPayload(p),inventoryCapacity:inventoryCapacity(p),equippedWeapon:p.weapon||'',equippedSkin:p.equippedSkin||'',equippedBackpack:p.equippedBackpack||'',merchantNpc:MERCHANT_NPC});
 }
 function buyShopItem(ws,itemId){
   const p=clients.get(ws);if(!p)return;
@@ -1391,7 +1373,7 @@ function buyShopItem(ws,itemId){
   if(!merchantNearby(p))return send(ws,{type:'item_shop_result',ok:false,message:'Párate sobre el SHOP.'});
   const id=String(itemId||''),item=getItemDefinition(id);if(!item)return send(ws,{type:'item_shop_result',ok:false,message:'Ese objeto no está a la venta.'});
   const stock=SHOP_STOCK.get(id);if(stock!==undefined&&stock<=0)return send(ws,{type:'item_shop_result',ok:false,message:'Ese objeto se agotó por ahora.'});
-  const owned=inventoryTotal(p,id)+(p.weapon===id?1:0)+(p.equippedArmor===id?1:0)+(p.equippedBackpack===id?1:0);
+  const owned=inventoryTotal(p,id)+(p.weapon===id?1:0)+(p.equippedSkin===id?1:0)+(p.equippedBackpack===id?1:0);
   if(item.category!=='consumable'&&owned>0)return send(ws,{type:'item_shop_result',ok:false,message:'Ya tienes '+item.name+' en tu equipo o inventario.'});
   const goldCost=Math.max(0,Number(item.priceGold)||0),diamondCost=Math.max(0,Number(item.priceDiamonds)||0);
   const gold=Math.max(0,Number(p.gold)||0),diamonds=Math.max(0,Number(p.diamonds)||0);
@@ -1400,7 +1382,7 @@ function buyShopItem(ws,itemId){
   p.gold=gold-goldCost;p.diamonds=diamonds-diamondCost;
   if(stock!==undefined)SHOP_STOCK.set(id,Math.max(0,stock-1));
   syncOwnedCollections(p);void persistPlayer(p);
-  send(ws,{type:'item_shop_result',ok:true,message:'Compraste '+item.name+'. Ve al inventario para equiparlo.',gold:p.gold,diamonds:p.diamonds,stock:SHOP_STOCK.get(id),inventory:inventoryPayload(p),inventoryCapacity:inventoryCapacity(p),equippedWeapon:p.weapon||'',equippedArmor:p.equippedArmor||'',equippedBackpack:p.equippedBackpack||'',stockItem:id});
+  send(ws,{type:'item_shop_result',ok:true,message:'Compraste '+item.name+'. Ve al inventario para equiparlo.',gold:p.gold,diamonds:p.diamonds,stock:SHOP_STOCK.get(id),inventory:inventoryPayload(p),inventoryCapacity:inventoryCapacity(p),equippedWeapon:p.weapon||'',equippedSkin:p.equippedSkin||'',equippedBackpack:p.equippedBackpack||'',stockItem:id});
   sendStats(p);sendPlayerList(p.room);
 }
 function sellInventoryItem(ws,slotIndex,qtyRequested=1){
@@ -1409,7 +1391,7 @@ function sellInventoryItem(ws,slotIndex,qtyRequested=1){
   if(!merchantNearby(p))return send(ws,{type:'item_shop_result',ok:false,message:'Párate sobre el SHOP.'});
   const idx=Math.floor(Number(slotIndex));if(!Number.isInteger(idx)||idx<0||idx>=inventoryCapacity(p))return send(ws,{type:'item_shop_result',ok:false,message:'Espacio inválido.'});
   p.inventory=normalizeInventory(p.inventory,inventoryCapacity(p));const slot=p.inventory[idx];if(!slot)return send(ws,{type:'item_shop_result',ok:false,message:'Ese espacio está vacío.'});
-  if(slot.itemId===p.weapon||slot.itemId===p.equippedArmor||slot.itemId===p.equippedBackpack)return send(ws,{type:'item_shop_result',ok:false,message:'No puedes vender un objeto equipado.'});
+  if(slot.itemId===p.weapon||slot.itemId===p.equippedSkin||slot.itemId===p.equippedBackpack)return send(ws,{type:'item_shop_result',ok:false,message:'No puedes vender un objeto equipado.'});
   const item=getItemDefinition(slot.itemId);if(!item)return send(ws,{type:'item_shop_result',ok:false,message:'Objeto no reconocido.'});
   const available=Math.max(1,Math.floor(Number(slot.qty)||1)),qty=item.stackable?Math.max(1,Math.min(available,Math.floor(Number(qtyRequested)||1))):1;
   const goldValue=Math.max(0,Math.floor(qty*(Number(item.sellPriceGold)||0))),diamondValue=Math.max(0,Math.floor((Number(item.priceDiamonds)||0)*0.6));
@@ -1418,7 +1400,7 @@ function sellInventoryItem(ws,slotIndex,qtyRequested=1){
   removeInventoryAmount(p,item.id,qty);
   if(item.id===BACKPACK_ITEM_ID)SHOP_STOCK.set(item.id,(SHOP_STOCK.get(item.id)||0)+1);
   syncOwnedCollections(p);void persistPlayer(p);
-  send(ws,{type:'item_shop_result',ok:true,message:'Vendiste '+qty+' '+item.name+'.',gold:p.gold,diamonds:p.diamonds,stock:SHOP_STOCK.get(item.id),inventory:inventoryPayload(p),inventoryCapacity:inventoryCapacity(p),equippedWeapon:p.weapon||'',equippedArmor:p.equippedArmor||'',equippedBackpack:p.equippedBackpack||''});
+  send(ws,{type:'item_shop_result',ok:true,message:'Vendiste '+qty+' '+item.name+'.',gold:p.gold,diamonds:p.diamonds,stock:SHOP_STOCK.get(item.id),inventory:inventoryPayload(p),inventoryCapacity:inventoryCapacity(p),equippedWeapon:p.weapon||'',equippedSkin:p.equippedSkin||'',equippedBackpack:p.equippedBackpack||''});
   sendStats(p);
 }
 function handleEquipInventory(ws,slotIndex){
@@ -1502,11 +1484,11 @@ function shopBuy(ws, requestedWeapon) {
 function buyWeaponSkin(ws, skinId) {
   const p = clients.get(ws);
   if (!p) return;
-  if (!p.room || !p.alive) return cosmeticShopError(ws, 'No puedes usar armaduras de arma ahora.');
+  if (!p.room || !p.alive) return cosmeticShopError(ws, 'No puedes usar skins de arma ahora.');
   if (!merchantNearby(p)) return cosmeticShopError(ws, 'Párate sobre el SHOP.');
 
   const skin = cosmetics.getWeaponSkin(skinId);
-  if (!skin) return cosmeticShopError(ws, 'Armadura de arma no disponible.');
+  if (!skin) return cosmeticShopError(ws, 'Skin de arma no disponible.');
   if (!p.weapon || skin.weaponId !== p.weapon) return cosmeticShopError(ws, 'Equipa primero el arma compatible.');
 
   p.ownedWeaponSkins = cosmetics.normalizeOwnedWeaponSkins(p.ownedWeaponSkins);
@@ -1522,7 +1504,7 @@ function buyWeaponSkin(ws, skinId) {
       if (gold < skin.priceGold) return cosmeticShopError(ws, 'Necesitas ' + skin.priceGold + ' de oro.');
       p.gold = gold - skin.priceGold;
     } else {
-      return cosmeticShopError(ws, 'Esta armadura de arma no tiene un precio válido.');
+      return cosmeticShopError(ws, 'Esta skin de arma no tiene un precio válido.');
     }
     p.ownedWeaponSkins.push(skin.id);
     p.equippedWeaponSkin = skin.id;
@@ -1573,45 +1555,45 @@ function sendCosmeticState(p,message='Tienda lista.',unlockedSkin='',unlockedWea
   if(!p?.ws)return;
   send(p.ws,{type:'cosmetic_state',message,
     unlockedSkin:cosmetics.getSkin(unlockedSkin)?unlockedSkin:'',
-    unlockedArmor:cosmetics.getArmor(unlockedArmor)?unlockedArmor:'',
+    unlockedArmor:cosmetics.getSkin(unlockedArmor)?unlockedArmor:'',
     unlockedWeapon:WEAPONS[unlockedWeapon]?unlockedWeapon:'',
     unlockedWeaponSkin:cosmetics.getWeaponSkin(unlockedWeaponSkin)?unlockedWeaponSkin:'',
     ownedSkins:cosmetics.normalizeOwnedSkins(p.ownedSkins),
     equippedSkin:cosmetics.getSkin(p.equippedSkin)?p.equippedSkin:'core_default',
-    ownedArmors:cosmetics.normalizeOwnedArmors(p.ownedArmors),
-    equippedArmor:cosmetics.getArmor(p.equippedArmor)?p.equippedArmor:'',
+    ownedSkins:cosmetics.normalizeOwnedSkins(p.ownedSkins),
+    equippedSkin:cosmetics.getSkin(p.equippedSkin)?p.equippedSkin:'',
     ownedWeapons:normalizeOwnedWeapons(p.ownedWeapons,p.weapon||''),weapon:p.weapon,
     weaponSkinCatalog:cosmetics.publicWeaponCatalog(),merchantNpc:MERCHANT_NPC,
-    catalog:cosmetics.publicCatalog(),armorCatalog:cosmetics.publicArmorCatalog().filter(a=>SHOP_ARMOR_IDS.includes(a.id)),
+    catalog:cosmetics.publicCatalog(),skinCatalog:cosmetics.publicArmorCatalog().filter(a=>SHOP_SKIN_IDS.includes(a.id)),
     realMoneyOffers:cosmetics.publicRealMoneyOffers(),realMoneyEnabled:false});
 }
 function cosmeticShopError(ws,message){send(ws,{type:'cosmetic_result',ok:false,message:String(message||'No se pudo completar la operación.')});}
-function buyCosmeticArmor(ws,armorId){
+function buyCosmeticSkin(ws,armorId){
   const p=clients.get(ws);if(!p)return;
-  if(!p.room||!p.alive)return cosmeticShopError(ws,'No puedes usar armaduras ahora.');
+  if(!p.room||!p.alive)return cosmeticShopError(ws,'No puedes usar skins ahora.');
   if(!merchantNearby(p))return cosmeticShopError(ws,'Párate sobre el SHOP.');
-  const armor=cosmetics.getArmor(armorId);if(!armor||!SHOP_ARMOR_IDS.includes(String(armorId||'')))return cosmeticShopError(ws,'Armadura no disponible para venta.');
-  p.ownedArmors=cosmetics.normalizeOwnedArmors(p.ownedArmors);
-  if(p.ownedArmors.includes(armor.id)){p.equippedArmor=armor.id;void persistPlayer(p);sendCosmeticState(p,'Armadura equipada: '+armor.name,'','','',armor.id);sendStats(p);sendPlayerList(p.room);return;}
+  const armor=cosmetics.getSkin(armorId);if(!armor||!SHOP_SKIN_IDS.includes(String(armorId||'')))return cosmeticShopError(ws,'Skin no disponible para venta.');
+  p.ownedSkins=cosmetics.normalizeOwnedSkins(p.ownedSkins);
+  if(p.ownedSkins.includes(armor.id)){p.equippedSkin=armor.id;void persistPlayer(p);sendCosmeticState(p,'Skin equipada: '+armor.name,'','','',armor.id);sendStats(p);sendPlayerList(p.room);return;}
   const gold=Math.max(0,Number(p.gold)||0),diamonds=Math.max(0,Number(p.diamonds)||0);
   if(armor.priceDiamonds>0){if(diamonds<armor.priceDiamonds)return cosmeticShopError(ws,'Necesitas '+armor.priceDiamonds+' diamantes.');p.diamonds=diamonds-armor.priceDiamonds;}
   else if(armor.priceGold>0){if(gold<armor.priceGold)return cosmeticShopError(ws,'Necesitas '+armor.priceGold+' de oro.');p.gold=gold-armor.priceGold;}
-  else return cosmeticShopError(ws,'Esta armadura no tiene precio válido.');
-  p.ownedArmors.push(armor.id);p.ownedArmors=cosmetics.normalizeOwnedArmors(p.ownedArmors);p.equippedArmor=armor.id;void persistPlayer(p);
-  sendCosmeticState(p,'¡Compraste la armadura '+armor.name+' y quedó equipada!','','','',armor.id);sendStats(p);sendPlayerList(p.room);
+  else return cosmeticShopError(ws,'Esta skin no tiene precio válido.');
+  p.ownedSkins.push(armor.id);p.ownedSkins=cosmetics.normalizeOwnedSkins(p.ownedSkins);p.equippedSkin=armor.id;void persistPlayer(p);
+  sendCosmeticState(p,'¡Compraste la skin '+armor.name+' y quedó equipada!','','','',armor.id);sendStats(p);sendPlayerList(p.room);
 }
-function equipCosmeticArmor(ws,armorId){
+function equipCosmeticSkin(ws,armorId){
   const p=clients.get(ws);if(!p)return;
-  if(!p.room||!p.alive)return cosmeticShopError(ws,'No puedes cambiar de armadura ahora.');
+  if(!p.room||!p.alive)return cosmeticShopError(ws,'No puedes cambiar de skin ahora.');
   if(!merchantNearby(p))return cosmeticShopError(ws,'Acércate al SHOP.');
-  const id=String(armorId||'');p.ownedArmors=cosmetics.normalizeOwnedArmors(p.ownedArmors);
-  if(!id||!cosmetics.getArmor(id)||!p.ownedArmors.includes(id))return cosmeticShopError(ws,'Armadura bloqueada.');
-  p.equippedArmor=p.equippedArmor===id?'':id;void persistPlayer(p);
-  sendCosmeticState(p,p.equippedArmor?'Armadura equipada: '+cosmetics.getArmor(id).name+'.':'Armadura retirada.','','','',p.equippedArmor);sendStats(p);sendPlayerList(p.room);
+  const id=String(armorId||'');p.ownedSkins=cosmetics.normalizeOwnedSkins(p.ownedSkins);
+  if(!id||!cosmetics.getSkin(id)||!p.ownedSkins.includes(id))return cosmeticShopError(ws,'Skin bloqueada.');
+  p.equippedSkin=p.equippedSkin===id?'':id;void persistPlayer(p);
+  sendCosmeticState(p,p.equippedSkin?'Skin equipada: '+cosmetics.getSkin(id).name+'.':'Skin retirada.','','','',p.equippedSkin);sendStats(p);sendPlayerList(p.room);
 }
 function buyCosmeticSkin(ws,skinId){
   const id=String(skinId||'');
-  if(cosmetics.getArmor(id))return buyCosmeticArmor(ws,id);
+  if(cosmetics.getSkin(id))return buyCosmeticSkin(ws,id);
   const p=clients.get(ws);if(!p)return;
   if(!p.room||!p.alive)return cosmeticShopError(ws,'No puedes cambiar tu skin ahora.');
   if(!merchantNearby(p))return cosmeticShopError(ws,'Acércate al SHOP.');
@@ -1621,7 +1603,7 @@ function buyCosmeticSkin(ws,skinId){
 }
 function equipCosmeticSkin(ws,skinId){
   const id=String(skinId||'');
-  if(cosmetics.getArmor(id))return equipCosmeticArmor(ws,id);
+  if(cosmetics.getSkin(id))return equipCosmeticSkin(ws,id);
   return buyCosmeticSkin(ws,id);
 }
 
@@ -1629,7 +1611,7 @@ async function redeemCosmeticCode(ws, rawCode, fromServerChat=false) {
   const p = clients.get(ws);
   if (!p) return;
   if (!p.room || !p.alive) return cosmeticShopError(ws, 'No puedes usar códigos ahora.');
-  if (!merchantNearby(p) && !fromServerChat) return cosmeticShopError(ws, 'Acércate al SHOP.');
+  if (!fromServerChat && !merchantNearby(p)) return cosmeticShopError(ws, 'Acércate al MERCADER.');
 
   const code = String(rawCode || '').trim().toUpperCase().replace(/[^A-Z0-9_-]/g, '').slice(0, 32);
   if (!code) return cosmeticShopError(ws, 'Escribe un código.');
@@ -1644,7 +1626,7 @@ async function redeemCosmeticCode(ws, rawCode, fromServerChat=false) {
   }
 
   p.ownedSkins=cosmetics.normalizeOwnedSkins(p.ownedSkins);
-  p.ownedArmors=cosmetics.normalizeOwnedArmors(p.ownedArmors);
+  p.ownedSkins=cosmetics.normalizeOwnedSkins(p.ownedSkins);
   p.ownedWeapons=normalizeOwnedWeapons(p.ownedWeapons,p.weapon||'');
   p.ownedWeaponSkins = cosmetics.normalizeOwnedWeaponSkins(p.ownedWeaponSkins);
 
@@ -1655,8 +1637,8 @@ async function redeemCosmeticCode(ws, rawCode, fromServerChat=false) {
 
   if (reward.allSkins) {
     p.ownedSkins=cosmetics.normalizeOwnedSkins(p.ownedSkins);
-    p.ownedArmors=cosmetics.normalizeOwnedArmors(p.ownedArmors);
-    for(const armorId of Object.keys(cosmetics.ARMORS)){if(!p.ownedArmors.includes(armorId))p.ownedArmors.push(armorId);unlockedArmors.push(armorId);}
+    p.ownedSkins=cosmetics.normalizeOwnedSkins(p.ownedSkins);
+    for(const armorId of Object.keys(cosmetics.SKINS)){if(!p.ownedSkins.includes(armorId))p.ownedSkins.push(armorId);unlockedArmors.push(armorId);}
   }
 
   if (reward.allItems) {
@@ -1678,8 +1660,8 @@ async function redeemCosmeticCode(ws, rawCode, fromServerChat=false) {
   }
 
   if(reward.skinId){
-    const armor=cosmetics.getArmor(reward.skinId);if(!armor)return cosmeticShopError(ws,'Código sin recompensa de armadura válida.');
-    unlockedArmor=armor.id;if(!p.ownedArmors.includes(armor.id))p.ownedArmors.push(armor.id);p.equippedArmor=armor.id;
+    const armor=cosmetics.getSkin(reward.skinId);if(!armor)return cosmeticShopError(ws,'Código sin recompensa de skin válida.');
+    unlockedArmor=armor.id;if(!p.ownedSkins.includes(armor.id))p.ownedSkins.push(armor.id);p.equippedSkin=armor.id;
   }
 
   if (reward.weaponId) {
@@ -1750,7 +1732,7 @@ async function withdrawBank(ws) {
   });
 }
 
-function buyAmmo(ws){const p=clients.get(ws);if(!p)return;if(!p.room)return send(ws,{type:'shop_result',ok:false,message:'No estás dentro de una sala.'});if(!p.alive)return send(ws,{type:'shop_result',ok:false,message:'No puedes comprar estando destruido.'});if(Math.hypot(p.x-MERCHANT_NPC.x,p.y-MERCHANT_NPC.y)>MERCHANT_INTERACTION_RADIUS)return send(ws,{type:'shop_result',ok:false,message:'Párate sobre el SHOP.'});const ammo=inventoryTotal(p,'ammo'),gold=Math.max(0,Number(p.gold)||0);if(ammo>=maxAmmoForPlayer(p))return send(ws,{type:'shop_result',ok:false,message:'La mochila está llena de munición.'});if(gold<AMMO_PACK_COST)return send(ws,{type:'shop_result',ok:false,message:'Necesitas '+AMMO_PACK_COST+' de oro.'});const before=ammo;addInventoryItem(p,'ammo',AMMO_PACK_SIZE);const purchased=inventoryTotal(p,'ammo')-before;if(purchased<=0)return send(ws,{type:'shop_result',ok:false,message:'No hay espacio para más munición.'});p.gold=gold-AMMO_PACK_COST;void persistPlayer(p);send(ws,{type:'shop_result',ok:true,message:'Compraste '+purchased+' balas y fueron guardadas en el inventario.',gold:p.gold,ammo:inventoryTotal(p,'ammo'),maxAmmo:maxAmmoForPlayer(p)});sendInventoryState(p,'Munición guardada en la mochila.');sendStats(p);}function handleShotV2(ws,cellX,cellY,requestedAngle,targetId,isSpecial=false){
+function handleShotV2(ws,cellX,cellY,requestedAngle,targetId,isSpecial=false){
   const p=clients.get(ws);if(!p||!p.room||!p.alive)return;
   const sword=WEAPONS[p.weapon]||WEAPONS.sword_neo,now=Date.now();
   const special=!!isSpecial;
@@ -1854,8 +1836,8 @@ function createPlayer(ws) {
     bankedDiamonds: 0,
     ownedSkins: cosmetics.normalizeOwnedSkins([]),
     equippedSkin: 'core_default',
-    ownedArmors: [],
-    equippedArmor: '',
+    ownedSkins: [],
+    equippedSkin: '',
     ownedWeapons: ['sword_neo'],
     equippedWeaponSkin: '',
     ownedWeaponSkins: [],
@@ -2135,23 +2117,23 @@ wss.on('connection', async (ws) => {
           p.bankedGold = Math.max(0, Number(saved.bankedGold) || 0);
           p.bankedDiamonds = Math.max(0, Number(saved.bankedDiamonds) || 0);
           const legacyOwnedSkins=Array.isArray(saved.ownedSkins)?saved.ownedSkins:[];
-          const legacyArmorIds=legacyOwnedSkins.filter(id=>cosmetics.getArmor(id));
+          const legacyArmorIds=legacyOwnedSkins.filter(id=>cosmetics.getSkin(id));
           p.ownedSkins=cosmetics.normalizeOwnedSkins(legacyOwnedSkins);
           p.equippedSkin=(cosmetics.getSkin(saved.equippedSkin)&&p.ownedSkins.includes(saved.equippedSkin))?saved.equippedSkin:'pixel_human';
           if(p.equippedSkin==='core_default')p.equippedSkin='pixel_human';
-          p.ownedArmors=cosmetics.normalizeOwnedArmors([...(Array.isArray(saved.ownedArmors)?saved.ownedArmors:[]),...legacyArmorIds]);
-          p.equippedArmor=cosmetics.getArmor(saved.equippedArmor)?.id||(cosmetics.getArmor(saved.equippedSkin)?.id||'');
+          p.ownedSkins=cosmetics.normalizeOwnedSkins([...(Array.isArray(saved.ownedSkins)?saved.ownedSkins:[]),...legacyArmorIds]);
+          p.equippedSkin=cosmetics.getSkin(saved.equippedSkin)?.id||(cosmetics.getSkin(saved.equippedSkin)?.id||'');
           p.redeemedCodes = cosmetics.normalizeRedeemedCodes(saved.redeemedCodes);
           p.ownedWeapons = normalizeOwnedWeapons(saved.ownedWeapons, saved.weapon || '');
           p.weapon = WEAPONS[saved.weapon] ? saved.weapon : 'sword_neo';
           p.ownedWeaponSkins = cosmetics.normalizeOwnedWeaponSkins(saved.ownedWeaponSkins);
           p.equippedWeaponSkin = cosmetics.getWeaponSkin(saved.equippedWeaponSkin) && p.ownedWeaponSkins.includes(saved.equippedWeaponSkin) ? saved.equippedWeaponSkin : '';
           p.inventory=normalizeInventory(p.inventory,inventoryCapacity(p));
-          const legacyItems=[...(p.ownedWeapons||[]),...(p.ownedArmors||[])];
+          const legacyItems=[...(p.ownedWeapons||[]),...(p.ownedSkins||[])];
           for(const legacyId of legacyItems){
             const def=getItemDefinition(legacyId);
             if(!def||def.category==='consumable')continue;
-            if(legacyId===p.weapon||legacyId===p.equippedArmor)continue;
+            if(legacyId===p.weapon||legacyId===p.equippedSkin)continue;
             if(inventoryTotal(p,legacyId)>0)continue;
             addInventoryItem(p,legacyId,1);
           }
@@ -2471,7 +2453,7 @@ wss.on('connection', async (ws) => {
       }
 
       if (msg.type === 'equip_armor') {
-        if (!p.frozen) equipCosmeticArmor(ws, msg.armorId);
+        if (!p.frozen) equipCosmeticSkin(ws, msg.armorId);
         return;
       }
 
