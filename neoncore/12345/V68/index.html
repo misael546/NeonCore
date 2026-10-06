@@ -1716,7 +1716,10 @@ function fire(){
   p.lastShot=now;localVisual.shoot=1;
   const angle=Number(p.angle)||0;
   const localWeaponVisual=weaponVisuals[String(p.weapon)]||weaponVisuals.blaster;
-  const muzzle=getWeaponMuzzle(angle,p.r);\n  const launchX=muzzle.x,launchY=muzzle.y;\n  burst(launchX,launchY,localWeaponVisual.glow,melee?10:8);\n  if(!melee){for(let i=0;i<3;i++){const a=angle+(Math.random()-.5)*.25;burst(launchX+Math.cos(a)*(8+i*4),launchY+Math.sin(a)*(8+i*4),i%2?localWeaponVisual.accent:localWeaponVisual.glow,3);}}
+  const muzzle=getWeaponMuzzle(angle,p.r);
+  const launchX=muzzle.x,launchY=muzzle.y;
+  burst(launchX,launchY,localWeaponVisual.glow,melee?10:8);
+  if(!melee){for(let i=0;i<3;i++){const a=angle+(Math.random()-.5)*.25;burst(launchX+Math.cos(a)*(8+i*4),launchY+Math.sin(a)*(8+i*4),i%2?localWeaponVisual.accent:localWeaponVisual.glow,3);}}
   if(melee){
     meleeSlashes.push({x:p.x,y:p.y,angle,startAt:performance.now(),duration:210,color:localWeaponVisual.glow,arc:Number(weapon.arc)||1.1,radius:Number(weapon.range)||150});
   }else{
