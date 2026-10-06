@@ -9,7 +9,7 @@
 <script>
 (function(){
   try{
-    var v="V82",checking=false,updating=false,timer=null,base=new URL("../../../",location.href),manifestUrl=new URL("/NeonCore/release.json",location.origin);
+    var v="V82",checking=false,updating=false,timer=null,base=new URL("../../../",location.href),manifestUrl=new URL("../release.json",location.href);
     window.NEON_CORE_VERSION=v;localStorage.setItem("neon_core_version",v);
     function notice(remote){
       if(updating)return;updating=true;
@@ -23,7 +23,7 @@
       var t=el.querySelector("#neonUpdateText"),n=3,count=el.querySelector("#neonUpdateCount");
       if(t)t.textContent="Versión "+remote+" detectada. Volviendo al menú principal para instalar la actualización.";
       if(count)count.textContent=n;clearInterval(timer);
-      timer=setInterval(function(){n--;if(count)count.textContent=Math.max(0,n);if(n<=0){clearInterval(timer);location.replace("/NeonCore/");}},1000);
+      timer=setInterval(function(){n--;if(count)count.textContent=Math.max(0,n);if(n<=0){clearInterval(timer);location.replace("../../");}},1000);
     }
     window.__neonForceUpdate=notice;
     window.__neonCheckRelease=function(){
