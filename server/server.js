@@ -1,4 +1,4 @@
-/* V68 · cuentas, combate y jefe pixel */
+/* V69 · cuentas, combate V2 y jefes */
 'use strict';
 
 const http = require('http');
@@ -64,7 +64,7 @@ const PISTOLERO_XP_PER_HIT = 10;
 const PISTOLERO_XP_PER_KILL = 40;
 
 const SHOP_NPC = { x: 3250, y: 2200, r: 24 };
-const SHOP_INTERACTION_RADIUS = 48;
+const SHOP_INTERACTION_RADIUS = 140;
 const BANK_ENABLED = false;
 
 const WEAPONS = {
@@ -1826,7 +1826,6 @@ async function withdrawBank(ws) {
 function buyAmmo(ws){const p=clients.get(ws);if(!p)return;if(!p.room)return send(ws,{type:'shop_result',ok:false,message:'No estás dentro de una sala.'});if(!p.alive)return send(ws,{type:'shop_result',ok:false,message:'No puedes comprar estando destruido.'});if(Math.hypot(p.x-SHOP_NPC.x,p.y-SHOP_NPC.y)>SHOP_INTERACTION_RADIUS)return send(ws,{type:'shop_result',ok:false,message:'Párate sobre el SHOP.'});const ammo=inventoryTotal(p,'ammo'),gold=Math.max(0,Number(p.gold)||0);if(ammo>=maxAmmoForPlayer(p))return send(ws,{type:'shop_result',ok:false,message:'La mochila está llena de munición.'});if(gold<AMMO_PACK_COST)return send(ws,{type:'shop_result',ok:false,message:'Necesitas '+AMMO_PACK_COST+' de oro.'});const before=ammo;addInventoryItem(p,'ammo',AMMO_PACK_SIZE);const purchased=inventoryTotal(p,'ammo')-before;if(purchased<=0)return send(ws,{type:'shop_result',ok:false,message:'No hay espacio para más munición.'});p.gold=gold-AMMO_PACK_COST;void persistPlayer(p);send(ws,{type:'shop_result',ok:true,message:'Compraste '+purchased+' balas y fueron guardadas en el inventario.',gold:p.gold,ammo:inventoryTotal(p,'ammo'),maxAmmo:maxAmmoForPlayer(p)});sendInventoryState(p,'Munición guardada en la mochila.');sendStats(p);}function handleShot(ws, requestedAngle, requestedOriginX, requestedOriginY) {
   const shooter = clients.get(ws);
   if (!shooter || !shooter.room || !shooter.alive) return;
-  if (inSafeZone(shooter.x, shooter.y, 24)) return send(ws, { type: 'shot_result', ok: false, reason: 'safe_zone', ammo: shooter.ammo || 0 });
   let weapon = WEAPONS[shooter.weapon];
   if (!weapon) {
     shooter.weapon = 'blaster';
@@ -1850,7 +1849,10 @@ function buyAmmo(ws){const p=clients.get(ws);if(!p)return;if(!p.room)return send
   const maxRange = Math.max(40, Number(weapon.range) || PROJECTILE_RANGE);
   const centerX = Number(shooter.x) || 0, centerY = Number(shooter.y) || 0;
   const requestedX = Number(requestedOriginX), requestedY = Number(requestedOriginY);
-  const originDistance = Math.hypot(requestedX-centerX, requestedY-centerY);
+  const fallbackAngle = Number.isFinite(Number(requestedAngle)) ? Number(requestedAngle) : Number(shooter.angle)||0;
+  const safeOriginX = Number.isFinite(requestedX) ? requestedX : centerX + Math.cos(fallbackAngle)*22;
+  const safeOriginY = Number.isFinite(requestedY) ? requestedY : centerY + Math.sin(fallbackAngle)*22;
+  const originDistance = Math.hypot(safeOriginX-centerX, safeOriginY-centerY);
   const maxOriginOffset = Math.max(80, (Number(shooter.r)||24) * 4.5);
   const validOrigin = Number.isFinite(requestedX) && Number.isFinite(requestedY) && originDistance <= maxOriginOffset;
   const shotX = validOrigin ? requestedX : centerX, shotY = validOrigin ? requestedY : centerY;
@@ -2141,7 +2143,7 @@ function createPlayer(ws) {
 
   const player = {
     id,
-    name: 'Jugador',
+    name: '',
     nameLocked: false,
     accountId: '',
     accountTokenHash: '',
@@ -2176,7 +2178,8 @@ function createPlayer(ws) {
     ownedWeaponSkins: [],
     redeemedCodes: [],
     inventory: emptyInventory(),
-    ammo: 0,
+    ammo: 120,
+    starterAmmoGranted: true,
     pistoleroXp: 0,
     pistoleroLevel: 1,
     powerAttackBonus: 0,
@@ -2485,8 +2488,8 @@ wss.on('connection', async (ws) => {
         p.joined = true;
 
         send(ws,{type:'account_authenticated',accountId:p.accountId,name:saved?p.name:'',nameLocked:!!saved,created:!!account.created,accountToken:account.created?String(account.accountToken||''):'',recoveryCode:'',googleEmail:p.accountEmail,needsName:!saved});
+        if(!saved){p.pendingGoogleAuth=true;p.pendingRoomMode=msg.createRoom?'create':(msg.room?'join':'quick');p.pendingRoomCode=String(msg.room||'12345').slice(0,5);}
 
-        if(!saved){p.pendingGoogleAuth=true;p.pendingRoomMode=msg.createRoom?'create':(msg.room?'join':'quick');p.pendingRoomCode=String(msg.room||'12345').slice(0,5);send(ws,{type:'account_needs_name',message:'Cuenta Google verificada. Elige tu nombre de jugador.'});return;}
 
         if (msg.room) {
           await joinRoom(ws, msg.room, false);
@@ -2532,6 +2535,11 @@ wss.on('connection', async (ws) => {
       }
 
       if (msg.type === 'change_name') {
+        if(p.pendingGoogleAuth&&!String(p.name||'').trim()){
+          const result=await finalizeNewAccountName(p,msg.name);
+          if(!result.ok){send(ws,{type:'name_result',ok:false,reason:result.reason,message:result.reason==='name_taken'?'Ese nombre ya está ocupado.':result.reason==='name_reserved'?'Ese nombre está reservado.':'El nombre debe tener al menos 2 caracteres.'});return;}
+          p.pendingGoogleAuth=false;p.hasSaved=false;p.nameLocked=true;p.name=normalizeAccountName(msg.name);applyCombatStats(p);await persistPlayer(p);send(ws,{type:'name_result',ok:true,name:p.name,free:true});sendPlayerList(p.room);return;
+        }
         if(!p.frozen) await changePlayerName(ws,msg.name);
         return;
       }
@@ -2540,9 +2548,7 @@ wss.on('connection', async (ws) => {
         if(!p.pendingGoogleAuth)return;
         const result=await finalizeNewAccountName(p,msg.name);
         if(!result.ok){send(ws,{type:'name_result',ok:false,reason:result.reason,message:result.reason==='name_taken'?'Ese nombre ya está ocupado.':result.reason==='name_reserved'?'Ese nombre está reservado.':'El nombre debe tener al menos 2 caracteres.'});return;}
-        p.pendingGoogleAuth=false;p.joined=true;p.hasSaved=false;p.nameLocked=true;applyCombatStats(p);await persistPlayer(p);send(ws,{type:'name_result',ok:true,name:p.name});
-        if(p.pendingRoomMode==='create')await joinRoom(ws,'',true);else await joinRoom(ws,p.pendingRoomMode==='join'?p.pendingRoomCode:'OPEN',false);
-        send(ws,{type:'account_authenticated',accountId:p.accountId,name:p.name,nameLocked:true,created:true});sendPlayerList(p.room);return;
+        p.pendingGoogleAuth=false;p.hasSaved=false;p.nameLocked=true;p.name=normalizeAccountName(msg.name);applyCombatStats(p);await persistPlayer(p);send(ws,{type:'name_result',ok:true,name:p.name,free:true});sendPlayerList(p.room);return;
       }
 
       if (msg.type === 'chat') {
@@ -2643,6 +2649,11 @@ wss.on('connection', async (ws) => {
 
         p.stateViolations = Math.max(0, p.stateViolations - 1);
         p.lastStateAt = now;
+        // V69: una cuenta Google sin nombre permanece dentro de la zona segura.
+        if(!p.nameLocked && !String(p.name||'').trim()){
+          const dx=finalX-SAFE_ZONE.x,dy=finalY-SAFE_ZONE.y,d=Math.hypot(dx,dy),limit=Math.max(0,SAFE_ZONE.r-18);
+          if(d>limit){const k=limit/Math.max(d,0.0001);finalX=SAFE_ZONE.x+dx*k;finalY=SAFE_ZONE.y+dy*k;movementClamped=true;}
+        }
         p.x = clamp(finalX, 35, WORLD.w - 35);
         p.y = clamp(finalY, 35, WORLD.h - 35);
 
