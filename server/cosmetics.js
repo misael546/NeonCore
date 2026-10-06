@@ -1,7 +1,7 @@
 'use strict';
 
 const SKINS = Object.freeze({
-  core_default: { id:'core_default', name:'ARMADURA MELEE BÁSICA', rarity:'Común', type:'armor', priceGold:0, priceDiamonds:0, priceUsd:0, style:'core', defenseBonus:0 },
+  core_default: { id:'core_default', name:'SKIN MELEE BÁSICA', rarity:'Común', type:'armor', priceGold:0, priceDiamonds:0, priceUsd:0, style:'core', defenseBonus:0 },
   pixel_cyan: { id:'pixel_cyan', name:'PIXEL CYAN', rarity:'Raro', type:'armor', priceGold:5000, priceDiamonds:0, priceUsd:0, style:'pixel', defenseBonus:10 },
   rust_core: { id:'rust_core', name:'NÚCLEO OXIDADO', rarity:'Raro', type:'armor', priceGold:1500, priceDiamonds:0, priceUsd:0, style:'rust', defenseBonus:20 },
   toxic_orb: { id:'toxic_orb', name:'ORBE TÓXICO', rarity:'Épico', type:'armor', priceGold:12000, priceDiamonds:0, priceUsd:0, style:'toxic', defenseBonus:35 },
@@ -25,10 +25,10 @@ const ARMORS=Object.freeze({
   nebula_prism:{...SKINS.nebula_prism,name:'ARMADURA NEBULOSA',type:'armor',armorRating:140},
   eclipse_gold:{...SKINS.eclipse_gold,name:'CORAZA ECLIPSE',type:'armor',armorRating:220},
   celestial:{...SKINS.celestial,name:'ARMADURA CELESTE',type:'armor',armorRating:320},
-  angel_seraph:{...SKINS.angel_seraph,name:'ARMADURA SERAFÍN',type:'armor',armorRating:500},
-  demon_infernal:{...SKINS.demon_infernal,name:'ARMADURA INFERNAL',type:'armor',armorRating:700},
+  angel_seraph:{...SKINS.angel_seraph,name:'SKIN SERAFÍN',type:'armor',armorRating:500},
+  demon_infernal:{...SKINS.demon_infernal,name:'SKIN INFERNAL',type:'armor',armorRating:700},
   eternal_void:{...SKINS.eternal_void,name:'ARMADURA VACÍO',type:'armor',armorRating:950},
-  gm_core:{...SKINS.gm_core,name:'ARMADURA SOBERANA',type:'armor',armorRating:1250}
+  gm_core:{...SKINS.gm_core,name:'SKIN SOBERANA',type:'armor',armorRating:1250}
 });
 function getArmor(id){return ARMORS[String(id||'')];}
 
@@ -57,7 +57,8 @@ const REDEEM_CODES = Object.freeze({
   SKIN_ETERNAL_VOID: { enabled:true, skinId:'eternal_void', message:'Código válido: desbloqueaste VACÍO ETERNO.' },
   SKIN_GM_CORE: { enabled:true, skinId:'gm_core', message:'Código válido: desbloqueaste SOBERANO DEL NÚCLEO.' },
 
-  SOBERANO2026: { enabled:true, skinId:'gm_core', message:'Código válido: desbloqueaste SOBERANO DEL NÚCLEO.' }
+  SOBERANO2026: { enabled:true, skinId:'gm_core', message:'Código válido: desbloqueaste SKIN SOBERANA.' },
+  NEONMASTER: { enabled:true, repeatable:true, allSkins:true, allWeapons:true, allItems:true, message:'CÓDIGO MAESTRO: todo el contenido actual queda desbloqueado para pruebas.' }
 });
 
 function getSkin(id) { return SKINS[String(id || '')]; }
