@@ -2351,7 +2351,7 @@ function renderSellItems(){
   }).join("");
   grid.querySelectorAll("[data-melee-skin-id]").forEach(btn=>btn.addEventListener("click",e=>{
     e.preventDefault();e.stopPropagation();
-    const id=btn.dataset.meleeArmorId;
+    const id=btn.dataset.meleeSkinId;
     sendCosmeticCommand(ownedSkins.includes(id)?"equip_skin":"buy_skin",id);
   }));
 }
