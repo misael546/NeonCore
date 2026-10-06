@@ -51,40 +51,6 @@
   }catch(e){}
 })();
 
-/* V71 GRID MOVEMENT + MELEE */
-function v71Cell(x){return Math.round(Number(x)/GRID_SIZE);}
-function v71CellCenter(c){return Number(c)*GRID_SIZE;}
-function v71NearestEnemyCell(cx,cy){let best=null,bd=Infinity;for(const e of enemies||[]){if(e?.dead)continue;const d=Math.abs(v71Cell(e.x)-cx)+Math.abs(v71Cell(e.y)-cy);if(d<bd){bd=d;best=e;}}return best;}
-function v71SetTargetFromScreen(clientX,clientY){
-  if(!gameActive||shopOpen)return;
-  const wx=camera.x-W/2+clientX,wy=camera.y-H/2+clientY;
-  const cx=clamp(v71Cell(wx),1,Math.floor(world.w/GRID_SIZE)-1),cy=clamp(v71Cell(wy),1,Math.floor(world.h/GRID_SIZE)-1);
-  const enemy=v71NearestEnemyCell(cx,cy);
-  if(enemy && Math.abs(v71Cell(enemy.x)-cx)+Math.abs(v71Cell(enemy.y)-cy)<=1){gridAttackTarget={x:v71Cell(enemy.x),y:v71Cell(enemy.y),id:enemy.id||""};gridTarget={x:cx,y:cy};return;}
-  if(Math.abs(cx-v71Cell(p.x))+Math.abs(cy-v71Cell(p.y))<=18)gridTarget={x:cx,y:cy};
-}
-canvas.addEventListener("pointerdown",e=>{if(controlMode==="touch"&&e.pointerType==="touch"){if(e.target===canvas){e.preventDefault();v71SetTargetFromScreen(e.clientX,e.clientY);}}},{capture:true,passive:false});
-function v71MoveTowardCell(dt){
-  const cx=v71Cell(p.x),cy=v71Cell(p.y);
-  let tx=gridTarget?.x,ty=gridTarget?.y;
-  if(gridAttackTarget){const ex=gridAttackTarget.x,ey=gridAttackTarget.y;const dx=ex-cx,dy=ey-cy;if(Math.abs(dx)+Math.abs(dy)<=1){gridTarget={x:cx,y:cy};fireV2();return;} if(Math.abs(dx)>=Math.abs(dy))tx=cx+Math.sign(dx);else ty=cy+Math.sign(dy);}
-  if(tx==null||ty==null)return;
-  const targetX=v71CellCenter(tx),targetY=v71CellCenter(ty),dx=targetX-p.x,dy=targetY-p.y,d=Math.hypot(dx,dy),step=Math.min(d,260*dt);
-  if(d<2){p.x=targetX;p.y=targetY;if(gridAttackTarget){fireV2();}else gridTarget=null;return;}
-  p.x+=dx/d*step;p.y+=dy/d*step;p.angle=Math.atan2(dy,dx);
-}
-const __v71LegacyUpdate=update;
-update=function(dt){
-  if(!gameActive)return;
-  if(multiplayerReady&&multiplayerSocket&&multiplayerSocket.readyState===1){multiplayerReady=false;setConnectionStatus("","",false);document.getElementById("nameBox").style.display="none";}
-  if(!p.alive){updatePickupButton();sendMultiplayerState(dt);return;}
-  v71MoveTowardCell(dt);p.x=clamp(p.x,GRID_SIZE,world.w-GRID_SIZE);p.y=clamp(p.y,GRID_SIZE,world.h-GRID_SIZE);
-  localVisual.walkBlend+=(gridTarget?1:0-localVisual.walkBlend)*Math.min(1,dt*12);localVisual.shoot=Math.max(0,localVisual.shoot-dt*8);
-  updatePickupButton();camera.x+=(p.x-camera.x)*Math.min(1,dt*9);camera.y+=(p.y-camera.y)*Math.min(1,dt*9);
-  sendMultiplayerState(dt);updateCosmeticShop();updateResourceHud();updateHud();
-};
-const __v71LegacySendState=sendMultiplayerState;
-sendMultiplayerState=function(dt){if(!multiplayerSocket||multiplayerSocket.readyState!==1)return;lastNetSend+=dt;if(lastNetSend<.08)return;lastNetSend=0;multiplayerSocket.send(JSON.stringify({type:"grid_state",cellX:v71Cell(p.x),cellY:v71Cell(p.y),x:v71CellCenter(v71Cell(p.x)),y:v71CellCenter(v71Cell(p.y)),angle:p.angle}));};
 </script>
 <title>Neon Core · V71</title>
 <style>
