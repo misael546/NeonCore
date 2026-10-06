@@ -202,6 +202,18 @@ async function authenticateGoogleAccount(idToken){
   memoryAccountsByToken.set(accountToken,a);memoryAccountNames.set(accountNameKey(tempName),a);memoryAccountsByGoogle.set(google.sub,a);
   return a;
 }
+async function changePlayerName(ws,newName){
+  const p=clients.get(ws);if(!p||!p.joined)return;
+  const clean=normalizeAccountName(newName);if(clean.length<2)return send(ws,{type:'rename_result',ok:false,message:'El nombre debe tener al menos 2 caracteres.'});
+  if(isReservedAccountName(clean))return send(ws,{type:'rename_result',ok:false,message:'Ese nombre está reservado.'});
+  if(accountNameKey(clean)===accountNameKey(p.name))return send(ws,{type:'rename_result',ok:false,message:'Ese ya es tu nombre actual.'});
+  for(const other of clients.values()){if(other!==p&&other?.name&&accountNameKey(other.name)===accountNameKey(clean))return send(ws,{type:'rename_result',ok:false,message:'Ese nombre ya está ocupado.'});}
+  const owner=await storage.findAccountByName(clean);if(owner&&owner.accountId!==p.accountId)return send(ws,{type:'rename_result',ok:false,message:'Ese nombre ya está ocupado.'});
+  const cost=1000;if((Number(p.diamonds)||0)<cost)return send(ws,{type:'rename_result',ok:false,message:'Necesitas 1,000 💎 para cambiar tu nombre.',diamonds:Number(p.diamonds)||0,cost});
+  if(storage.enabled){const result=await storage.renameAccount(p.accountId,clean);if(!result.ok)return send(ws,{type:'rename_result',ok:false,message:result.reason==='name_taken'?'Ese nombre ya está ocupado.':'No se pudo guardar el nuevo nombre.'});}
+  else {const old=memoryAccountsByToken.get(p.accountToken);if(old){memoryAccountNames.delete(accountNameKey(old.name));old.name=clean;old.updatedAt=new Date().toISOString();memoryAccountNames.set(accountNameKey(clean),old);}}
+  p.diamonds=Math.max(0,(Number(p.diamonds)||0)-cost);p.name=clean;p.nameLocked=true;await persistPlayer(p);send(ws,{type:'rename_result',ok:true,name:p.name,diamonds:p.diamonds,cost});sendStats(p);if(p.room)sendPlayerList(p.room);
+}
 async function finalizeNewAccountName(p,requestedName){
   const clean=normalizeAccountName(requestedName);if(clean.length<2)return {ok:false,reason:'invalid_name'};
   if(isReservedAccountName(clean))return {ok:false,reason:'name_reserved'};
@@ -2500,6 +2512,11 @@ wss.on('connection', async (ws) => {
           clientPath: String(UNIFIED_RELEASE_MANIFEST.clientPath || '/NeonCore/neoncore/12345/V42/index.html')
         });
 
+        return;
+      }
+
+      if (msg.type === 'change_name') {
+        if(!p.frozen) await changePlayerName(ws,msg.name);
         return;
       }
 
