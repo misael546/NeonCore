@@ -108,8 +108,7 @@ Reglas:
 ### PC
 - Movimiento con teclado configurable.
 - No mostrar joystick de movimiento en PC.
-- Apuntado con mouse.
-- Disparo mediante la tecla configurable.
+- Ataque melee mediante la tecla configurable.
 
 ### Móvil
 
@@ -117,8 +116,10 @@ Reglas:
 - No usar un manejador táctil global que bloquee accidentalmente botones, chat, inputs o menús.
 - En Android el movimiento es exclusivamente por toque de casillas; no usar joystick para desplazamiento.
 - El jugador debe permanecer quieto cuando no existe una casilla destino.
+- La cuadrícula de movimiento es de **24 px**.
+- El mundo debe representarse como **2D pixel art top-down**; no usar fondos fotográficos/ilustrados como terreno.
 - Mantener correctamente los identificadores de cada dedo/pointer.
-- Cualquier cambio de controles debe probar ambos joysticks y botones de UI.
+- Cualquier cambio de controles debe probar el toque de casillas, el ataque melee y todos los botones de UI.
 
 ## 9. Mundo, enemigos y jefes
 
