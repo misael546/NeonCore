@@ -458,13 +458,13 @@ function sendStats(p) {
     ownedWeapons: normalizeOwnedWeapons(p.ownedWeapons, p.weapon || 'sword_neo'),
     merchantNpc: MERCHANT_NPC,
     bankEnabled: BANK_ENABLED,
-    equippedSkin: cosmetics.getSkin(p.equippedSkin) ? p.equippedSkin : 'core_default',
+    equippedSkin: cosmetics.getArmor(p.equippedArmor)?.id || 'core_default',
     equippedArmor: cosmetics.getArmor(p.equippedArmor) ? p.equippedArmor : '',
     equippedBackpack: p.equippedBackpack || '',
-    ownedSkins: cosmetics.normalizeOwnedSkins(p.ownedSkins),
+    ownedSkins: [...new Set(['core_default',...cosmetics.normalizeOwnedArmors(p.ownedArmors)])],
     ownedArmors: cosmetics.normalizeOwnedArmors(p.ownedArmors),
     redeemedCodes: cosmetics.normalizeRedeemedCodes(p.redeemedCodes),
-    armorRating: Number(cosmetics.getArmor(p.equippedArmor)?.armorRating)||0
+    skinRating: 0
   });
 }
 function capturePlayerData(p) {
