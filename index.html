@@ -2,38 +2,21 @@
 <html lang="es">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width,initial-scale=1">
-<meta name="description" content="NeonCore Development Portal: laboratorio web para creación de software, sistemas realtime y experiencias interactivas.">
-<title>NeonCore Development Portal</title>
-<style>
-*{box-sizing:border-box}html,body{margin:0;min-height:100%;font-family:Inter,Arial,sans-serif;background:#03070d;color:#eafcff}
-body{background:radial-gradient(circle at 80% 10%,#12354a55,transparent 30%),linear-gradient(145deg,#02050a,#07111c 55%,#02050a)}
-.wrap{width:min(980px,92vw);margin:auto;padding:42px 0 34px}.top{display:flex;justify-content:space-between;align-items:center;gap:18px;border-bottom:1px solid #26384d;padding-bottom:18px}.brand{font-weight:900;letter-spacing:3px;color:#39e7ff}.status{font-size:10px;letter-spacing:1.5px;color:#6f849d}.hero{padding:58px 0 35px}.tag{font-size:10px;font-weight:900;letter-spacing:3px;color:#7289a2}.hero h1{font-size:clamp(38px,8vw,72px);margin:10px 0;color:#f2feff;letter-spacing:5px;text-shadow:0 0 24px #39e7ff44}.hero p{max-width:680px;color:#a9b9ca;line-height:1.7;font-size:15px}.grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}.card{border:1px solid #26384d;background:#08111ddd;border-radius:15px;padding:19px;min-height:145px}.card b{display:block;color:#39e7ff;letter-spacing:1px;margin-bottom:8px}.card span{color:#8ea0b5;font-size:12px;line-height:1.6}.section{margin-top:38px}.section h2{font-size:16px;letter-spacing:2px;margin:0 0 14px}.stack{display:grid;grid-template-columns:1fr 1fr;gap:12px}.line{border-left:2px solid #39e7ff55;padding:13px 15px;background:#07101a;border-radius:0 10px 10px 0;color:#9badc1;font-size:12px}.play{display:inline-flex;align-items:center;gap:9px;margin-top:22px;padding:12px 18px;border:1px solid #33445b;border-radius:9px;background:#0a1420;color:#91a4b9;text-decoration:none;font-size:11px;font-weight:900;letter-spacing:1.4px}.play:hover{border-color:#39e7ff;color:#dffbff}.foot{margin-top:40px;padding-top:16px;border-top:1px solid #182638;color:#52657d;font-size:9px;letter-spacing:1.3px}@media(max-width:700px){.grid,.stack{grid-template-columns:1fr}.wrap{padding-top:25px}.hero{padding-top:42px}.top{align-items:flex-start}.status{max-width:150px;text-align:right}}
-</style>
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+<meta http-equiv="Pragma" content="no-cache">
+<meta http-equiv="Expires" content="0">
+<title>NEON CORE</title>
 </head>
-<body>
-<main class="wrap">
-<header class="top"><div class="brand">NEONCORE // DEV</div><div class="status">SOFTWARE DEVELOPMENT PORTAL · ONLINE</div></header>
-<section class="hero">
-<div class="tag">WEB SYSTEMS · REALTIME · INTERACTIVE SOFTWARE</div>
-<h1>NEONCORE</h1>
-<p>Portal de desarrollo para experimentar, construir y probar software web interactivo. El proyecto integra arquitectura cliente/servidor, comunicación en tiempo real, persistencia de datos y sistemas modulares preparados para evolucionar.</p>
-<a class="play" href="/NeonCore/neoncore/12345/index.html?neon_cache=V82">▶ JUGAR NEON CORE</a>
-</section>
-<section class="grid">
-<div class="card"><b>CLIENT ENGINE</b><span>Interfaces web, renderizado en tiempo real, controles táctiles y sistemas interactivos.</span></div>
-<div class="card"><b>REALTIME CORE</b><span>Comunicación mediante WebSocket, sincronización de estado y gestión de sesiones.</span></div>
-<div class="card"><b>DATA LAYER</b><span>Arquitectura preparada para cuentas, progreso, inventario y almacenamiento persistente.</span></div>
-</section>
-<section class="section"><h2>ÁREAS DE DESARROLLO</h2><div class="stack">
-<div class="line">01 · Prototipado de aplicaciones web</div><div class="line">02 · Sistemas multiplayer y tiempo real</div>
-<div class="line">03 · Interfaces y experiencias interactivas</div><div class="line">04 · Automatización, diagnóstico y despliegues</div>
-</div></section>
-<section class="section"><h2>ESTADO DEL PROYECTO</h2><div class="stack">
-<div class="line">Repositorio: GitHub · rama principal</div><div class="line">Cliente actual: V82</div>
-<div class="line">Backend: Node.js · WebSocket</div><div class="line">Entorno: desarrollo y pruebas</div>
-</div></section>
-<footer class="foot">NEONCORE DEVELOPMENT PORTAL · EXPERIMENTAL SOFTWARE LAB</footer>
-</main>
+<body style="margin:0;background:#02050b;color:#fff;font-family:Arial,sans-serif;display:grid;place-items:center;min-height:100vh">
+<div>Abriendo Neon Core…</div>
+<script>
+(function(){
+  var target="neoncore/12345/index.html";
+  var q=location.search||"";
+  if(q.indexOf("neon_cache=")<0) q+=(q?"&":"?")+"neon_cache=V82";
+  location.replace(target+q);
+})();
+</script>
 </body>
 </html>
