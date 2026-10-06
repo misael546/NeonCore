@@ -2882,7 +2882,7 @@ setInterval(() => {
         moveEnemyToward(enemy, target.x, target.y, dt, walls);
 
         if (
-          best <= MELEE_GRID_SIZE*1.25 &&
+          best <= MELEE_GRID_SIZE*1.45 &&
           now - (enemy.lastAttackAt || 0) >= (enemy.attackCooldown || ENEMY_ATTACK_COOLDOWN_MS) &&
           hasLineOfSight(enemy.x, enemy.y, target.x, target.y, walls)
         ) {
