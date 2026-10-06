@@ -1,4 +1,4 @@
-/* V72 · cuentas, cuadrícula, melee y jefes */
+/* V73 · cuentas, cuadrícula, melee y jefes */
 'use strict';
 
 const http = require('http');
@@ -151,15 +151,17 @@ const BOSS_AOE_RADIUS = 42;
 const BOSS_AOE_WARNING_MS = 1600;
 const BOSS_AOE_COOLDOWN_MS = 6200;
 const BOSS_AOE_RANGE = 780;
-const AUTOSAVE_MS = 5000;
+const AUTOSAVE_MS = 10000;
 const DEATH_HP_LOSS = 0.10;
 const DEATH_DAMAGE_LOSS = 0.05;
 const DEATH_DEFENSE_LOSS = 0.05;
 const DEATH_GOLD_LOSS = 0;
 const DEATH_XP_LOSS = 0.10;
 const TICK_MS = 100;
-const ENEMY_SYNC_MS = 120;
+const ENEMY_SYNC_MS = 160;
 const ENEMY_ATTACK_COOLDOWN_MS = 700;
+const PLAYER_BROADCAST_MS = 100;
+const HP_REGEN_BROADCAST_MS = 250;
 
 const SERVER_STARTED_AT = Date.now();
 
@@ -1876,7 +1878,7 @@ const httpServer = http.createServer(async (req, res) => {
 
   if (pathname === '/client') {
     try {
-      const manifestClientPath = String(UNIFIED_RELEASE_MANIFEST.clientPath || '/NeonCore/neoncore/12345/V72/index.html').replace(/^\/NeonCore\//, '').replace(/^\/+/, '');
+      const manifestClientPath = String(UNIFIED_RELEASE_MANIFEST.clientPath || '/NeonCore/neoncore/12345/V73/index.html').replace(/^\/NeonCore\//, '').replace(/^\/+/, '');
       const clientPath = path.join(__dirname, '..', manifestClientPath);
       const html = fs.readFileSync(clientPath, 'utf8');
       res.writeHead(200, {
@@ -2153,7 +2155,7 @@ wss.on('connection', async (ws) => {
           serverStartedAt: SERVER_STARTED_AT,
           message: SERVER_UPDATE_MESSAGE,
           required: true,
-          clientPath: String(UNIFIED_RELEASE_MANIFEST.clientPath || '/NeonCore/neoncore/12345/V72/index.html')
+          clientPath: String(UNIFIED_RELEASE_MANIFEST.clientPath || '/NeonCore/neoncore/12345/V73/index.html')
         });
 
         return;
@@ -2274,7 +2276,7 @@ wss.on('connection', async (ws) => {
 
         p.stateViolations = Math.max(0, p.stateViolations - 1);
         p.lastStateAt = now;
-        // V72: una cuenta Google sin nombre permanece dentro de la zona segura.
+        // V73: una cuenta Google sin nombre permanece dentro de la zona segura.
         if(!p.nameLocked && !String(p.name||'').trim()){
           const dx=finalX-SAFE_ZONE.x,dy=finalY-SAFE_ZONE.y,d=Math.hypot(dx,dy),limit=Math.max(0,SAFE_ZONE.r-18);
           if(d>limit){const k=limit/Math.max(d,0.0001);finalX=SAFE_ZONE.x+dx*k;finalY=SAFE_ZONE.y+dy*k;movementClamped=true;}
@@ -2300,14 +2302,17 @@ wss.on('connection', async (ws) => {
           }
         }
 
-        broadcastRoom(
-          p.room,
-          {
-            type: 'player_update',
-            player: publicPlayer(p)
-          },
-          ws
-        );
+        if (now - (p.lastPlayerBroadcastAt || 0) >= PLAYER_BROADCAST_MS) {
+          p.lastPlayerBroadcastAt = now;
+          broadcastRoom(
+            p.room,
+            {
+              type: 'player_update',
+              player: publicPlayer(p)
+            },
+            ws
+          );
+        }
 
         return;
       }
@@ -2509,7 +2514,7 @@ wss.on('connection', async (ws) => {
   });
 });
 
-// V72: servidor autoritativo de cuadrícula. Los enemigos regulares avanzan casilla por casilla y se detienen a una casilla del objetivo.
+// V73: servidor autoritativo de cuadrícula. Los enemigos regulares avanzan casilla por casilla y se detienen a una casilla del objetivo.
 setInterval(()=>{for(const [code,room] of rooms){if(!room||!room.size)continue;const enemies=roomEnemies.get(code)||[];const players=roomPlayers(room).filter(p=>p.alive&&!p.frozen);for(const e of enemies){if(e.kind==='boss'||e.dead)continue;let target=null,best=Infinity;for(const pl of players){if(inSafeZone(pl.x,pl.y,24))continue;const d=Math.hypot(pl.x-e.x,pl.y-e.y);if(d<=e.aggroRadius&&d<best){best=d;target=pl;}}if(target){const tcx=Math.round(target.x/MELEE_GRID_SIZE),tcy=Math.round(target.y/MELEE_GRID_SIZE),ecx=Math.round(e.x/MELEE_GRID_SIZE),ecy=Math.round(e.y/MELEE_GRID_SIZE);if(Math.abs(tcx-ecx)+Math.abs(tcy-ecy)<=1){e.x=ecx*MELEE_GRID_SIZE;e.y=ecy*MELEE_GRID_SIZE;e.vx=0;e.vy=0;} }}}},180);
 
 startServerUpdateHeartbeat();
@@ -2536,13 +2541,16 @@ setInterval(() => {
       const regenPerSecond = safe ? SAFE_ZONE_HP_REGEN_PER_SEC : HP_REGEN_PER_SEC;
       p.hp = Math.min(maxHp, p.hp + regenPerSecond * dt);
 
-      send(p.ws, {
-        type: 'hp_regen',
-        hp: p.hp,
-        maxHp,
-        safeZone: safe,
-        regenPerSecond
-      });
+      if (now - (p.lastRegenBroadcastAt || 0) >= HP_REGEN_BROADCAST_MS) {
+        p.lastRegenBroadcastAt = now;
+        send(p.ws, {
+          type: 'hp_regen',
+          hp: p.hp,
+          maxHp,
+          safeZone: safe,
+          regenPerSecond
+        });
+      }
     }
 
     if (p.saveKey && now - p.lastPersistAt >= AUTOSAVE_MS) {
@@ -2988,13 +2996,16 @@ setInterval(() => {
 
     roomBossProjectiles.set(code, bossProjectiles);
 
+    const enemyState = enemies.map((e) => ({
+      id:e.id,x:e.x,y:e.y,hp:e.hp,maxHp:e.maxHp,r:e.r,kind:e.kind,shape:e.shape,
+      speed:e.speed,damage:e.damage,level:e.level,name:e.name,homeX:e.homeX,homeY:e.homeY,
+      areaRadius:e.areaRadius,vx:e.vx,vy:e.vy,angle:e.angle,walkPhase:e.walkPhase,attackPulse:e.attackPulse
+    }));
     broadcastRoom(code, {
       type: 'enemy_state',
-      enemies,
+      enemies: enemyState,
       bossProjectiles,
-      bossWarnings: bossProjectiles
-        .map(projectile => projectile.warning)
-        .filter(Boolean)
+      bossWarnings: bossProjectiles.map(projectile => projectile.warning).filter(Boolean)
     });
   }
 }, ENEMY_SYNC_MS);
@@ -3009,7 +3020,7 @@ function announceServerUpdate() {
     serverStartedAt: SERVER_STARTED_AT,
     message: SERVER_UPDATE_MESSAGE,
     required: true,
-    clientPath: String(UNIFIED_RELEASE_MANIFEST.clientPath || 'neoncore/12345/V72/index.html')
+    clientPath: String(UNIFIED_RELEASE_MANIFEST.clientPath || 'neoncore/12345/V73/index.html')
   };
   for (const p of clients.values()) {
     send(p.ws, payload);
@@ -3024,7 +3035,7 @@ function startServerUpdateHeartbeat() {
   // a manual refresh. Current clients ignore notices for their own version.
   serverUpdateHeartbeat = setInterval(() => {
     if (clients.size > 0) announceServerUpdate();
-  }, 5000);
+  }, 30000);
 }
 
 async function gracefulShutdown(signal) {
