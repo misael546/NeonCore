@@ -877,7 +877,7 @@ const swordSkinsV71={
 const swordSlashV71="https://opengameart.org/sites/default/files/pixel_art_sword_slash_sprites.png";
 const swordImgsV71={};
 Object.entries(swordSkinsV71).forEach(([id,url])=>{const im=new Image();im.src=url;swordImgsV71[id]=im;});
-const swordSlashImgV71=new Image();swordSlashImgV71.src=swordSlashV71;
+const swordSlashImgV71=new Image();swordSlashImgV71.src=swordSlashV71;const desertCactusV71=new Image();desertCactusV71.src="https://opengameart.org/sites/default/files/Spiky.png";
 let accountToken="";
 let accountId="";
 let googleIdToken="";
@@ -2471,7 +2471,7 @@ function drawDesertBackdrop(){
   ctx.globalAlpha=.55;for(let i=0;i<55;i++){const x=((i*137-camera.x*.12+t*(10+i%5)*3)%W+W)%W;const y=(H*.57+(i*83)%Math.max(80,H*.34)+Math.sin(t+i)*4);ctx.fillStyle=i%3?"#f6d79a":"#c47a38";ctx.fillRect(x,y,2+(i%3),1);}
   const rocks=window.__neonDesertRocks;
   if(rocks&&rocks.complete&&rocks.naturalWidth){ctx.imageSmoothingEnabled=false;for(let i=0;i<12;i++){const x=((i*521-camera.x*.09)%W+W)%W,y=H*.60+(i*71)%Math.max(40,H*.28);ctx.globalAlpha=.75;ctx.drawImage(rocks,(i%2)*300,(i%3)*280,300,280,x,y,62+(i%3)*20,58+(i%2)*22);}}
-  if(desertCactusV71.complete&&desertCactusV71.naturalWidth){ctx.imageSmoothingEnabled=false;for(let i=0;i<8;i++){const frame=Math.floor(t*2+i)%5,sw=134,sh=245,x=((i*743-camera.x*.045)%W+W)%W,y=H*.57+(i*97)%Math.max(60,H*.30);ctx.globalAlpha=.82;ctx.drawImage(desertCactusV71,frame*sw,0,sw,sh,x,y,42,76);}}ctx.restore();
+  if(desertCactusV71.complete&&desertCactusV71.naturalWidth){ctx.imageSmoothingEnabled=false;for(let i=0;i<8;i++){const frame=Math.floor(t*2+i)%5,sw=134,sh=245,x=((i*743-camera.x*.045)%W+W)%W,y=H*.57+(i*97)%Math.max(60,H*.30);ctx.globalAlpha=.82;ctx.drawImage(desertCactusV71,frame*sw,0,sw,sh,x,y,42,76);}}if(desertCactusV71.complete&&desertCactusV71.naturalWidth){ctx.imageSmoothingEnabled=false;for(let i=0;i<8;i++){const frame=Math.floor(t*2+i)%5,sw=134,sh=245,x=((i*743-camera.x*.045)%W+W)%W,y=H*.57+(i*97)%Math.max(60,H*.30);ctx.globalAlpha=.82;ctx.drawImage(desertCactusV71,frame*sw,0,sw,sh,x,y,42,76);}}ctx.restore();
 }
 
 function draw(){
