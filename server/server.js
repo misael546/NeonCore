@@ -1556,45 +1556,30 @@ function sendCosmeticState(p,message='Tienda lista.',unlockedSkin='',unlockedWea
     realMoneyOffers:cosmetics.publicRealMoneyOffers(),realMoneyEnabled:false});
 }
 function cosmeticShopError(ws,message){send(ws,{type:'cosmetic_result',ok:false,message:String(message||'No se pudo completar la operación.')});}
-function buyCosmeticSkin(ws,armorId){
-  const p=clients.get(ws);if(!p)return;
-  if(!p.room||!p.alive)return cosmeticShopError(ws,'No puedes usar skins ahora.');
-  if(!merchantNearby(p))return cosmeticShopError(ws,'Párate sobre el SHOP.');
-  const armor=cosmetics.getSkin(armorId);if(!armor||!SHOP_SKIN_IDS.includes(String(armorId||'')))return cosmeticShopError(ws,'Skin no disponible para venta.');
-  p.ownedSkins=cosmetics.normalizeOwnedSkins(p.ownedSkins);
-  if(p.ownedSkins.includes(armor.id)){p.equippedSkin=armor.id;void persistPlayer(p);sendCosmeticState(p,'Skin equipada: '+armor.name,'','','',armor.id);sendStats(p);sendPlayerList(p.room);return;}
-  const gold=Math.max(0,Number(p.gold)||0),diamonds=Math.max(0,Number(p.diamonds)||0);
-  if(armor.priceDiamonds>0){if(diamonds<armor.priceDiamonds)return cosmeticShopError(ws,'Necesitas '+armor.priceDiamonds+' diamantes.');p.diamonds=diamonds-armor.priceDiamonds;}
-  else if(armor.priceGold>0){if(gold<armor.priceGold)return cosmeticShopError(ws,'Necesitas '+armor.priceGold+' de oro.');p.gold=gold-armor.priceGold;}
-  else return cosmeticShopError(ws,'Esta skin no tiene precio válido.');
-  p.ownedSkins.push(armor.id);p.ownedSkins=cosmetics.normalizeOwnedSkins(p.ownedSkins);p.equippedSkin=armor.id;void persistPlayer(p);
-  sendCosmeticState(p,'¡Compraste la skin '+armor.name+' y quedó equipada!','','','',armor.id);sendStats(p);sendPlayerList(p.room);
-}
-function equipCosmeticSkin(ws,armorId){
-  const p=clients.get(ws);if(!p)return;
-  if(!p.room||!p.alive)return cosmeticShopError(ws,'No puedes cambiar de skin ahora.');
-  if(!merchantNearby(p))return cosmeticShopError(ws,'Acércate al SHOP.');
-  const id=String(armorId||'');p.ownedSkins=cosmetics.normalizeOwnedSkins(p.ownedSkins);
-  if(!id||!cosmetics.getSkin(id)||!p.ownedSkins.includes(id))return cosmeticShopError(ws,'Skin bloqueada.');
-  p.equippedSkin=p.equippedSkin===id?'':id;void persistPlayer(p);
-  sendCosmeticState(p,p.equippedSkin?'Skin equipada: '+cosmetics.getSkin(id).name+'.':'Skin retirada.','','','',p.equippedSkin);sendStats(p);sendPlayerList(p.room);
-}
 function buyCosmeticSkin(ws,skinId){
-  const id=String(skinId||'');
-  if(cosmetics.getSkin(id))return buyCosmeticSkin(ws,id);
   const p=clients.get(ws);if(!p)return;
-  if(!p.room||!p.alive)return cosmeticShopError(ws,'No puedes cambiar tu skin ahora.');
-  if(!merchantNearby(p))return cosmeticShopError(ws,'Acércate al SHOP.');
-  if(!cosmetics.getSkin(id)||!cosmetics.STARTER_SKINS.includes(id))return cosmeticShopError(ws,'Skin base no disponible.');
-  p.equippedSkin=id;void persistPlayer(p);
-  sendCosmeticState(p,'Skin base equipada: '+cosmetics.getSkin(id).name+'.');sendStats(p);sendPlayerList(p.room);
+  if(!p.room||!p.alive)return cosmeticShopError(ws,'No puedes comprar skins ahora.');
+  if(!merchantNearby(p))return cosmeticShopError(ws,'Párate sobre el MERCADER.');
+  const id=String(skinId||''),skin=cosmetics.getSkin(id);
+  if(!skin||!SHOP_SKIN_IDS.includes(id))return cosmeticShopError(ws,'Skin no disponible para venta.');
+  p.ownedSkins=cosmetics.normalizeOwnedSkins(p.ownedSkins);
+  if(p.ownedSkins.includes(id)){p.equippedSkin=id;void persistPlayer(p);sendCosmeticState(p,'Skin equipada: '+skin.name);sendStats(p);sendPlayerList(p.room);return;}
+  const gold=Math.max(0,Number(p.gold)||0),diamonds=Math.max(0,Number(p.diamonds)||0);
+  if(skin.priceDiamonds>0){if(diamonds<skin.priceDiamonds)return cosmeticShopError(ws,'Necesitas '+skin.priceDiamonds+' diamantes.');p.diamonds=diamonds-skin.priceDiamonds;}
+  else if(skin.priceGold>0){if(gold<skin.priceGold)return cosmeticShopError(ws,'Necesitas '+skin.priceGold+' de oro.');p.gold=gold-skin.priceGold;}
+  else return cosmeticShopError(ws,'Esta skin no tiene precio válido.');
+  p.ownedSkins=cosmetics.normalizeOwnedSkins([...p.ownedSkins,id]);p.equippedSkin=id;void persistPlayer(p);
+  sendCosmeticState(p,'¡Compraste la skin '+skin.name+' y quedó equipada!');sendStats(p);sendPlayerList(p.room);
 }
 function equipCosmeticSkin(ws,skinId){
-  const id=String(skinId||'');
-  if(cosmetics.getSkin(id))return equipCosmeticSkin(ws,id);
-  return buyCosmeticSkin(ws,id);
+  const p=clients.get(ws);if(!p)return;
+  if(!p.room||!p.alive)return cosmeticShopError(ws,'No puedes cambiar de skin ahora.');
+  if(!merchantNearby(p))return cosmeticShopError(ws,'Acércate al MERCADER.');
+  const id=String(skinId||'');p.ownedSkins=cosmetics.normalizeOwnedSkins(p.ownedSkins);
+  if(!id||!cosmetics.getSkin(id)||!p.ownedSkins.includes(id))return cosmeticShopError(ws,'Skin bloqueada.');
+  p.equippedSkin=p.equippedSkin===id?'core_default':id;void persistPlayer(p);
+  sendCosmeticState(p,p.equippedSkin===id?'Skin equipada.':'Skin retirada.');sendStats(p);sendPlayerList(p.room);
 }
-
 async function redeemCosmeticCode(ws, rawCode, fromServerChat=false) {
   const p = clients.get(ws);
   if (!p) return;
@@ -1621,12 +1606,12 @@ async function redeemCosmeticCode(ws, rawCode, fromServerChat=false) {
   let unlockedSkin = '', unlockedWeapon = '', unlockedWeaponSkin = '';
   const unlockedSkins = [];
   const unlockedWeapons = [];
-  const unlockedArmors = [];
+  const unlockedSkins = [];
 
   if (reward.allSkins) {
     p.ownedSkins=cosmetics.normalizeOwnedSkins(p.ownedSkins);
     p.ownedSkins=cosmetics.normalizeOwnedSkins(p.ownedSkins);
-    for(const armorId of Object.keys(cosmetics.SKINS)){if(!p.ownedSkins.includes(armorId))p.ownedSkins.push(armorId);unlockedArmors.push(armorId);}
+    for(const armorId of Object.keys(cosmetics.SKINS)){if(!p.ownedSkins.includes(armorId))p.ownedSkins.push(armorId);unlockedSkins.push(armorId);}
   }
 
   if (reward.allItems) {
@@ -1649,7 +1634,7 @@ async function redeemCosmeticCode(ws, rawCode, fromServerChat=false) {
 
   if(reward.skinId){
     const armor=cosmetics.getSkin(reward.skinId);if(!armor)return cosmeticShopError(ws,'Código sin recompensa de skin válida.');
-    unlockedArmor=armor.id;if(!p.ownedSkins.includes(armor.id))p.ownedSkins.push(armor.id);p.equippedSkin=armor.id;
+    unlockedSkin=armor.id;if(!p.ownedSkins.includes(armor.id))p.ownedSkins.push(armor.id);p.equippedSkin=armor.id;
   }
 
   if (reward.weaponId) {
@@ -1682,9 +1667,9 @@ async function redeemCosmeticCode(ws, rawCode, fromServerChat=false) {
   applyCombatStats(p);
   await persistPlayer(p);
 
-  const totalUnlocked=unlockedSkins.length+unlockedArmors.length+unlockedWeapons.length;
+  const totalUnlocked=unlockedSkins.length+unlockedSkins.length+unlockedWeapons.length;
   const message=reward.allSkins||reward.allWeapons||reward.allItems?reward.message+' ('+totalUnlocked+' objetos disponibles para probar).':reward.message;
-  sendCosmeticState(p,message,unlockedSkin,unlockedWeapon,unlockedWeaponSkin,unlockedArmor);
+  sendCosmeticState(p,message,unlockedSkin,unlockedWeapon,unlockedWeaponSkin,unlockedSkin);
   sendStats(p);
   sendPlayerList(p.room);
 }
