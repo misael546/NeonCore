@@ -58,6 +58,7 @@ jobs:
           const clientPath = String(release.clientPath || '').replace(/^\/+/,'');
           const client = fs.readFileSync(clientPath,'utf8');
           const server = fs.readFileSync('server/server.js','utf8');
+          const cosmetics = fs.readFileSync('server/cosmetics.js','utf8');
           const version = String(release.version || release.clientVersion || release.releaseId || '').toUpperCase();
           const clientMarker = client.match(/\bvar\s+v\s*=\s*["']([^"']+)["']/)?.[1]
             || client.match(/window\.NEON_CORE_VERSION\s*=\s*["']([^"']+)["']/)?.[1] || '';
@@ -76,9 +77,9 @@ jobs:
           }
           if (!sessions.includes('Neon Core · Sesiones') || !sessions.includes('const WS=')) throw new Error('Sessions page is not synchronized');
           if (!client.includes('V82') || !client.includes('account_authenticated') || !client.includes('SPECIAL')) throw new Error('Client V82 mechanics are not synchronized');
-          if (!server.includes('MELEE_GRID_SIZE = 24') || !server.includes('SPECIAL_COOLDOWN_MS = 3000') || !server.includes('SPECIAL_ATTACK_FATIGUE = 20') || !server.includes('NEONMASTER')) throw new Error('Server V82 mechanics are not synchronized');
+          if (!server.includes('MELEE_GRID_SIZE = 24') || !server.includes('SPECIAL_COOLDOWN_MS = 3000') || !server.includes('SPECIAL_ATTACK_FATIGUE = 20') || !cosmetics.includes('NEONMASTER')) throw new Error('Server V82 mechanics are not synchronized');
           for (const legacy of ['V80','V81','Pistolero','ARMADURA','MUNICIÓN','neon_release','neon_force','neon_reload','buy_ammo']) {
-            if (client.includes(legacy) || server.includes(legacy)) throw new Error('Legacy trace found: '+legacy);
+            if (client.includes(legacy) || server.includes(legacy) || cosmetics.includes(legacy)) throw new Error('Legacy trace found: '+legacy);
           }
           const roomRoot = 'neoncore/12345';
           const expectedName = require('path').basename(require('path').dirname(clientPath));
