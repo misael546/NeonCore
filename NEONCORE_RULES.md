@@ -5,7 +5,9 @@
 
 ## 1. Identidad y estructura
 
-- Juego: **NeonCore / Neon Core**.
+- **NeonCore** es el portal/entorno web de desarrollo, diseño y pruebas.
+- El juego actual se identifica temporalmente como **proyecto de prueba**; todavía no tiene nombre definitivo.
+- El juego ya no debe asumir estética neon, espacial o futurista.
 - Repositorio principal: `misael546/NeonCore`.
 - Portal principal: `https://misael546.github.io/neoncore/`.
 - Sala pública principal: `12345` (Sala #1).
@@ -17,7 +19,7 @@
 
 ## 2. Regla crítica de versiones
 
-- La versión vigente del proyecto es **V70**.
+- La versión vigente del proyecto es **V71**.
 - Cada cambio que modifique el cliente/juego debe crear una **nueva V**.
 - Nunca modificar una V anterior para introducir una nueva modificación del cliente.
 - Después de crear la nueva V, eliminar las V antiguas del cliente para que quede solamente la versión vigente.
@@ -64,18 +66,17 @@ Cuando el usuario reporte un problema:
 - El nombre debe ser único.
 - Cambiar el nombre cuesta exactamente **1,000 diamantes**.
 - El servidor valida saldo, disponibilidad del nombre y persistencia.
-- La cuenta debe asociar progreso, inventario, armas, oro, diamantes y cosméticos.
+- La cuenta debe asociar progreso, inventario, espadas, oro, diamantes y cosméticos.
 - La identidad no debe depender únicamente de `localStorage`.
 
 ## 6. Jugador y estadísticas
 
 Mostrar como estadísticas principales:
 - LV.
-- Pistolero/Armero.
+- Melee.
 - Defensa.
 
-Está previsto:
-- Espadachín como dominio futuro.
+El dominio de **Melee** sustituye a Pistolero/Armero.
 
 No mostrar como filas principales de estadísticas:
 - Poder del arma.
@@ -92,16 +93,15 @@ Reglas:
 
 ## 7. Combate y armas
 
-- Un arma equipada a la vez.
-- La munición pertenece al jugador, no al arma.
-- Si la munición llega a 0, el jugador puede comprar munición.
-- Los disparos deben tener rango limitado.
-- Los proyectiles normales no deben atravesar enemigos si la regla del arma indica impacto por choque.
-- El arma debe verse pequeña y orientada correctamente.
-- Deben existir skins/partículas de armas.
-- Si se necesita distinguir mano izquierda/derecha para orientación visual, hacerlo sin romper el apuntado.
-- El disparo debe funcionar en PC y móvil sin dar una ventaja artificial a PC.
-- La cadencia/retardo inicial debe ser razonable para todos los dispositivos.
+- Se eliminó el sistema de disparos, pistolas, balas y munición como mecánica del jugador.
+- El jugador usa **una espada equipada a la vez**.
+- Hay 5 espadas de prueba en Items Venta.
+- Cada espada tiene su propia skin/arte visual.
+- La skin de la espada **no aumenta estadísticas**.
+- El ataque real del jugador = **stat Melee + daño base de la espada equipada**.
+- La espada debe tener un golpe cuerpo a cuerpo visible, con buen movimiento y efecto de corte.
+- El combate normal debe ser por cuadrícula: el jugador se coloca en la casilla adyacente al enemigo y ataca desde ahí.
+- El **Destructor Estelar** es la excepción: ataca a distancia y lanza una bola hacia la casilla del jugador.
 
 ## 8. Controles
 
@@ -112,12 +112,7 @@ Reglas:
 - Disparo mediante la tecla configurable.
 
 ### Móvil
-- Joystick izquierdo = movimiento.
-- Joystick derecho = cámara/apuntado y disparo.
-- El joystick derecho no debe desaparecer en landscape.
-- Movimiento y apuntado/disparo deben poder funcionar simultáneamente con diferentes dedos.
-- Tocar primero disparo/apuntado no debe bloquear después el movimiento.
-- Tocar primero movimiento no debe bloquear después disparo/apuntado.
+
 - Chat y botones de UI deben seguir recibiendo toques.
 - No usar un manejador táctil global que bloquee accidentalmente botones, chat, inputs o menús.
 - Mantener correctamente los identificadores de cada dedo/pointer.
@@ -154,7 +149,6 @@ Reglas:
 - Items Venta debe ser una sección separada.
 - Items Venta debe contener:
   - 5 espadas de prueba.
-  - 5 armas de prueba.
   - 5 armaduras de prueba.
 - Cada stack de inventario admite hasta 500 unidades cuando corresponda.
 - Al soltar objetos desde inventario, deben generarse drops apropiados.
@@ -235,8 +229,9 @@ No dejar:
 
 ## 18. Estado conocido al crear este documento
 
-- Cliente actual: **V70**.
-- V70 y V44 del cliente fueron eliminadas durante la limpieza anterior; V70 es la versión vigente.
+- Cliente actual: **V71**.
+- V71 introduce movimiento por cuadrícula invisible, combate melee y el nuevo bioma desértico.
+- V70 fue reemplazada y eliminada al publicar V71. V71 es la versión vigente.
 - No deben restaurarse esas V.
 - La limpieza anterior eliminó referencias de BUILD y de los parámetros legacy de actualización en los archivos auditados.
 - Se detectó y eliminó duplicación de `startNeonMusic` y `stopNeonMusic` en V70.
@@ -260,4 +255,4 @@ y se refiera a este documento, usarlo como fuente de continuidad del proyecto y 
 Cuando exista una instrucción nueva y explícita del usuario, aplicar la nueva instrucción sin borrar las reglas permanentes que sigan siendo compatibles.
 
 ---
-Última versión de cliente registrada en este documento: **V70**
+Última versión de cliente registrada en este documento: **V71**
