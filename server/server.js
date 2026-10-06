@@ -2473,9 +2473,7 @@ wss.on('connection', async (ws) => {
           p.defensePenalty = Math.max(0, Number(saved.defensePenalty) || 0);
         }
 
-        if (!saved) {
-          p.nameLocked = false;
-        }
+        if (!saved) { p.name = ''; p.nameLocked = false; }
 
         if (msg.color) {
           const color = String(msg.color);
