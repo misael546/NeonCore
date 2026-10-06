@@ -1504,7 +1504,7 @@ function connectMultiplayer(roomMode="quick",roomCode=""){ const publicRoomAuto=
             }
           }
           updateResourceHud();
-        }else if(m.type==="bank_result"){        }else if(m.type==="bank_result"){
+        }else if(m.type==="bank_result"){
           showToast(m.message||"Banco desactivado.");
         }else if(m.type==="shop_result"){
           if(Number.isFinite(m.gold))p.gold=m.gold;
