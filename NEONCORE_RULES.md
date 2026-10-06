@@ -19,7 +19,7 @@
 
 ## 2. Regla crítica de versiones
 
-- La versión vigente del proyecto es **V71**.
+- La versión vigente del proyecto es **V72**.
 - Cada cambio que modifique el cliente/juego debe crear una **nueva V**.
 - Nunca modificar una V anterior para introducir una nueva modificación del cliente.
 - Después de crear la nueva V, eliminar las V antiguas del cliente para que quede solamente la versión vigente.
@@ -115,6 +115,8 @@ Reglas:
 
 - Chat y botones de UI deben seguir recibiendo toques.
 - No usar un manejador táctil global que bloquee accidentalmente botones, chat, inputs o menús.
+- En Android el movimiento es exclusivamente por toque de casillas; no usar joystick para desplazamiento.
+- El jugador debe permanecer quieto cuando no existe una casilla destino.
 - Mantener correctamente los identificadores de cada dedo/pointer.
 - Cualquier cambio de controles debe probar ambos joysticks y botones de UI.
 
@@ -229,9 +231,10 @@ No dejar:
 
 ## 18. Estado conocido al crear este documento
 
-- Cliente actual: **V71**.
-- V71 introduce movimiento por cuadrícula invisible, combate melee y el nuevo bioma desértico.
-- V70 fue reemplazada y eliminada al publicar V71. V71 es la versión vigente.
+- Cliente actual: **V72**.
+- V72 usa terreno 2D pixel-art por tiles, jugador 2D pixel-art y movimiento por casillas.
+- V72 introduce movimiento por cuadrícula invisible, combate melee y el nuevo bioma desértico.
+- V70 fue reemplazada y eliminada al publicar V72. V72 es la versión vigente.
 - No deben restaurarse esas V.
 - La limpieza anterior eliminó referencias de BUILD y de los parámetros legacy de actualización en los archivos auditados.
 - Se detectó y eliminó duplicación de `startNeonMusic` y `stopNeonMusic` en V70.
@@ -255,4 +258,4 @@ y se refiera a este documento, usarlo como fuente de continuidad del proyecto y 
 Cuando exista una instrucción nueva y explícita del usuario, aplicar la nueva instrucción sin borrar las reglas permanentes que sigan siendo compatibles.
 
 ---
-Última versión de cliente registrada en este documento: **V71**
+Última versión de cliente registrada en este documento: **V72**
