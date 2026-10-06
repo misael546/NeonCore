@@ -1,9 +1,9 @@
 {
   "game": "Neon Core",
-  "version": "V78",
-  "releaseId": "V78",
-  "clientVersion": "V78",
-  "serverVersion": "V78",
+  "version": "V79",
+  "releaseId": "V79",
+  "clientVersion": "V79",
+  "serverVersion": "V79",
   "databaseSchema": 3,
-  "clientPath": "neoncore/12345/V78/index.html"
+  "clientPath": "neoncore/12345/V79/index.html"
 }
