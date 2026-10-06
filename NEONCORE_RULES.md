@@ -19,7 +19,7 @@
 
 ## 2. Regla crítica de versiones
 
-- La versión vigente del proyecto es **V74**.
+- La versión vigente del proyecto es **V75**.
 - Cada cambio que modifique el cliente/juego debe crear una **nueva V**.
 - Nunca modificar una V anterior para introducir una nueva modificación del cliente.
 - Después de crear la nueva V, eliminar las V antiguas del cliente para que quede solamente la versión vigente.
@@ -100,7 +100,7 @@ Reglas:
 - La skin de la espada **no aumenta estadísticas**.
 - El ataque real del jugador = **stat Melee + daño base de la espada equipada**.
 - La espada debe tener un golpe cuerpo a cuerpo visible, con buen movimiento y efecto de corte.
-- El combate normal debe ser por cuadrícula: el jugador se coloca en la casilla adyacente al enemigo y ataca desde ahí.
+- El combate normal debe ser por cuadrícula y selección táctil: al tocar un enemigo, queda seleccionado con un cuadrito; el jugador avanza automáticamente por casillas hasta quedar adyacente, ataca y mantiene el objetivo. Si el mob cambia de casilla, el objetivo se actualiza y el atacante lo sigue.
 - El **Destructor Estelar** es la excepción: ataca a distancia y lanza una bola hacia la casilla del jugador.
 
 ## 8. Controles
@@ -114,7 +114,7 @@ Reglas:
 
 - Chat y botones de UI deben seguir recibiendo toques.
 - No usar un manejador táctil global que bloquee accidentalmente botones, chat, inputs o menús.
-- En Android el movimiento es exclusivamente por toque de casillas; no usar joystick para desplazamiento.
+- En Android el movimiento es exclusivamente por toque de casillas; no usar joystick de movimiento ni joystick derecho de apuntado/ataque.
 - El jugador debe permanecer quieto cuando no existe una casilla destino.
 - La cuadrícula de movimiento es de **24 px**.
 - El mundo debe representarse como **2D pixel art top-down**; no usar fondos fotográficos/ilustrados como terreno.
@@ -232,10 +232,10 @@ No dejar:
 
 ## 18. Estado conocido al crear este documento
 
-- Cliente actual: **V74**.
-- V74 usa terreno 2D pixel-art por tiles, jugador 2D pixel-art y movimiento por casillas.
+- Cliente actual: **V75**.
+- V75 usa terreno 2D pixel-art por tiles, jugador 2D pixel-art y movimiento por casillas.
 - V72 introduce movimiento por cuadrícula invisible, combate melee y el nuevo bioma desértico.
-- V72 fue reemplazada y eliminada al publicar V74. V74 es la versión vigente.
+- V72 fue reemplazada y eliminada al publicar V75. V75 es la versión vigente.
 - No deben restaurarse esas V.
 - La limpieza anterior eliminó referencias de BUILD y de los parámetros legacy de actualización en los archivos auditados.
 - Se detectó y eliminó duplicación de `startNeonMusic` y `stopNeonMusic` en V70.
@@ -259,7 +259,7 @@ y se refiera a este documento, usarlo como fuente de continuidad del proyecto y 
 Cuando exista una instrucción nueva y explícita del usuario, aplicar la nueva instrucción sin borrar las reglas permanentes que sigan siendo compatibles.
 
 ---
-Última versión de cliente registrada en este documento: **V74**
+Última versión de cliente registrada en este documento: **V75**
 
 
 ## 16. Dirección visual actual
@@ -269,3 +269,11 @@ Cuando exista una instrucción nueva y explícita del usuario, aplicar la nueva 
 - Los personajes deben leerse como sprites pixel-art, con orientación por dirección y armas visibles en la mano.
 - Las espadas deben acompañar la orientación del personaje y tener una animación de ataque/swing claramente visible.
 - El NPC de la tienda NO abre automáticamente por proximidad. Solo se abre al tocar/hacer clic directamente sobre el NPC estando suficientemente cerca.
+
+
+## 20. Combate táctil V75
+- En móvil no existe joystick derecho de ataque.
+- Tocar un mob lo selecciona y muestra un cuadrito de objetivo.
+- El jugador sigue al mob por cuadrícula si este cambia de casilla y ataca cuando queda adyacente.
+- El cliente no debe restaurar disparos, apuntado por joystick, munición ni botones de fuego como sistema de combate.
+- La espada se dibuja como arma pixel-art cuerpo a cuerpo y acompaña la orientación/animación del personaje.
