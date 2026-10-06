@@ -15,7 +15,7 @@ const PORT = Number(process.env.PORT || 10000);
 
 const WORLD = { w: 6000, h: 4400 };
 const MAX_PLAYERS = 16;
-const SAFE_ZONE = { x: 3000, y: 2208, r: 300 };
+const SAFE_ZONE = { x: 3012, y: 2220, r: 300 };
 
 let UNIFIED_RELEASE_MANIFEST = {
   game: 'Neon Core',
@@ -65,15 +65,16 @@ const PISTOLERO_XP_PER_KILL = 40;
 const MELEE_MAX_LEVEL = 1000;
 const MELEE_XP_PER_HIT = 10;
 const MELEE_GRID_SIZE = 24;
+const MELEE_GRID_HALF = MELEE_GRID_SIZE / 2;
 const MELEE_COOLDOWN_MS = 650;
+function gridCell(x){return Math.floor((Number(x)||0)/MELEE_GRID_SIZE);}
+function gridCenter(cell){return Number(cell)*MELEE_GRID_SIZE+MELEE_GRID_HALF;}
 const MAX_FATIGUE = 100;
-const BASIC_ATTACK_FATIGUE = 2;
-const COMBO_ATTACK_FATIGUE = 20;
+const SPECIAL_ATTACK_FATIGUE = 20;
+const SPECIAL_COOLDOWN_MS = 3000;
 const FATIGUE_REGEN_PER_SEC = 7;
-const COMBO_WINDOW_MS = 2200;
-const COMBO_HITS_REQUIRED = 3;
 
-const MERCHANT_NPC = { x: 3240, y: 2208, r: 24 };
+const MERCHANT_NPC = { x: 3252, y: 2220, r: 24 };
 const MERCHANT_INTERACTION_RADIUS = 180;
 const BANK_ENABLED = false;
 
@@ -778,6 +779,8 @@ function respawnAfterDeath(p) {
   p.alive = true;
   p.frozen = false;
   p.lastShot = 0;
+        p.lastSpecialAt = 0;
+        p.defenseTrainingTargetId = '';
   p.lastStateAt = Date.now();
   p.stateViolations = 0;
   applyCombatStats(p);
@@ -1168,7 +1171,7 @@ function choosePatrolTarget(enemy, walls) {
   enemy.patrolUntil = Date.now() + 1500;
 }
 
-function moveEnemyToward(enemy,tx,ty,dt,walls){if(enemy.kind==='boss'){const distance=Math.max(1,Math.hypot(tx-enemy.x,ty-enemy.y));const dx=(tx-enemy.x)/distance,dy=(ty-enemy.y)/distance;const step=enemy.speed*dt;const nx=clamp(enemy.x+dx*step,35,WORLD.w-35),ny=clamp(enemy.y+dy*step,35,WORLD.h-35);if(!collidesWithWall(nx,ny,enemy.r,walls)){enemy.x=nx;enemy.y=ny;}return;}const cx=Math.round(enemy.x/MELEE_GRID_SIZE),cy=Math.round(enemy.y/MELEE_GRID_SIZE),tcx=Math.round(tx/MELEE_GRID_SIZE),tcy=Math.round(ty/MELEE_GRID_SIZE);const man=Math.abs(tcx-cx)+Math.abs(tcy-cy);if(man<=1){enemy.x=cx*MELEE_GRID_SIZE;enemy.y=cy*MELEE_GRID_SIZE;enemy.vx=0;enemy.vy=0;return;}const now=Date.now();if(now<(enemy.gridMoveAt||0))return;let nx=cx,ny=cy;if(Math.abs(tcx-cx)>=Math.abs(tcy-cy))nx+=Math.sign(tcx-cx);else ny+=Math.sign(tcy-cy);const px=clamp(nx*MELEE_GRID_SIZE,MELEE_GRID_SIZE,WORLD.w-MELEE_GRID_SIZE),py=clamp(ny*MELEE_GRID_SIZE,MELEE_GRID_SIZE,WORLD.h-MELEE_GRID_SIZE);if(!collidesWithWall(px,py,enemy.r,walls)){enemy.x=px;enemy.y=py;enemy.gridMoveAt=now+420;enemy.vx=(nx-cx)*MELEE_GRID_SIZE/0.42;enemy.vy=(ny-cy)*MELEE_GRID_SIZE/0.42;}}
+function moveEnemyToward(enemy,tx,ty,dt,walls){if(enemy.kind==='boss'){const distance=Math.max(1,Math.hypot(tx-enemy.x,ty-enemy.y));const dx=(tx-enemy.x)/distance,dy=(ty-enemy.y)/distance;const step=enemy.speed*dt;const nx=clamp(enemy.x+dx*step,35,WORLD.w-35),ny=clamp(enemy.y+dy*step,35,WORLD.h-35);if(!collidesWithWall(nx,ny,enemy.r,walls)){enemy.x=nx;enemy.y=ny;}return;}const cx=gridCell(enemy.x),cy=gridCell(enemy.y),tcx=gridCell(tx),tcy=gridCell(ty);const man=Math.abs(tcx-cx)+Math.abs(tcy-cy);if(man<=1){enemy.x=gridCenter(cx);enemy.y=gridCenter(cy);enemy.vx=0;enemy.vy=0;return;}const now=Date.now();if(now<(enemy.gridMoveAt||0))return;let nx=cx,ny=cy;if(Math.abs(tcx-cx)>=Math.abs(tcy-cy))nx+=Math.sign(tcx-cx);else ny+=Math.sign(tcy-cy);const px=clamp(gridCenter(nx),MELEE_GRID_SIZE,WORLD.w-MELEE_GRID_SIZE),py=clamp(gridCenter(ny),MELEE_GRID_SIZE,WORLD.h-MELEE_GRID_SIZE);if(!collidesWithWall(px,py,enemy.r,walls)){enemy.x=px;enemy.y=py;enemy.gridMoveAt=now+420;enemy.vx=(nx-cx)*MELEE_GRID_SIZE/0.42;enemy.vy=(ny-cy)*MELEE_GRID_SIZE/0.42;}}
 
 function ensureRoomEnemies(code) {
   if (!roomEnemies.has(code)) roomEnemies.set(code, []);
@@ -1642,6 +1645,7 @@ async function redeemCosmeticCode(ws, rawCode) {
   let unlockedSkin = '', unlockedWeapon = '', unlockedWeaponSkin = '';
   const unlockedSkins = [];
   const unlockedWeapons = [];
+  const unlockedArmors = [];
 
   if (reward.allSkins) {
     p.ownedSkins=cosmetics.normalizeOwnedSkins(p.ownedSkins);
@@ -1649,12 +1653,20 @@ async function redeemCosmeticCode(ws, rawCode) {
     for(const armorId of Object.keys(cosmetics.ARMORS)){if(!p.ownedArmors.includes(armorId))p.ownedArmors.push(armorId);unlockedArmors.push(armorId);}
   }
 
+  if (reward.allItems) {
+    for (const itemId of [BACKPACK_ITEM_ID, ...SHOP_SWORD_IDS]) {
+      if(!p.inventory.some(slot=>slot&&slot.itemId===itemId)){
+        addInventoryItem(p,itemId,1);
+      }
+    }
+  }
+
   if (reward.allWeapons) {
     for (const weaponId of Object.keys(WEAPONS)) {
       if (!p.ownedWeapons.includes(weaponId)) p.ownedWeapons.push(weaponId);
       unlockedWeapons.push(weaponId);
     }
-    const preferredWeapon = WEAPONS[p.weapon] ? p.weapon : 'omega';
+    const preferredWeapon = 'sword_neo';
     p.weapon = preferredWeapon;
     unlockedWeapon = preferredWeapon;
   }
@@ -1682,7 +1694,7 @@ async function redeemCosmeticCode(ws, rawCode) {
     p.equippedWeaponSkin = weaponSkin.id;
   }
 
-  if (!reward.allSkins && !reward.allWeapons && !unlockedSkin && !unlockedArmor && !unlockedWeapon && !unlockedWeaponSkin) {
+  if (!reward.allSkins && !reward.allWeapons && !reward.allItems && !unlockedSkin && !unlockedArmor && !unlockedWeapon && !unlockedWeaponSkin) {
     return cosmeticShopError(ws, 'El código no tiene una recompensa válida.');
   }
 
@@ -1695,7 +1707,7 @@ async function redeemCosmeticCode(ws, rawCode) {
   await persistPlayer(p);
 
   const totalUnlocked=unlockedSkins.length+unlockedArmors.length+unlockedWeapons.length;
-  const message=reward.allSkins||reward.allWeapons?reward.message+' ('+totalUnlocked+' objetos disponibles para probar).':reward.message;
+  const message=reward.allSkins||reward.allWeapons||reward.allItems?reward.message+' ('+totalUnlocked+' objetos disponibles para probar).':reward.message;
   sendCosmeticState(p,message,unlockedSkin,unlockedWeapon,unlockedWeaponSkin,unlockedArmor);
   sendStats(p);
   sendPlayerList(p.room);
@@ -1732,76 +1744,74 @@ async function withdrawBank(ws) {
   });
 }
 
-function buyAmmo(ws){const p=clients.get(ws);if(!p)return;if(!p.room)return send(ws,{type:'shop_result',ok:false,message:'No estás dentro de una sala.'});if(!p.alive)return send(ws,{type:'shop_result',ok:false,message:'No puedes comprar estando destruido.'});if(Math.hypot(p.x-MERCHANT_NPC.x,p.y-MERCHANT_NPC.y)>MERCHANT_INTERACTION_RADIUS)return send(ws,{type:'shop_result',ok:false,message:'Párate sobre el SHOP.'});const ammo=inventoryTotal(p,'ammo'),gold=Math.max(0,Number(p.gold)||0);if(ammo>=maxAmmoForPlayer(p))return send(ws,{type:'shop_result',ok:false,message:'La mochila está llena de munición.'});if(gold<AMMO_PACK_COST)return send(ws,{type:'shop_result',ok:false,message:'Necesitas '+AMMO_PACK_COST+' de oro.'});const before=ammo;addInventoryItem(p,'ammo',AMMO_PACK_SIZE);const purchased=inventoryTotal(p,'ammo')-before;if(purchased<=0)return send(ws,{type:'shop_result',ok:false,message:'No hay espacio para más munición.'});p.gold=gold-AMMO_PACK_COST;void persistPlayer(p);send(ws,{type:'shop_result',ok:true,message:'Compraste '+purchased+' balas y fueron guardadas en el inventario.',gold:p.gold,ammo:inventoryTotal(p,'ammo'),maxAmmo:maxAmmoForPlayer(p)});sendInventoryState(p,'Munición guardada en la mochila.');sendStats(p);}function handleShotV2(ws,cellX,cellY,requestedAngle,targetId){
+function buyAmmo(ws){const p=clients.get(ws);if(!p)return;if(!p.room)return send(ws,{type:'shop_result',ok:false,message:'No estás dentro de una sala.'});if(!p.alive)return send(ws,{type:'shop_result',ok:false,message:'No puedes comprar estando destruido.'});if(Math.hypot(p.x-MERCHANT_NPC.x,p.y-MERCHANT_NPC.y)>MERCHANT_INTERACTION_RADIUS)return send(ws,{type:'shop_result',ok:false,message:'Párate sobre el SHOP.'});const ammo=inventoryTotal(p,'ammo'),gold=Math.max(0,Number(p.gold)||0);if(ammo>=maxAmmoForPlayer(p))return send(ws,{type:'shop_result',ok:false,message:'La mochila está llena de munición.'});if(gold<AMMO_PACK_COST)return send(ws,{type:'shop_result',ok:false,message:'Necesitas '+AMMO_PACK_COST+' de oro.'});const before=ammo;addInventoryItem(p,'ammo',AMMO_PACK_SIZE);const purchased=inventoryTotal(p,'ammo')-before;if(purchased<=0)return send(ws,{type:'shop_result',ok:false,message:'No hay espacio para más munición.'});p.gold=gold-AMMO_PACK_COST;void persistPlayer(p);send(ws,{type:'shop_result',ok:true,message:'Compraste '+purchased+' balas y fueron guardadas en el inventario.',gold:p.gold,ammo:inventoryTotal(p,'ammo'),maxAmmo:maxAmmoForPlayer(p)});sendInventoryState(p,'Munición guardada en la mochila.');sendStats(p);}function handleShotV2(ws,cellX,cellY,requestedAngle,targetId,isSpecial=false){
   const p=clients.get(ws);if(!p||!p.room||!p.alive)return;
   const sword=WEAPONS[p.weapon]||WEAPONS.sword_neo,now=Date.now();
-  if(now-(p.lastShot||0)<Math.max(MELEE_COOLDOWN_MS,Number(sword.fireRate)||650))return send(ws,{type:'melee_result',ok:false,reason:'cooldown'});
+  const special=!!isSpecial;
+  if(special){
+    if(now-(p.lastSpecialAt||0)<SPECIAL_COOLDOWN_MS)return send(ws,{type:'melee_result',ok:false,reason:'special_cooldown',cooldown:SPECIAL_COOLDOWN_MS});
+    if((Number(p.fatigue)||0)<SPECIAL_ATTACK_FATIGUE)return send(ws,{type:'melee_result',ok:false,reason:'fatigue',fatigue:p.fatigue,maxFatigue:MAX_FATIGUE});
+  }else if(now-(p.lastShot||0)<Math.max(MELEE_COOLDOWN_MS,Number(sword.fireRate)||650)){
+    return send(ws,{type:'melee_result',ok:false,reason:'cooldown'});
+  }
   const room=rooms.get(p.room);if(!room)return;
-  const cx=Math.round(Number.isFinite(Number(cellX))?Number(cellX):p.x/MELEE_GRID_SIZE),cy=Math.round(Number.isFinite(Number(cellY))?Number(cellY):p.y/MELEE_GRID_SIZE);
-  const px=Math.round(p.x/MELEE_GRID_SIZE),py=Math.round(p.y/MELEE_GRID_SIZE);
+  const cx=Math.round(Number.isFinite(Number(cellX))?Number(cellX):gridCell(p.x)),cy=Math.round(Number.isFinite(Number(cellY))?Number(cellY):gridCell(p.y));
+  const px=gridCell(p.x),py=gridCell(p.y);
   if(Math.abs(cx-px)+Math.abs(cy-py)>1)return send(ws,{type:'melee_result',ok:false,reason:'not_adjacent'});
 
-  const isCombo=Number(p.comboCount||0)>=COMBO_HITS_REQUIRED && now<=Number(p.comboExpiresAt||0);
-  const fatigue=Math.max(0,Number(p.fatigue)||0);
-  if(isCombo && fatigue<COMBO_ATTACK_FATIGUE)return send(ws,{type:'melee_result',ok:false,reason:'fatigue',fatigue,maxFatigue:MAX_FATIGUE});
-  if(!isCombo && fatigue<BASIC_ATTACK_FATIGUE)return send(ws,{type:'melee_result',ok:false,reason:'fatigue',fatigue,maxFatigue:MAX_FATIGUE});
-
-  p.lastShot=now;
+  if(special)p.lastSpecialAt=now; else p.lastShot=now;
   p.angle=Number.isFinite(Number(requestedAngle))?Number(requestedAngle):p.angle;
   applyCombatStats(p);
 
   const enemies=ensureRoomEnemies(p.room);
   const requestedTarget=String(targetId||"");
-  let targetEnemy=requestedTarget
-    ? enemies.find(e=>e&&!e.dead&&e.kind!=='boss'&&String(e.id||'')===requestedTarget)||null
-    : null;
-  if(targetEnemy && Math.abs(Math.round(targetEnemy.x/MELEE_GRID_SIZE)-px)+Math.abs(Math.round(targetEnemy.y/MELEE_GRID_SIZE)-py)>1)targetEnemy=null;
+  let targetEnemy=requestedTarget?enemies.find(e=>e&&!e.dead&&e.kind!=='boss'&&String(e.id||'')===requestedTarget)||null:null;
+  if(targetEnemy&&Math.abs(gridCell(targetEnemy.x)-px)+Math.abs(gridCell(targetEnemy.y)-py)>1)targetEnemy=null;
   if(!targetEnemy){
     for(const e of enemies){
       if(e.kind==='boss'||e.dead)continue;
-      if(Math.abs(Math.round(e.x/MELEE_GRID_SIZE)-px)+Math.abs(Math.round(e.y/MELEE_GRID_SIZE)-py)<=1){targetEnemy=e;break;}
+      if(Math.abs(gridCell(e.x)-px)+Math.abs(gridCell(e.y)-py)<=1){targetEnemy=e;break;}
     }
   }
 
   const basicDamage=Math.max(1,Math.round(Number(p.meleeLevel||1)+Number(sword.power||0)));
   const specialDamage=Math.max(basicDamage+1,Math.round(basicDamage*2.2));
-  const damage=isCombo?specialDamage:basicDamage;
+  const damage=special?specialDamage:basicDamage;
   let hit=false,hitX=p.x,hitY=p.y,hitTargetId='',hitTargets=[];
-  const hitSet=new Set();
-
-  if(isCombo){
+  if(special){
     for(const e of enemies){
       if(e.kind==='boss'||e.dead)continue;
-      const ex=Math.round(e.x/MELEE_GRID_SIZE),ey=Math.round(e.y/MELEE_GRID_SIZE);
+      const ex=gridCell(e.x),ey=gridCell(e.y);
       if(Math.max(Math.abs(ex-px),Math.abs(ey-py))>1)continue;
-      e.hp=clamp(e.hp-damage,0,e.maxHp);e.lastHitAt=now;hit=true;hitX=e.x;hitY=e.y;hitTargets.push(e.id);hitSet.add(e.id);addDamageXp(p,MELEE_XP_PER_HIT);
+      e.hp=clamp(e.hp-damage,0,e.maxHp);e.lastHitAt=now;hit=true;hitX=e.x;hitY=e.y;hitTargets.push(e.id);addDamageXp(p,MELEE_XP_PER_HIT);
       if(e.hp<=0){
         const reward=Math.max(1,Math.round(120+e.level*18));p.gold=(Number(p.gold)||0)+reward;p.kills=(Number(p.kills)||0)+1;p.xp=(Number(p.xp)||0)+Math.max(20,e.level*12);levelUpIfNeeded(p);despawnEnemy(p.room,e,'defeated');
       }
     }
   }else if(targetEnemy){
-    targetEnemy.hp=clamp(targetEnemy.hp-damage,0,targetEnemy.maxHp);targetEnemy.lastHitAt=now;hit=true;hitX=targetEnemy.x;hitY=targetEnemy.y;hitTargetId=targetEnemy.id;hitTargets=[targetEnemy.id];hitSet.add(targetEnemy.id);addDamageXp(p,MELEE_XP_PER_HIT);
+    targetEnemy.hp=clamp(targetEnemy.hp-damage,0,targetEnemy.maxHp);targetEnemy.lastHitAt=now;hit=true;hitX=targetEnemy.x;hitY=targetEnemy.y;hitTargetId=targetEnemy.id;hitTargets=[targetEnemy.id];addDamageXp(p,MELEE_XP_PER_HIT);
+    // One successful hit activates defense training against this mob until it dies/disappears.
+    p.defenseTrainingTargetId=String(targetEnemy.id||'');
     if(targetEnemy.hp<=0){
-      const reward=Math.max(1,Math.round(120+targetEnemy.level*18));p.gold=(Number(p.gold)||0)+reward;p.kills=(Number(p.kills)||0)+1;p.xp=(Number(p.xp)||0)+Math.max(20,targetEnemy.level*12);levelUpIfNeeded(p);despawnEnemy(p.room,targetEnemy,'defeated');
+      const reward=Math.max(1,Math.round(120+targetEnemy.level*18));p.gold=(Number(p.gold)||0)+reward;p.kills=(Number(p.kills)||0)+1;p.xp=(Number(p.xp)||0)+Math.max(20,targetEnemy.level*12);levelUpIfNeeded(p);p.defenseTrainingTargetId='';despawnEnemy(p.room,targetEnemy,'defeated');
     }
   }
 
   let targetPlayer=null;
   for(const ws2 of room){
     const other=clients.get(ws2);if(!other||other===p||!other.alive||inSafeZone(other.x,other.y,24))continue;
-    if(Math.abs(Math.round(other.x/MELEE_GRID_SIZE)-px)+Math.abs(Math.round(other.y/MELEE_GRID_SIZE)-py)<=1){targetPlayer={ws:ws2,p:other};break;}
+    if(Math.abs(gridCell(other.x)-px)+Math.abs(gridCell(other.y)-py)<=1){targetPlayer={ws:ws2,p:other};break;}
   }
-  if(targetPlayer&&!isCombo){
+  if(targetPlayer&&!special){
     const actual=Math.max(1,Math.round(damage-Math.max(0,Number(targetPlayer.p.defense)||0)*.55));
     targetPlayer.p.hp=clamp(targetPlayer.p.hp-actual,0,maxHpForLevel(targetPlayer.p.level));hit=true;hitX=targetPlayer.p.x;hitY=targetPlayer.p.y;hitTargetId=targetPlayer.p.id;addDamageXp(p,MELEE_XP_PER_HIT);
     send(targetPlayer.ws,{type:'pvp_damage',amount:actual,hp:targetPlayer.p.hp,maxHp:maxHpForLevel(targetPlayer.p.level),attacker:p.name});
     if(targetPlayer.p.hp<=0&&targetPlayer.p.alive&&!targetPlayer.p.frozen)markPlayerDead(targetPlayer.p);
   }
 
-  p.fatigue=clamp(fatigue-(isCombo?COMBO_ATTACK_FATIGUE:BASIC_ATTACK_FATIGUE),0,MAX_FATIGUE);
-  if(isCombo){p.comboCount=0;p.comboExpiresAt=0;}else if(hit){p.comboCount=(now<=Number(p.comboExpiresAt||0)?Number(p.comboCount||0):0)+1;p.comboExpiresAt=now+COMBO_WINDOW_MS;}
-  send(ws,{type:'melee_result',ok:true,hit,targetId:hitTargetId,targets:hitTargets,damage,isCombo,comboCount:p.comboCount,fatigue:p.fatigue,maxFatigue:MAX_FATIGUE,meleeLevel:p.meleeLevel,x:hitX,y:hitY});
-  broadcastRoom(p.room,{type:'melee_effect',attackerId:p.id,x:p.x,y:p.y,angle:p.angle,sword:p.weapon,hit,hitX,hitY,isCombo,targets:hitTargets});
+  if(special)p.fatigue=clamp((Number(p.fatigue)||0)-SPECIAL_ATTACK_FATIGUE,0,MAX_FATIGUE);
+  send(ws,{type:'melee_result',ok:true,hit,targetId:hitTargetId,targets:hitTargets,damage,isCombo:special,special, fatigue:p.fatigue,maxFatigue:MAX_FATIGUE,meleeLevel:p.meleeLevel,x:hitX,y:hitY});
+  broadcastRoom(p.room,{type:'melee_effect',attackerId:p.id,x:p.x,y:p.y,angle:p.angle,sword:p.weapon,hit,hitX,hitY,isCombo:special,special,targets:hitTargets});
   sendStats(p);if(targetPlayer)sendStats(targetPlayer.p);
 }
 
@@ -1851,8 +1861,8 @@ function createPlayer(ws) {
     meleeLevel: 1,
     fatigue: MAX_FATIGUE,
     maxFatigue: MAX_FATIGUE,
-    comboCount: 0,
-    comboExpiresAt: 0,
+    defenseTrainingTargetId: '',
+    lastSpecialAt: 0,
     powerAttackBonus: 0,
     weapon: 'sword_neo',
     color: '#39e7ff',
@@ -2233,6 +2243,13 @@ wss.on('connection', async (ws) => {
 
         if (!text) return;
 
+        // Server chat command: the permanent master test code is intentionally usable here.
+        const commandMatch=text.match(/^\/code\s+([A-Z0-9_-]+)$/i);
+        if(commandMatch){
+          await redeemCosmeticCode(ws,commandMatch[1]);
+          return;
+        }
+
         p.lastChatAt = now;
         broadcastRoom(p.room, {
           type: 'chat',
@@ -2393,8 +2410,8 @@ wss.on('connection', async (ws) => {
         return;
       }
 
-      if (msg.type === 'melee_attack') { if (!p.frozen) handleShotV2(ws,msg.cellX,msg.cellY,msg.angle,msg.targetId); return; }
-      if (msg.type === 'grid_state') { if(!p.room||p.frozen||!p.alive)return; const cx=Math.round(Number(msg.cellX)||p.x/MELEE_GRID_SIZE),cy=Math.round(Number(msg.cellY)||p.y/MELEE_GRID_SIZE); const nx=clamp(cx*MELEE_GRID_SIZE,MELEE_GRID_SIZE,WORLD.w-MELEE_GRID_SIZE),ny=clamp(cy*MELEE_GRID_SIZE,MELEE_GRID_SIZE,WORLD.h-MELEE_GRID_SIZE); const dist=Math.hypot(nx-p.x,ny-p.y); if(dist<=MELEE_GRID_SIZE*1.45){p.x=nx;p.y=ny;if(Number.isFinite(Number(msg.angle)))p.angle=Number(msg.angle);p.lastStateAt=Date.now();broadcastRoom(p.room,{type:'player_update',player:publicPlayer(p)},ws);} return; }
+      if (msg.type === 'melee_attack') { if (!p.frozen) handleShotV2(ws,msg.cellX,msg.cellY,msg.angle,msg.targetId,!!msg.special); return; }
+      if (msg.type === 'grid_state') { if(!p.room||p.frozen||!p.alive)return; const cx=Number.isFinite(Number(msg.cellX))?Number(msg.cellX):gridCell(p.x),cy=Number.isFinite(Number(msg.cellY))?Number(msg.cellY):gridCell(p.y); const nx=clamp(gridCenter(cx),MELEE_GRID_HALF,WORLD.w-MELEE_GRID_HALF),ny=clamp(gridCenter(cy),MELEE_GRID_HALF,WORLD.h-MELEE_GRID_HALF); const dist=Math.hypot(nx-p.x,ny-p.y); if(dist<=MELEE_GRID_SIZE*1.45){p.x=nx;p.y=ny;if(Number.isFinite(Number(msg.angle)))p.angle=Number(msg.angle);p.lastStateAt=Date.now();broadcastRoom(p.room,{type:'player_update',player:publicPlayer(p)},ws);} return; }
       if (msg.type === 'fire') { return; }
 
       if (msg.type === 'deposit_bank') {
@@ -2557,7 +2574,7 @@ wss.on('connection', async (ws) => {
 });
 
 // V74: servidor autoritativo de cuadrícula. Los enemigos regulares avanzan casilla por casilla y se detienen a una casilla del objetivo.
-setInterval(()=>{for(const [code,room] of rooms){if(!room||!room.size)continue;const enemies=roomEnemies.get(code)||[];const players=roomPlayers(room).filter(p=>p.alive&&!p.frozen);for(const e of enemies){if(e.kind==='boss'||e.dead)continue;let target=null,best=Infinity;for(const pl of players){if(inSafeZone(pl.x,pl.y,24))continue;const d=Math.hypot(pl.x-e.x,pl.y-e.y);if(d<=e.aggroRadius&&d<best){best=d;target=pl;}}if(target){const tcx=Math.round(target.x/MELEE_GRID_SIZE),tcy=Math.round(target.y/MELEE_GRID_SIZE),ecx=Math.round(e.x/MELEE_GRID_SIZE),ecy=Math.round(e.y/MELEE_GRID_SIZE);if(Math.abs(tcx-ecx)+Math.abs(tcy-ecy)<=1){e.x=ecx*MELEE_GRID_SIZE;e.y=ecy*MELEE_GRID_SIZE;e.vx=0;e.vy=0;} }}}},180);
+setInterval(()=>{for(const [code,room] of rooms){if(!room||!room.size)continue;const enemies=roomEnemies.get(code)||[];const players=roomPlayers(room).filter(p=>p.alive&&!p.frozen);for(const e of enemies){if(e.kind==='boss'||e.dead)continue;let target=null,best=Infinity;for(const pl of players){if(inSafeZone(pl.x,pl.y,24))continue;const d=Math.hypot(pl.x-e.x,pl.y-e.y);if(d<=e.aggroRadius&&d<best){best=d;target=pl;}}if(target){const tcx=Math.round(target.x/MELEE_GRID_SIZE),tcy=Math.round(target.y/MELEE_GRID_SIZE),ecx=Math.round(e.x/MELEE_GRID_SIZE),ecy=Math.round(e.y/MELEE_GRID_SIZE);if(Math.abs(tcx-ecx)+Math.abs(tcy-ecy)<=1){e.x=egridCenter(cx);e.y=egridCenter(cy);e.vx=0;e.vy=0;} }}}},180);
 
 startServerUpdateHeartbeat();
 
@@ -2954,7 +2971,11 @@ setInterval(() => {
           );
 
           target.hp = clamp(target.hp - actualDamage, 0, maxHpForLevel(target.level));
-          addDefenseXp(target,Math.max(4,Math.round(actualDamage*5)));
+          if(String(target.defenseTrainingTargetId||'')){
+            const trainingMob=enemies.find(e=>e&&!e.dead&&String(e.id||'')===String(target.defenseTrainingTargetId||''));
+            if(trainingMob) addDefenseXp(target,Math.max(4,Math.round(actualDamage*5)));
+            else target.defenseTrainingTargetId='';
+          }
 
           const found = findPlayer(target.id, room);
           if (found) {
