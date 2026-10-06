@@ -1,4 +1,4 @@
-/* V69 · cuentas, combate V2 y jefes */
+/* V70 · cuentas, combate V2 y jefes */
 'use strict';
 
 const http = require('http');
@@ -64,7 +64,7 @@ const PISTOLERO_XP_PER_HIT = 10;
 const PISTOLERO_XP_PER_KILL = 40;
 
 const SHOP_NPC = { x: 3250, y: 2200, r: 24 };
-const SHOP_INTERACTION_RADIUS = 140;
+const SHOP_INTERACTION_RADIUS = 180;
 const BANK_ENABLED = false;
 
 const WEAPONS = {
@@ -1469,9 +1469,9 @@ function findPlayer(id, room) {
   return null;
 }
 
-function sendItemShopState(p,message=''){
+function sendItemShopState(p,message='',openOnly=false){
   if(!p?.ws)return;
-  send(p.ws,{type:'item_shop_state',message,items:publicItemCatalog(),stock:Object.fromEntries(SHOP_STOCK),gold:Math.max(0,Number(p.gold)||0),diamonds:Math.max(0,Number(p.diamonds)||0),inventory:inventoryPayload(p),inventoryCapacity:inventoryCapacity(p),equippedWeapon:p.weapon||'',equippedArmor:p.equippedArmor||'',equippedBackpack:p.equippedBackpack||''});
+  send(p.ws,{type:'item_shop_state',message,openOnly:!!openOnly,near:cosmeticShopNearby(p),items:publicItemCatalog(),stock:Object.fromEntries(SHOP_STOCK),gold:Math.max(0,Number(p.gold)||0),diamonds:Math.max(0,Number(p.diamonds)||0),inventory:inventoryPayload(p),inventoryCapacity:inventoryCapacity(p),equippedWeapon:p.weapon||'',equippedArmor:p.equippedArmor||'',equippedBackpack:p.equippedBackpack||'',shopNpc:SHOP_NPC});
 }
 function buyShopItem(ws,itemId){
   const p=clients.get(ws);if(!p)return;
@@ -1838,7 +1838,7 @@ function buyAmmo(ws){const p=clients.get(ws);if(!p)return;if(!p.room)return send
   if(!isMelee&&availableAmmo<=0)return send(ws,{type:'ammo_empty'});
   const now=Date.now();
   const cooldown = Math.max(WEAPON_FIRE_RATE, Number(weapon.fireRate) || WEAPON_FIRE_RATE);
-  if (now - shooter.lastShot < cooldown) return send(ws, { type: 'shot_result', ok: false, reason: 'cooldown', ammo: shooter.ammo || 0 });
+  if (now - shooter.lastShot < cooldown) return send(ws, { type: 'shot_result', ok: false, reason: 'cooldown', ammo: shooter.ammo || 0, retryIn: Math.max(0,cooldown-(now-shooter.lastShot)) });
   shooter.lastShot = now;
 
   const room = rooms.get(shooter.room);
@@ -1855,7 +1855,7 @@ function buyAmmo(ws){const p=clients.get(ws);if(!p)return;if(!p.room)return send
   const originDistance = Math.hypot(safeOriginX-centerX, safeOriginY-centerY);
   const maxOriginOffset = Math.max(80, (Number(shooter.r)||24) * 4.5);
   const validOrigin = Number.isFinite(requestedX) && Number.isFinite(requestedY) && originDistance <= maxOriginOffset;
-  const shotX = validOrigin ? requestedX : centerX, shotY = validOrigin ? requestedY : centerY;
+  const shotX = centerX, shotY = centerY;
   const requested = Number(requestedAngle);
   const shotAngle = Number.isFinite(requested) && Math.abs(requested) <= Math.PI * 4
     ? Math.atan2(Math.sin(requested), Math.cos(requested))
@@ -1882,7 +1882,16 @@ function buyAmmo(ws){const p=clients.get(ws);if(!p)return;if(!p.room)return send
   }
   for(const enemy of enemies){
     const radius=Math.max(18,Number(enemy.r)||22)+4;
-    const d=isMelee?acceptMelee(enemy.x,enemy.y,radius):rayCircleDistance(shotX,shotY,dirX,dirY,enemy.x,enemy.y,radius);
+    let d=isMelee?acceptMelee(enemy.x,enemy.y,radius):rayCircleDistance(shotX,shotY,dirX,dirY,enemy.x,enemy.y,radius);
+    if(!isMelee&&d>maxRange){
+      const dx=enemy.x-shotX,dy=enemy.y-shotY,dist=Math.hypot(dx,dy);
+      if(dist<=maxRange+radius){
+        const diff=angleDiff(Math.atan2(dy,dx),shotAngle);
+        const lateral=Math.abs(Math.sin(diff))*dist;
+        const forward=Math.cos(diff)*dist;
+        if(forward>=0&&forward<=maxRange&&diff<=0.24&&lateral<=radius*1.35)d=Math.max(0,forward-radius);
+      }
+    }
     if(d<=maxRange&&d<best){best=d;targetEnemy=enemy;targetPlayer=null;}
   }
   let nearestWall=null, nearestWallDistance=Infinity;
@@ -2249,7 +2258,7 @@ const httpServer = http.createServer(async (req, res) => {
 
   if (pathname === '/client') {
     try {
-      const manifestClientPath = String(UNIFIED_RELEASE_MANIFEST.clientPath || '/NeonCore/neoncore/12345/V69/index.html').replace(/^\/NeonCore\//, '').replace(/^\/+/, '');
+      const manifestClientPath = String(UNIFIED_RELEASE_MANIFEST.clientPath || '/NeonCore/neoncore/12345/V70/index.html').replace(/^\/NeonCore\//, '').replace(/^\/+/, '');
       const clientPath = path.join(__dirname, '..', manifestClientPath);
       const html = fs.readFileSync(clientPath, 'utf8');
       res.writeHead(200, {
@@ -2526,7 +2535,7 @@ wss.on('connection', async (ws) => {
           serverStartedAt: SERVER_STARTED_AT,
           message: SERVER_UPDATE_MESSAGE,
           required: true,
-          clientPath: String(UNIFIED_RELEASE_MANIFEST.clientPath || '/NeonCore/neoncore/12345/V69/index.html')
+          clientPath: String(UNIFIED_RELEASE_MANIFEST.clientPath || '/NeonCore/neoncore/12345/V70/index.html')
         });
 
         return;
@@ -2647,7 +2656,7 @@ wss.on('connection', async (ws) => {
 
         p.stateViolations = Math.max(0, p.stateViolations - 1);
         p.lastStateAt = now;
-        // V69: una cuenta Google sin nombre permanece dentro de la zona segura.
+        // V70: una cuenta Google sin nombre permanece dentro de la zona segura.
         if(!p.nameLocked && !String(p.name||'').trim()){
           const dx=finalX-SAFE_ZONE.x,dy=finalY-SAFE_ZONE.y,d=Math.hypot(dx,dy),limit=Math.max(0,SAFE_ZONE.r-18);
           if(d>limit){const k=limit/Math.max(d,0.0001);finalX=SAFE_ZONE.x+dx*k;finalY=SAFE_ZONE.y+dy*k;movementClamped=true;}
@@ -2702,7 +2711,7 @@ wss.on('connection', async (ws) => {
         return;
       }
       if (msg.type === 'open_item_shop') {
-        if (!p.frozen) sendItemShopState(p,'Items disponibles y venta de inventario.');
+        if (!p.frozen) sendItemShopState(p,'Items disponibles y venta de inventario.',true);
         return;
       }
 
@@ -3378,7 +3387,7 @@ function announceServerUpdate() {
     serverStartedAt: SERVER_STARTED_AT,
     message: SERVER_UPDATE_MESSAGE,
     required: true,
-    clientPath: String(UNIFIED_RELEASE_MANIFEST.clientPath || 'neoncore/12345/V69/index.html')
+    clientPath: String(UNIFIED_RELEASE_MANIFEST.clientPath || 'neoncore/12345/V70/index.html')
   };
   for (const p of clients.values()) {
     send(p.ws, payload);
