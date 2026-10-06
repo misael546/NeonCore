@@ -691,7 +691,7 @@ function normalizeOwnedWeapons(value, fallbackWeapon = '') {
     out.push(id);
   }
   if (WEAPONS[fallbackWeapon] && !seen.has(fallbackWeapon)) out.push(fallbackWeapon);
-  if (!out.includes('blaster')) out.unshift('blaster');
+  if (!out.includes('sword_neo')) out.unshift('sword_neo');
   return out;
 }
 
@@ -3056,7 +3056,7 @@ function runServerDiagnostics() {
   if (MAX_PLAYERS < 1) problems.push('MAX_PLAYERS inválido');
   if (PUBLIC_ROOMS.some((code) => !rooms.has(code))) problems.push('Sala pública ausente');
   if (WORLD_WALLS.length < 20) problems.push('Muy pocos muros');
-  if (Object.keys(WEAPONS).length < 10) problems.push('Arsenal incompleto');
+  if (Object.keys(WEAPONS).length !== 5 || !Object.keys(WEAPONS).every(id => id.startsWith('sword_'))) problems.push('Catálogo de espadas incompleto');
   if (!(SAFE_ZONE_HP_REGEN_PER_SEC > HP_REGEN_PER_SEC)) problems.push('Curación de zona segura inválida');
   if (NAME_MAX_LENGTH < 3) problems.push('Límite de nombre inválido');
   if (!cosmetics.getSkin('core_default')) problems.push('Skin base ausente');
@@ -3079,7 +3079,7 @@ function runServerDiagnostics() {
     '[DIAGNOSTIC] PASS version=' + SERVER_VERSION +
     ' rooms=' + rooms.size +
     ' walls=' + WORLD_WALLS.length +
-    ' weapons=' + Object.keys(WEAPONS).length +
+    ' swords=' + Object.keys(WEAPONS).length +
     ' armors=' + Object.keys(cosmetics.SKINS).length +
     ' storage=' + (storage.enabled ? 'postgres' : 'memory')
   );
