@@ -855,14 +855,6 @@ let gameActive=false;
 let camera={x:p.x,y:p.y},last=performance.now(),playerName="";
 let safeZone={x:3000,y:2200,r:300};
 let spawnProtectionUntil=0;
-const worldStars=Array.from({length:220},()=>({
-  x:40+Math.random()*(world.w-80),
-  y:40+Math.random()*(world.h-80),
-  size:.7+Math.random()*1.9,
-  phase:Math.random()*Math.PI*2,
-  speed:.4+Math.random()*1.2
-}));
-
 const PUBLIC_ROOM_CODE="12345";
 const GRID_SIZE=24;
 let gridTarget=null;
@@ -2521,9 +2513,9 @@ function draw(){
 
   for(const w of walls){
     const x=sx(w.x-w.w/2),y=sy(w.y-w.h/2);
-    ctx.fillStyle="#182438";ctx.fillRect(x,y,w.w,w.h);
-    ctx.strokeStyle="#344865";ctx.strokeRect(x,y,w.w,w.h);
-    ctx.fillStyle="#39e7ff";ctx.globalAlpha=.15;ctx.fillRect(x,y,w.w*(w.hp/w.maxHp),4);ctx.globalAlpha=1;
+    ctx.fillStyle="#8b6947";ctx.fillRect(x,y,w.w,w.h);
+    ctx.strokeStyle="#5e4935";ctx.strokeRect(x,y,w.w,w.h);
+    ctx.fillStyle="#b58a55";ctx.globalAlpha=.28;ctx.fillRect(x,y,w.w*(w.hp/w.maxHp),4);ctx.globalAlpha=1;
   }
 
   // V72: el bioma desértico reemplaza el antiguo campo de estrellas.
@@ -2578,9 +2570,7 @@ function draw(){
     ctx.globalAlpha=1;
   }
   drawTank(p.x,p.y,p.angle,"#39e7ff",Math.max(11,p.r*.62),p.weapon||"",p.equippedSkin||"",equippedArmor||"",localVisual);
-try{
-  const im=window.__neonPlayer2DSprite;if(im&&im.complete&&im.naturalWidth){ctx.save();ctx.imageSmoothingEnabled=false;const moving=!!localVisual.walkBlend;const dir=Math.abs(Math.cos(p.angle||0))>.5?(Math.cos(p.angle||0)>0?2:1):((Math.sin(p.angle||0)>0)?0:3);const frame=moving?Math.floor((localVisual.walkPhase||0)*.8)%4:0;const sw=48,sh=48;ctx.drawImage(im,frame*sw,dir*sh,sw,sh,sx(p.x)-p.r*.62,sy(p.y)-p.r*.82,p.r*1.24,p.r*1.64);ctx.restore();}}
-catch{}
+// V74: drawTank is the single player renderer so the hand/sword stays visible.
   drawNameTag(playerName,p.x,p.y,p.r,"#39e7ff",p.level||1);
   drawNeonProjectiles();
   if(controlMode==="mouse"&&gameActive){ctx.save();ctx.strokeStyle="rgba(57,231,255,.95)";ctx.lineWidth=1.5;ctx.beginPath();ctx.arc(pointer.x,pointer.y,10,0,Math.PI*2);ctx.moveTo(pointer.x-16,pointer.y);ctx.lineTo(pointer.x+16,pointer.y);ctx.moveTo(pointer.x,pointer.y-16);ctx.lineTo(pointer.x,pointer.y+16);ctx.stroke();ctx.restore();}
