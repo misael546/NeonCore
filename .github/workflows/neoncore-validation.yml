@@ -68,7 +68,7 @@ jobs:
           if (release.version !== version || release.releaseId !== version || release.clientVersion !== version || release.serverVersion !== version || Number(release.databaseSchema) !== 3) {
             throw new Error('release.json is not internally synchronized');
           }
-          if (!root.includes('NeonCore') || !roomLauncher.includes('release.json') || !roomLauncher.includes('clientPath')) {
+          if (!root.includes('NEON CORE') || !roomLauncher.includes('release.json') || !roomLauncher.includes('clientPath')) {
             throw new Error('Main/room launcher is not synchronized with release.json');
           }
           const clientParts = clientPath.split('/');
