@@ -19,7 +19,7 @@
 
 ## 2. Regla crítica de versiones
 
-- La versión vigente del proyecto es **V80**.
+- La versión vigente del proyecto es **V81**.
 - Cada cambio que modifique el cliente/juego debe crear una **nueva V**.
 - Nunca modificar una V anterior para introducir una nueva modificación del cliente.
 - Después de crear la nueva V, eliminar las V antiguas del cliente para que quede solamente la versión vigente.
@@ -88,7 +88,7 @@ Reglas:
 - LV debe aparecer junto al nombre del jugador.
 - Los mobs también tienen LV y estadísticas.
 - La defensa aumenta cuando el jugador recibe golpes.
-- La armadura equipada se muestra visualmente sobre la skin y contribuye al sistema de poder/defensa definido por el juego.
+- Las apariencias comprables son skins cosméticas de la clase Melee; no son una estadística de defensa ni deben presentarse como armaduras de atributos.
 - El arma equipada no debe dar buffs de defensa.
 
 ## 7. Combate y armas
@@ -232,8 +232,8 @@ No dejar:
 
 ## 18. Estado conocido al crear este documento
 
-- Cliente actual: **V80**.
-- V80 usa terreno 2D pixel-art por tiles, jugador 2D pixel-art y movimiento por casillas.
+- Cliente actual: **V81**.
+- V81 usa terreno 2D pixel-art por tiles, jugador 2D pixel-art y movimiento por casillas.
 - V72 introduce movimiento por cuadrícula invisible, combate melee y el nuevo bioma desértico.
 - V72 fue reemplazada y eliminada al publicar V80. V80 es la versión vigente.
 - No deben restaurarse esas V.
@@ -286,7 +286,7 @@ Cuando exista una instrucción nueva y explícita del usuario, aplicar la nueva 
 
 
 ## 22. Combate y Mercader V80
-- La cuadrícula táctil es ligeramente visible en móvil para facilitar la lectura de casillas.
+- La cuadrícula táctil es visible y sus casillas deben ser claramente legibles; el centro de cada casilla es el punto válido del jugador, nunca una intersección de líneas.
 - La casilla de destino de caminar se marca con un cuadro azul visible.
 - La casilla del enemigo seleccionado se marca con un cuadro dorado que sigue la casilla actual del enemigo.
 - Tocar directamente cualquier mob lo selecciona aunque esté a varias casillas; el jugador lo sigue por cuadrícula y conserva el objetivo si cambia de casilla.
@@ -303,13 +303,16 @@ Cuando exista una instrucción nueva y explícita del usuario, aplicar la nueva 
 - El Mercader tiene una apertura de tienda protegida contra errores: una excepción de la interfaz no puede detener el bucle del juego.
 
 
-## 24. V80 — melee, cansancio, armaduras y cuadrícula
+## 24. V81 — skins, cansancio, melee, defensa y cuadrícula
+- La defensa se entrena como una habilidad: un golpe exitoso a un mob activa el entrenamiento contra ese mob; mientras ese mob siga vivo, sus golpes al jugador generan experiencia de Defensa. Cuando el mob muere/desaparece, hay que volver a golpear a otro mob para activar el entrenamiento.
+- El Melee gana experiencia por golpes que realmente dañan a un mob.
+- El código maestro actual de pruebas es `NEONMASTER`; se puede ejecutar desde el chat del servidor escribiendo `/code NEONMASTER`. El mismo código se conserva y se amplía cuando se agregue contenido nuevo.
 - Items Venta no muestra armas de fuego, escudos ni colecciones de espadas avanzadas.
 - La única espada comprable inicial es la **Espada Básica**, con daño base 10; el daño básico sigue siendo Melee + daño base.
 - Las skins de personaje pasan a ser **armaduras exclusivas de la clase Melee**; no se usan skins humanas.
 - La primera armadura es sencilla y las siguientes pueden aumentar visualmente su complejidad por progresión.
 - El cansancio funciona como recurso de combate: se recupera gradualmente y se consume con ataques; el ataque especial de combo consume más.
-- Tres golpes básicos consecutivos habilitan un ataque especial: golpea el cuadrado de 3×3 alrededor del jugador y produce un efecto de área visible.
+- El ataque básico no consume cansancio. El ataque especial tiene botón propio, cuesta cansancio y tiene un cooldown independiente de 3 segundos; no depende de contar golpes básicos.
 - El movimiento táctil debe caer en el centro de una casilla de 24 px; los puntos de aparición y la zona segura deben estar alineados a la cuadrícula.
 - Los mobs normales y élite deben ser más débiles y usar nombres/diseños originales de temática desértica; no usar el antiguo dron/minotauro visual.
 - El botón de voz por proximidad queda desactivado temporalmente.
