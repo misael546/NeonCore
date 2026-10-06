@@ -1649,7 +1649,7 @@ async function redeemCosmeticCode(ws, rawCode, fromServerChat=false) {
     p.equippedWeaponSkin = weaponSkin.id;
   }
 
-  if (!reward.allSkins && !reward.allWeapons && !reward.allItems && !unlockedSkin && !unlockedArmor && !unlockedWeapon && !unlockedWeaponSkin) {
+  if (!reward.allSkins && !reward.allWeapons && !reward.allItems && !unlockedSkin && !unlockedWeapon && !unlockedWeaponSkin) {
     return cosmeticShopError(ws, 'El código no tiene una recompensa válida.');
   }
 
@@ -1661,7 +1661,7 @@ async function redeemCosmeticCode(ws, rawCode, fromServerChat=false) {
   applyCombatStats(p);
   await persistPlayer(p);
 
-  const totalUnlocked=unlockedSkins.length+unlockedSkins.length+unlockedWeapons.length;
+  const totalUnlocked=unlockedSkins.length+unlockedWeapons.length;
   const message=reward.allSkins||reward.allWeapons||reward.allItems?reward.message+' ('+totalUnlocked+' objetos disponibles para probar).':reward.message;
   sendCosmeticState(p,message,unlockedSkin,unlockedWeapon,unlockedWeaponSkin);sendStats(p);
   sendPlayerList(p.room);
