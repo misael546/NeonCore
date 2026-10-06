@@ -1,4 +1,4 @@
-/* V82 · melee, cuadrícula, cansancio, skins y combate por objetivo */
+/* V83 · melee, cuadrícula, cansancio, skins y combate por objetivo */
 'use strict';
 
 const http = require('http');
@@ -370,8 +370,7 @@ function publicPlayer(p) {
     fatigue: Math.max(0,Math.min(Number(p.maxFatigue)||MAX_FATIGUE,Number(p.fatigue)||0)),
     maxFatigue: Number(p.maxFatigue)||MAX_FATIGUE,
     comboCount: Math.max(0,Number(p.comboCount)||0),
-    equippedSkin: cosmetics.getSkin(p.equippedSkin)?.id || (cosmetics.getSkin(p.equippedSkin) ? p.equippedSkin : 'core_default'),
-    equippedSkin: cosmetics.getSkin(p.equippedSkin) ? p.equippedSkin : '',
+    equippedSkin: cosmetics.getSkin(p.equippedSkin) ? p.equippedSkin : 'core_default',
     equippedBackpack: p.equippedBackpack || ''
   };
 }
@@ -432,11 +431,9 @@ function sendStats(p) {
     ownedWeapons: normalizeOwnedWeapons(p.ownedWeapons, p.weapon || 'sword_neo'),
     merchantNpc: MERCHANT_NPC,
     bankEnabled: BANK_ENABLED,
-    equippedSkin: cosmetics.getSkin(p.equippedSkin)?.id || 'core_default',
-    equippedSkin: cosmetics.getSkin(p.equippedSkin) ? p.equippedSkin : '',
+    equippedSkin: cosmetics.getSkin(p.equippedSkin) ? p.equippedSkin : 'core_default',
     equippedBackpack: p.equippedBackpack || '',
     ownedSkins: [...new Set(['core_default',...cosmetics.normalizeOwnedSkins(p.ownedSkins)])],
-    ownedSkins: cosmetics.normalizeOwnedSkins(p.ownedSkins),
     redeemedCodes: cosmetics.normalizeRedeemedCodes(p.redeemedCodes),
     skinRating: 0
   });
@@ -467,10 +464,8 @@ function capturePlayerData(p) {
     defenseXp: Math.max(0, Number(p.defenseXp) || 0),
     damagePenalty: Math.max(0, Number(p.damagePenalty) || 0),
     defensePenalty: Math.max(0, Number(p.defensePenalty) || 0),
-    ownedSkins: cosmetics.normalizeOwnedSkins(p.ownedSkins),
+    ownedSkins: [...new Set(['core_default',...cosmetics.normalizeOwnedSkins(p.ownedSkins)])],
     equippedSkin: cosmetics.getSkin(p.equippedSkin) ? p.equippedSkin : 'core_default',
-    ownedSkins: cosmetics.normalizeOwnedSkins(p.ownedSkins),
-    equippedSkin: cosmetics.getSkin(p.equippedSkin) ? p.equippedSkin : '',
     equippedBackpack: p.equippedBackpack || '',
     redeemedCodes: cosmetics.normalizeRedeemedCodes(p.redeemedCodes)
   };
@@ -1799,10 +1794,8 @@ function createPlayer(ws) {
     diamonds: 0,
     bankedGold: 0,
     bankedDiamonds: 0,
-    ownedSkins: cosmetics.normalizeOwnedSkins([]),
+    ownedSkins: cosmetics.normalizeOwnedSkins(['core_default']),
     equippedSkin: 'core_default',
-    ownedSkins: [],
-    equippedSkin: '',
     ownedWeapons: ['sword_neo'],
     equippedWeaponSkin: '',
     ownedWeaponSkins: [],
@@ -1883,7 +1876,7 @@ const httpServer = http.createServer(async (req, res) => {
 
   if (pathname === '/client') {
     try {
-      const manifestClientPath = String(UNIFIED_RELEASE_MANIFEST.clientPath || '/NeonCore/neoncore/12345/V82/index.html').replace(/^\/NeonCore\//, '').replace(/^\/+/, '');
+      const manifestClientPath = String(UNIFIED_RELEASE_MANIFEST.clientPath || '/NeonCore/neoncore/12345/V83/index.html').replace(/^\/NeonCore\//, '').replace(/^\/+/, '');
       const clientPath = path.join(__dirname, '..', manifestClientPath);
       const html = fs.readFileSync(clientPath, 'utf8');
       res.writeHead(200, {
@@ -2081,11 +2074,8 @@ wss.on('connection', async (ws) => {
           p.bankedDiamonds = Math.max(0, Number(saved.bankedDiamonds) || 0);
           const legacyOwnedSkins=Array.isArray(saved.ownedSkins)?saved.ownedSkins:[];
           const legacyArmorIds=legacyOwnedSkins.filter(id=>cosmetics.getSkin(id));
-          p.ownedSkins=cosmetics.normalizeOwnedSkins(legacyOwnedSkins);
-          p.equippedSkin=(cosmetics.getSkin(saved.equippedSkin)&&p.ownedSkins.includes(saved.equippedSkin))?saved.equippedSkin:'pixel_human';
-          if(p.equippedSkin==='core_default')p.equippedSkin='pixel_human';
-          p.ownedSkins=cosmetics.normalizeOwnedSkins([...(Array.isArray(saved.ownedSkins)?saved.ownedSkins:[]),...legacyArmorIds]);
-          p.equippedSkin=cosmetics.getSkin(saved.equippedSkin)?.id||(cosmetics.getSkin(saved.equippedSkin)?.id||'');
+          p.ownedSkins=cosmetics.normalizeOwnedSkins(['core_default',...legacyOwnedSkins,...legacyArmorIds]);
+          p.equippedSkin=(cosmetics.getSkin(saved.equippedSkin)&&p.ownedSkins.includes(saved.equippedSkin))?saved.equippedSkin:'core_default';
           p.redeemedCodes = cosmetics.normalizeRedeemedCodes(saved.redeemedCodes);
           p.ownedWeapons = normalizeOwnedWeapons(saved.ownedWeapons, saved.weapon || '');
           p.weapon = WEAPONS[saved.weapon] ? saved.weapon : 'sword_neo';
@@ -2155,7 +2145,7 @@ wss.on('connection', async (ws) => {
           serverStartedAt: SERVER_STARTED_AT,
           message: SERVER_UPDATE_MESSAGE,
           required: true,
-          clientPath: String(UNIFIED_RELEASE_MANIFEST.clientPath || '/neoncore/12345/V82/index.html')
+          clientPath: String(UNIFIED_RELEASE_MANIFEST.clientPath || '/neoncore/12345/V83/index.html')
         });
 
         return;
@@ -2283,7 +2273,7 @@ wss.on('connection', async (ws) => {
 
         p.stateViolations = Math.max(0, p.stateViolations - 1);
         p.lastStateAt = now;
-        // V82: una cuenta Google sin nombre permanece dentro de la zona segura.
+        // V83: una cuenta Google sin nombre permanece dentro de la zona segura.
         if(!p.nameLocked && !String(p.name||'').trim()){
           const dx=finalX-SAFE_ZONE.x,dy=finalY-SAFE_ZONE.y,d=Math.hypot(dx,dy),limit=Math.max(0,SAFE_ZONE.r-18);
           if(d>limit){const k=limit/Math.max(d,0.0001);finalX=SAFE_ZONE.x+dx*k;finalY=SAFE_ZONE.y+dy*k;movementClamped=true;}
@@ -2514,7 +2504,7 @@ wss.on('connection', async (ws) => {
   });
 });
 
-// V82: servidor autoritativo de cuadrícula. Los enemigos regulares avanzan casilla por casilla y se detienen a una casilla del objetivo.
+// V83: servidor autoritativo de cuadrícula. Los enemigos regulares avanzan casilla por casilla y se detienen a una casilla del objetivo.
 setInterval(()=>{for(const [code,room] of rooms){if(!room||!room.size)continue;const enemies=roomEnemies.get(code)||[];const players=roomPlayers(room).filter(p=>p.alive&&!p.frozen);for(const e of enemies){if(e.kind==='boss'||e.dead)continue;let target=null,best=Infinity;for(const pl of players){if(inSafeZone(pl.x,pl.y,24))continue;const d=Math.hypot(pl.x-e.x,pl.y-e.y);if(d<=e.aggroRadius&&d<best){best=d;target=pl;}}if(target){const tcx=Math.round(target.x/MELEE_GRID_SIZE),tcy=Math.round(target.y/MELEE_GRID_SIZE),ecx=Math.round(e.x/MELEE_GRID_SIZE),ecy=Math.round(e.y/MELEE_GRID_SIZE);if(Math.abs(tcx-ecx)+Math.abs(tcy-ecy)<=1){e.x=egridCenter(cx);e.y=egridCenter(cy);e.vx=0;e.vy=0;} }}}},180);
 
 startServerUpdateHeartbeat();
@@ -3032,7 +3022,7 @@ function announceServerUpdate() {
     serverStartedAt: SERVER_STARTED_AT,
     message: SERVER_UPDATE_MESSAGE,
     required: true,
-    clientPath: String(UNIFIED_RELEASE_MANIFEST.clientPath || 'neoncore/12345/V82/index.html')
+    clientPath: String(UNIFIED_RELEASE_MANIFEST.clientPath || 'neoncore/12345/V83/index.html')
   };
   for (const p of clients.values()) {
     send(p.ws, payload);
