@@ -1333,7 +1333,10 @@ function connectMultiplayer(roomMode="quick",roomCode=""){ const publicRoomAuto=
           if(Number.isFinite(m.comboCount))serverComboCount=Math.max(0,Number(m.comboCount));
           if(Number.isFinite(m.defense))serverDefense=m.defense;
           audioTone(m.boss?95:160,.16,"square",.05,-45);
+          localVisual.hit=1;
           burst(p.x,p.y,m.boss?"#ffd76a":"#ff5474",m.boss?8:4);
+          showFloatingHit(p.x,p.y,Number(m.amount)||0,m.boss?"#ffd76a":"#ff5474");
+          updateHud();
         }else if(m.type==="pve_dead"){
           audioTone(180,.18,"sawtooth",.06,-90);audioTone(90,.35,"triangle",.045,-35,.12);audioNoise(.22,.05,.12,250);
           const r=m.respawn||{};
