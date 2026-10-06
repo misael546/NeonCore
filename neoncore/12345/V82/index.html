@@ -2172,7 +2172,7 @@ function updateHud(){
   updateResourceHud();
 }
 
-function clientInventoryTotal(itemId="ammo"){let total=0;for(const slot of inventorySlots||[])if(slot&&String(slot.itemId||slot.id||"")===String(itemId))total+=Math.max(0,Number(slot.qty)||0);return total;}
+function clientInventoryCount(itemId=""){let total=0;for(const slot of inventorySlots||[])if(slot&&String(slot.itemId||slot.id||"")===String(itemId))total+=Math.max(0,Number(slot.qty)||0);return total;}
 function clientItemDef(id){
   const key=String(id||"");
   return itemShopCatalog.find(x=>String(x.id)===key)||null;
@@ -2188,7 +2188,7 @@ function syncClientInventory(slots,capacity){
   const src=Array.isArray(slots)?slots:[],cap=Math.max(BASE_INVENTORY_SLOTS,Math.min(MAX_INVENTORY_SLOTS,Math.floor(Number(capacity)||src.length||BASE_INVENTORY_SLOTS)));
   inventoryCapacityClient=cap;
   inventorySlots=Array.from({length:cap},(_,i)=>{const raw=src[i];if(!raw)return null;const itemId=String(raw.itemId||raw.id||""),qty=Math.max(0,Math.min(INVENTORY_STACK_MAX,Math.floor(Number(raw.qty)||0)));return itemId&&qty>0?{itemId,qty}:null;});
-  p.ammo=clientInventoryTotal("ammo");p.maxAmmo=cap*INVENTORY_STACK_MAX;renderInventory();
+  p.ammo=0;p.maxAmmo=0;renderInventory();
 }
 function renderEquipmentSlot(id,itemId){
   const el=document.getElementById(id);if(!el)return;
@@ -2200,8 +2200,8 @@ function renderEquipmentSlot(id,itemId){
 }
 function renderInventory(){
   const grid=document.getElementById("inventoryGrid"),cap=document.getElementById("inventoryCapacity"),hint=document.getElementById("inventoryCapacityHint");if(!grid)return;
-  const total=clientInventoryTotal("ammo"),max=inventoryCapacityClient*INVENTORY_STACK_MAX;
-  if(cap)cap.textContent=total+" / "+max;
+  const total=(inventorySlots||[]).filter(Boolean).length,max=inventoryCapacityClient;
+  if(cap)cap.textContent=total+" / "+max+" SLOTS";
   if(hint)hint.textContent=String(inventoryCapacityClient);
   renderEquipmentSlot("equippedBackpackSlot",equippedBackpack);
   renderEquipmentSlot("equippedWeaponSlot",p.weapon||"");
@@ -2304,7 +2304,7 @@ function renderItemShop(){
   const items=(Array.isArray(itemShopCatalog)?itemShopCatalog:[]).filter(x=>x&&(x.category==="backpack"||String(x.id||"")==="sword_neo"));
   grid.innerHTML=items.map(item=>{
     const stock=itemShopStock[item.id],soldOut=stock!==undefined&&Number(stock)<=0;
-    const owned=clientInventoryTotal(item.id)>0||p.weapon===item.id||equippedSkin===item.id||equippedBackpack===item.id;
+    const owned=clientInventoryCount(item.id)>0||p.weapon===item.id||equippedSkin===item.id||equippedBackpack===item.id;
     const isSword=String(item.id)==="sword_neo";
     const visual=isSword?'<img src="'+(swordSkinsV82[item.id]||"")+'" style="max-width:86px;max-height:52px;image-rendering:pixelated" alt="">':item.category==="backpack"?"🎒":"🛡️";
     const extra=isSword?"⚔ MELEE + "+Number(item.power||0):(item.category==="backpack"?"+"+Number(item.slotsBonus||16)+" ESPACIOS":"SKIN MELEE COSMÉTICA");
