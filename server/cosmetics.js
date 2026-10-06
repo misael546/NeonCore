@@ -1,12 +1,7 @@
 'use strict';
 
 const SKINS = Object.freeze({
-  core_default: { id:'core_default', name:'NÚCLEO ORIGINAL', rarity:'Común', type:'armor', priceGold:0, priceDiamonds:0, priceUsd:0, style:'core', defenseBonus:0 },
-  neon_runner: { id:'neon_runner', name:'CORREDOR NEÓN', rarity:'Común', type:'armor', priceGold:0, priceDiamonds:0, priceUsd:0, style:'runner', defenseBonus:0 },
-  signal_amber: { id:'signal_amber', name:'SEÑAL ÁMBAR', rarity:'Común', type:'armor', priceGold:0, priceDiamonds:0, priceUsd:0, style:'amber', defenseBonus:0 },
-  pulse_guard: { id:'pulse_guard', name:'GUARDIÁN PULSO', rarity:'Común', type:'armor', priceGold:0, priceDiamonds:0, priceUsd:0, style:'pulse', defenseBonus:0 },
-  shadow_scout: { id:'shadow_scout', name:'EXPLORADOR SOMBRA', rarity:'Común', type:'armor', priceGold:0, priceDiamonds:0, priceUsd:0, style:'shadow', defenseBonus:0 },
-  pixel_human: { id:'pixel_human', name:'HUMANO PIXEL', rarity:'Común', type:'armor', priceGold:0, priceDiamonds:0, priceUsd:0, style:'human', defenseBonus:0 },
+  core_default: { id:'core_default', name:'ARMADURA MELEE BÁSICA', rarity:'Común', type:'armor', priceGold:0, priceDiamonds:0, priceUsd:0, style:'core', defenseBonus:0 },
   pixel_cyan: { id:'pixel_cyan', name:'PIXEL CYAN', rarity:'Raro', type:'armor', priceGold:5000, priceDiamonds:0, priceUsd:0, style:'pixel', defenseBonus:10 },
   rust_core: { id:'rust_core', name:'NÚCLEO OXIDADO', rarity:'Raro', type:'armor', priceGold:1500, priceDiamonds:0, priceUsd:0, style:'rust', defenseBonus:20 },
   toxic_orb: { id:'toxic_orb', name:'ORBE TÓXICO', rarity:'Épico', type:'armor', priceGold:12000, priceDiamonds:0, priceUsd:0, style:'toxic', defenseBonus:35 },
@@ -47,24 +42,7 @@ const REDEEM_CODES = Object.freeze({
   // enabled:true  -> el código se puede canjear.
   // enabled:false -> queda bloqueado sin borrar el código.
   // repeatable:true -> se puede volver a ejecutar para pruebas.
-  NEONCORE_TEST_ALL: {
-    enabled:true,
-    repeatable:true,
-    allSkins:true,
-    allWeapons:true,
-    message:'TEST ALL: desbloqueaste todas las armas y todos los skins.'
-  },
 
-  WEAPON_BLASTER: { enabled:true, weaponId:'blaster', message:'Código válido: desbloqueaste BLASTER · NEONSTORM.' },
-  WEAPON_PULSE: { enabled:true, weaponId:'pulse', message:'Código válido: desbloqueaste PULSE · PRISMA.' },
-  WEAPON_CANNON: { enabled:true, weaponId:'cannon', message:'Código válido: desbloqueaste CANNON · SOLARIS.' },
-  WEAPON_RAILGUN: { enabled:true, weaponId:'railgun', message:'Código válido: desbloqueaste RAILGUN · ECLIPSE.' },
-  WEAPON_NOVA: { enabled:true, weaponId:'nova', message:'Código válido: desbloqueaste NOVA · SUPERNOVA.' },
-  WEAPON_PLASMA: { enabled:true, weaponId:'plasma', message:'Código válido: desbloqueaste PLASMA · INFERNO.' },
-  WEAPON_VORTEX: { enabled:true, weaponId:'vortex', message:'Código válido: desbloqueaste VORTEX · SHARD.' },
-  WEAPON_QUASAR: { enabled:true, weaponId:'quasar', message:'Código válido: desbloqueaste QUASAR · RAY.' },
-  WEAPON_SINGULARITY: { enabled:true, weaponId:'singularity', message:'Código válido: desbloqueaste SINGULARITY · CORE.' },
-  WEAPON_OMEGA: { enabled:true, weaponId:'omega', message:'Código válido: desbloqueaste OMEGA · ASCENSION.' },
 
   SKIN_PIXEL_CYAN: { enabled:true, skinId:'pixel_cyan', message:'Código válido: desbloqueaste PIXEL CYAN.' },
   SKIN_RUST_CORE: { enabled:true, skinId:'rust_core', message:'Código válido: desbloqueaste NÚCLEO OXIDADO.' },
@@ -89,7 +67,7 @@ const REDEEM_CODES = Object.freeze({
 function getSkin(id) { return SKINS[String(id || '')]; }
 function getWeaponSkin(id) { return WEAPON_SKINS[String(id || '')]; }
 
-const STARTER_SKINS=Object.freeze(['core_default','neon_runner','signal_amber','pulse_guard','shadow_scout','pixel_human']);
+const STARTER_SKINS=Object.freeze(['core_default']);
 
 function normalizeOwnedSkins(value){
   const input=Array.isArray(value)?value:[],out=[],seen=new Set();
@@ -141,9 +119,7 @@ function normalizeRedeemedCodes(value) {
 }
 
 function publicCatalog(){
-  return Object.values(SKINS)
-    .filter(s=>STARTER_SKINS.includes(s.id))
-    .map(s=>({id:s.id,name:s.name,rarity:s.rarity,type:s.type,style:s.style}));
+  return Object.values(SKINS).filter(s=>STARTER_SKINS.includes(s.id)).map(s=>({id:s.id,name:s.name,rarity:s.rarity,type:s.type,style:s.style}));
 }
 function publicArmorCatalog(){
   return Object.values(ARMORS).map(a=>({
