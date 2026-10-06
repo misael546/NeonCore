@@ -2112,7 +2112,7 @@ wss.on('connection', async (ws) => {
         applyCombatStats(p);
         p.joined = true;
 
-        send(ws,{type:'account_authenticated',accountId:p.accountId,name:saved?p.name:'',nameLocked:!!saved,created:!!account.created,accountToken:account.created?String(account.accountToken||''):'',recoveryCode:'',googleEmail:p.accountEmail,needsName:!saved});
+        send(ws,{type:'account_authenticated',accountId:p.accountId,name:p.name||'',nameLocked:!!p.nameLocked,created:!!account.created,accountToken:String(account.accountToken||''),recoveryCode:'',googleEmail:p.accountEmail,needsName:!p.name||/^Cuenta-/.test(String(p.name))});
         if(!saved){p.pendingGoogleAuth=true;p.pendingRoomMode=msg.createRoom?'create':(msg.room?'join':'quick');p.pendingRoomCode=String(msg.room||'12345').slice(0,5);}
 
 
