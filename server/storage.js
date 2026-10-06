@@ -68,6 +68,14 @@ async function initStorage(releaseId = '', schemaVersion = 1) {
   );
 
   await pool.query(
+    'ALTER TABLE neoncore_accounts ADD COLUMN IF NOT EXISTS google_sub VARCHAR(128)'
+  );
+
+  await pool.query(
+    'CREATE UNIQUE INDEX IF NOT EXISTS neoncore_accounts_google_sub_idx ON neoncore_accounts (google_sub) WHERE google_sub IS NOT NULL'
+  );
+
+  await pool.query(
     'CREATE TABLE IF NOT EXISTS neoncore_runtime (' +
       'id SMALLINT PRIMARY KEY CHECK (id = 1),' +
       'release_id VARCHAR(128) NOT NULL,' +
@@ -240,6 +248,35 @@ async function findAccountByToken(token) {
       updatedAt:row.updated_at?new Date(row.updated_at).toISOString():''};
   }catch(error){console.error('[STORAGE ACCOUNT AUTH]',error?.message||error);return null;}
 }
+
+async function findAccountByGoogleSub(googleSub) {
+  if(!storageReady||!pool)return null;
+  const clean=String(googleSub||'').trim().slice(0,128);if(!clean)return null;
+  try{
+    const result=await pool.query('SELECT account_id,name,player_save_key,created_at,updated_at FROM neoncore_accounts WHERE google_sub=$1 LIMIT 1',[clean]);
+    const row=result.rows[0];if(!row)return null;
+    return {accountId:String(row.account_id||''),name:normalizeAccountName(row.name),playerSaveKey:String(row.player_save_key||row.account_id||''),createdAt:row.created_at?new Date(row.created_at).toISOString():'',updatedAt:row.updated_at?new Date(row.updated_at).toISOString():''};
+  }catch(error){console.error('[STORAGE GOOGLE AUTH]',error?.message||error);return null;}
+}
+async function createAccountWithGoogle(name,googleSub) {
+  if(!storageReady||!pool)return {ok:false,reason:'storage_unavailable'};
+  const cleanName=normalizeAccountName(name),normalized=accountNameKey(cleanName),sub=String(googleSub||'').trim().slice(0,128);
+  if(!cleanName)return {ok:false,reason:'invalid_name'}; if(!sub)return {ok:false,reason:'google_invalid'};
+  const accountId='acc_'+crypto.randomUUID().replace(/-/g,'');
+  const accountToken=crypto.randomBytes(32).toString('base64url');
+  const tokenHash=hashAccountToken(accountToken);
+  try{
+    const result=await pool.query('INSERT INTO neoncore_accounts (account_id,token_hash,name,name_normalized,player_save_key,google_sub) VALUES ($1,$2,$3,$4,$5,$6) RETURNING account_id,name,player_save_key,created_at,updated_at',[accountId,tokenHash,cleanName,normalized,accountId,sub]);
+    const row=result.rows[0];
+    return {ok:true,created:true,accountId:String(row.account_id),accountToken,name:String(row.name),playerSaveKey:String(row.player_save_key),createdAt:row.created_at?new Date(row.created_at).toISOString():'',updatedAt:row.updated_at?new Date(row.updated_at).toISOString():''};
+  }catch(error){if(error?.code==='23505')return {ok:false,reason:'duplicate'};console.error('[STORAGE GOOGLE CREATE]',error?.message||error);return {ok:false,reason:'storage_error'};}
+}
+async function renameAccount(accountId,newName){
+  if(!storageReady||!pool)return {ok:false,reason:'storage_unavailable'};
+  const clean=normalizeAccountName(newName),normalized=accountNameKey(clean);if(!clean)return {ok:false,reason:'invalid_name'};
+  try{const result=await pool.query('UPDATE neoncore_accounts SET name=$2,name_normalized=$3,updated_at=NOW() WHERE account_id=$1 RETURNING account_id,name,player_save_key,created_at,updated_at',[String(accountId||''),clean,normalized]);const row=result.rows[0];if(!row)return {ok:false,reason:'account_not_found'};return {ok:true,accountId:String(row.account_id),name:String(row.name),playerSaveKey:String(row.player_save_key||row.account_id||''),createdAt:row.created_at?new Date(row.created_at).toISOString():'',updatedAt:row.updated_at?new Date(row.updated_at).toISOString():''};}
+  catch(error){if(error?.code==='23505')return {ok:false,reason:'name_taken'};console.error('[STORAGE RENAME]',error?.message||error);return {ok:false,reason:'storage_error'};}
+}
 async function findAccountByName(name) {
   if(!storageReady||!pool)return null;
   const normalized=accountNameKey(name);if(!normalized)return null;
@@ -337,6 +374,9 @@ module.exports = {
   findPlayerByName,
   createAccount,
   findAccountByToken,
+  findAccountByGoogleSub,
+  createAccountWithGoogle,
+  renameAccount,
   findAccountByName,
   ensureAccountRecovery,
   recoverAccountByCode,
