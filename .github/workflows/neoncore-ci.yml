@@ -36,7 +36,7 @@ jobs:
 
           const release = JSON.parse(fs.readFileSync('release.json', 'utf8'));
           const targets = [
-            release.clientPath.replace(/^\/NeonCore\//, ''),
+            release.clientPath.replace(/^\/+/, ''),
             'index.html',
             'neoncore/index.html'
           ];
