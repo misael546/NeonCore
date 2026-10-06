@@ -1813,7 +1813,7 @@ async function withdrawBank(ws) {
   });
 }
 
-function buyAmmo(ws){const p=clients.get(ws);if(!p)return;if(!p.room)return send(ws,{type:'shop_result',ok:false,message:'No estás dentro de una sala.'});if(!p.alive)return send(ws,{type:'shop_result',ok:false,message:'No puedes comprar estando destruido.'});if(Math.hypot(p.x-SHOP_NPC.x,p.y-SHOP_NPC.y)>SHOP_INTERACTION_RADIUS)return send(ws,{type:'shop_result',ok:false,message:'Párate sobre el SHOP.'});const ammo=inventoryTotal(p,'ammo'),gold=Math.max(0,Number(p.gold)||0);if(ammo>=maxAmmoForPlayer(p))return send(ws,{type:'shop_result',ok:false,message:'La mochila está llena de munición.'});if(gold<AMMO_PACK_COST)return send(ws,{type:'shop_result',ok:false,message:'Necesitas '+AMMO_PACK_COST+' de oro.'});const before=ammo;addInventoryItem(p,'ammo',AMMO_PACK_SIZE);const purchased=inventoryTotal(p,'ammo')-before;if(purchased<=0)return send(ws,{type:'shop_result',ok:false,message:'No hay espacio para más munición.'});p.gold=gold-AMMO_PACK_COST;void persistPlayer(p);send(ws,{type:'shop_result',ok:true,message:'Compraste '+purchased+' balas y fueron guardadas en el inventario.',gold:p.gold,ammo:inventoryTotal(p,'ammo'),maxAmmo:maxAmmoForPlayer(p)});sendInventoryState(p,'Munición guardada en la mochila.');sendStats(p);}function handleShot(ws, requestedAngle) {
+function buyAmmo(ws){const p=clients.get(ws);if(!p)return;if(!p.room)return send(ws,{type:'shop_result',ok:false,message:'No estás dentro de una sala.'});if(!p.alive)return send(ws,{type:'shop_result',ok:false,message:'No puedes comprar estando destruido.'});if(Math.hypot(p.x-SHOP_NPC.x,p.y-SHOP_NPC.y)>SHOP_INTERACTION_RADIUS)return send(ws,{type:'shop_result',ok:false,message:'Párate sobre el SHOP.'});const ammo=inventoryTotal(p,'ammo'),gold=Math.max(0,Number(p.gold)||0);if(ammo>=maxAmmoForPlayer(p))return send(ws,{type:'shop_result',ok:false,message:'La mochila está llena de munición.'});if(gold<AMMO_PACK_COST)return send(ws,{type:'shop_result',ok:false,message:'Necesitas '+AMMO_PACK_COST+' de oro.'});const before=ammo;addInventoryItem(p,'ammo',AMMO_PACK_SIZE);const purchased=inventoryTotal(p,'ammo')-before;if(purchased<=0)return send(ws,{type:'shop_result',ok:false,message:'No hay espacio para más munición.'});p.gold=gold-AMMO_PACK_COST;void persistPlayer(p);send(ws,{type:'shop_result',ok:true,message:'Compraste '+purchased+' balas y fueron guardadas en el inventario.',gold:p.gold,ammo:inventoryTotal(p,'ammo'),maxAmmo:maxAmmoForPlayer(p)});sendInventoryState(p,'Munición guardada en la mochila.');sendStats(p);}function handleShot(ws, requestedAngle, requestedOriginX, requestedOriginY) {
   const shooter = clients.get(ws);
   if (!shooter || !shooter.room || !shooter.alive) return;
   if (inSafeZone(shooter.x, shooter.y, 24)) return send(ws, { type: 'shot_result', ok: false, reason: 'safe_zone', ammo: shooter.ammo || 0 });
@@ -1838,7 +1838,12 @@ function buyAmmo(ws){const p=clients.get(ws);if(!p)return;if(!p.room)return send
   shooter.fireRate = WEAPON_FIRE_RATE;
   const damage = clamp(Number(shooter.damage) || 1, 1, 1000);
   const maxRange = Math.max(40, Number(weapon.range) || PROJECTILE_RANGE);
-  const shotX = Number(shooter.x) || 0, shotY = Number(shooter.y) || 0;
+  const centerX = Number(shooter.x) || 0, centerY = Number(shooter.y) || 0;
+  const requestedX = Number(requestedOriginX), requestedY = Number(requestedOriginY);
+  const originDistance = Math.hypot(requestedX-centerX, requestedY-centerY);
+  const maxOriginOffset = Math.max(80, (Number(shooter.r)||24) * 4.5);
+  const validOrigin = Number.isFinite(requestedX) && Number.isFinite(requestedY) && originDistance <= maxOriginOffset;
+  const shotX = validOrigin ? requestedX : centerX, shotY = validOrigin ? requestedY : centerY;
   const requested = Number(requestedAngle);
   const shotAngle = Number.isFinite(requested) && Math.abs(requested) <= Math.PI * 4
     ? Math.atan2(Math.sin(requested), Math.cos(requested))
@@ -1891,7 +1896,7 @@ function buyAmmo(ws){const p=clients.get(ws);if(!p)return;if(!p.room)return send
   send(ws,{type:'shot_result',ok:true,ammo:shooter.ammo,maxAmmo:maxAmmoForPlayer(shooter),x:shotX,y:shotY,angle:shotAngle,damage,range:maxRange,travelDistance:isMelee?Math.max(1,best<Infinity?best:maxRange):impactDistance,impactX,impactY,hitKind,hitTarget,travelMs:isMelee?0:travelMs,weapon:shooter.weapon,weaponType:weapon.type,melee,consumedAmmo});
   sendInventoryState(shooter);
   sendStats(shooter);
-  broadcastRoom(shooter.room,{type:'player_shot',shotId:'s_'+Math.random().toString(36).slice(2,10),id:shooter.id,power:shooter.power,damage,projectileSpeed:PROJECTILE_SPEED,x:shotX,y:shotY,angle:shotAngle,weapon:shooter.weapon,weaponType:weapon.type,melee,isMelee,range:maxRange,travelDistance:impactDistance,impactX,impactY,hitKind,hitTarget,travelMs});
+  broadcastRoom(shooter.room,{type:'player_shot',shotId:'s_'+Math.random().toString(36).slice(2,10),id:shooter.id,power:shooter.power,damage,projectileSpeed:PROJECTILE_SPEED,x:shotX,y:shotY,originX:shotX,originY:shotY,angle:shotAngle,weapon:shooter.weapon,weaponType:weapon.type,melee,isMelee,range:maxRange,travelDistance:impactDistance,impactX,impactY,hitKind,hitTarget,travelMs});
 
   // El disparo ya fue validado y consumió munición. El daño se aplica de inmediato.
   // El proyectil que ve el jugador es únicamente la representación visual del impacto.
@@ -2695,7 +2700,7 @@ wss.on('connection', async (ws) => {
       }
 
       if (msg.type === 'fire') {
-        if (!p.frozen) handleShot(ws, msg.angle);
+        if (!p.frozen) handleShot(ws, msg.angle, msg.originX, msg.originY)
         return;
       }
 
