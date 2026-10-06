@@ -408,7 +408,7 @@ function publicPlayer(p) {
     powerAttackBonus: weaponPowerAttackBonus(p.power),
     pistoleroLevel: pistoleroLevelFromXp(p.pistoleroXp),
     pistoleroXp: Math.max(0, Number(p.pistoleroXp) || 0),
-    equippedSkin: cosmetics.getSkin(p.equippedSkin) ? p.equippedSkin : 'core_default',
+    equippedSkin: cosmetics.getSkin(p.equippedSkin) ? p.equippedSkin : 'pixel_human',
     equippedArmor: cosmetics.getArmor(p.equippedArmor) ? p.equippedArmor : '',
     equippedBackpack: p.equippedBackpack || ''
   };
@@ -2447,7 +2447,8 @@ wss.on('connection', async (ws) => {
           const legacyOwnedSkins=Array.isArray(saved.ownedSkins)?saved.ownedSkins:[];
           const legacyArmorIds=legacyOwnedSkins.filter(id=>cosmetics.getArmor(id));
           p.ownedSkins=cosmetics.normalizeOwnedSkins(legacyOwnedSkins);
-          p.equippedSkin=(cosmetics.getSkin(saved.equippedSkin)&&p.ownedSkins.includes(saved.equippedSkin))?saved.equippedSkin:'core_default';
+          p.equippedSkin=(cosmetics.getSkin(saved.equippedSkin)&&p.ownedSkins.includes(saved.equippedSkin))?saved.equippedSkin:'pixel_human';
+          if(p.equippedSkin==='core_default')p.equippedSkin='pixel_human';
           p.ownedArmors=cosmetics.normalizeOwnedArmors([...(Array.isArray(saved.ownedArmors)?saved.ownedArmors:[]),...legacyArmorIds]);
           p.equippedArmor=cosmetics.getArmor(saved.equippedArmor)?.id||(cosmetics.getArmor(saved.equippedSkin)?.id||'');
           p.redeemedCodes = cosmetics.normalizeRedeemedCodes(saved.redeemedCodes);
