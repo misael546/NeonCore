@@ -49,10 +49,10 @@ small{display:block;margin-top:10px;color:#71819a;font-size:10px}
   try{
     const manifest=await (await get(RAW+"release.json")).json();
     const targetRaw=String(manifest.version||manifest.releaseId||manifest.clientVersion||manifest.serverVersion||"").trim().toUpperCase();
-    const match=targetRaw.match(/^V([1-9]|[1-4][0-9]|50)$/);
+    const match=targetRaw.match(/^V([1-9][0-9]*)$/);
     const target=match ? "V"+Number(match[1]) : "";
     const clientPath=String(manifest.clientPath||fallbackPath).replace(/^\/+?/,"");
-    if(!target)throw new Error("release inválida: se esperaba V1-V57");
+    if(!target)throw new Error("release inválida: se esperaba una versión V válida");
 
     let installed="";
     try{installed=String(localStorage.getItem(versionKey)||"").trim();}catch{}
