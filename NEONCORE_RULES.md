@@ -19,7 +19,7 @@
 
 ## 2. Regla crítica de versiones
 
-- La versión vigente del proyecto es **V79**.
+- La versión vigente del proyecto es **V80**.
 - Cada cambio que modifique el cliente/juego debe crear una **nueva V**.
 - Nunca modificar una V anterior para introducir una nueva modificación del cliente.
 - Después de crear la nueva V, eliminar las V antiguas del cliente para que quede solamente la versión vigente.
@@ -232,10 +232,10 @@ No dejar:
 
 ## 18. Estado conocido al crear este documento
 
-- Cliente actual: **V79**.
-- V79 usa terreno 2D pixel-art por tiles, jugador 2D pixel-art y movimiento por casillas.
+- Cliente actual: **V80**.
+- V80 usa terreno 2D pixel-art por tiles, jugador 2D pixel-art y movimiento por casillas.
 - V72 introduce movimiento por cuadrícula invisible, combate melee y el nuevo bioma desértico.
-- V72 fue reemplazada y eliminada al publicar V79. V79 es la versión vigente.
+- V72 fue reemplazada y eliminada al publicar V80. V80 es la versión vigente.
 - No deben restaurarse esas V.
 - La limpieza anterior eliminó referencias de BUILD y de los parámetros legacy de actualización en los archivos auditados.
 - Se detectó y eliminó duplicación de `startNeonMusic` y `stopNeonMusic` en V70.
@@ -259,7 +259,7 @@ y se refiera a este documento, usarlo como fuente de continuidad del proyecto y 
 Cuando exista una instrucción nueva y explícita del usuario, aplicar la nueva instrucción sin borrar las reglas permanentes que sigan siendo compatibles.
 
 ---
-Última versión de cliente registrada en este documento: **V79**
+Última versión de cliente registrada en este documento: **V80**
 
 
 ## 16. Dirección visual actual
@@ -271,7 +271,7 @@ Cuando exista una instrucción nueva y explícita del usuario, aplicar la nueva 
 - El NPC de la tienda NO abre automáticamente por proximidad. Solo se abre al tocar/hacer clic directamente sobre el NPC estando suficientemente cerca.
 
 
-## 20. Combate táctil V79
+## 20. Combate táctil V80
 - En móvil no existe joystick derecho de ataque.
 - Tocar un mob lo selecciona y muestra un cuadrito de objetivo.
 - El jugador sigue al mob por cuadrícula si este cambia de casilla y ataca cuando queda adyacente.
@@ -279,13 +279,13 @@ Cuando exista una instrucción nueva y explícita del usuario, aplicar la nueva 
 - La espada se dibuja como arma pixel-art cuerpo a cuerpo y acompaña la orientación/animación del personaje.
 
 
-## 21. Estado V79
+## 21. Estado V80
 - El cliente móvil no muestra ni ejecuta joystick derecho de ataque.
 - La configuración móvil solo explica toque de casilla y selección de enemigo.
 - La sección Items Venta no muestra munición.
 
 
-## 22. Combate y Mercader V79
+## 22. Combate y Mercader V80
 - La cuadrícula táctil es ligeramente visible en móvil para facilitar la lectura de casillas.
 - La casilla de destino de caminar se marca con un cuadro azul visible.
 - La casilla del enemigo seleccionado se marca con un cuadro dorado que sigue la casilla actual del enemigo.
@@ -295,7 +295,7 @@ Cuando exista una instrucción nueva y explícita del usuario, aplicar la nueva 
 - El Mercader abre la tienda únicamente al tocarlo/clicarlo directamente estando dentro del radio válido.
 
 
-## 23. Movimiento táctil y Mercader V79
+## 23. Movimiento táctil y Mercader V80
 - El toque de movimiento se convierte usando la posición real del canvas, no las coordenadas globales de pantalla.
 - El destino seleccionado corresponde exactamente a una casilla de la cuadrícula de 24 px y el personaje avanza casilla por casilla.
 - Los cuadros de destino y objetivo se muestran ampliados visualmente a 32 px para facilitar el toque, sin alterar la cuadrícula autoritativa de combate.
@@ -303,7 +303,7 @@ Cuando exista una instrucción nueva y explícita del usuario, aplicar la nueva 
 - El Mercader tiene una apertura de tienda protegida contra errores: una excepción de la interfaz no puede detener el bucle del juego.
 
 
-## 24. V79 — melee, cansancio, armaduras y cuadrícula
+## 24. V80 — melee, cansancio, armaduras y cuadrícula
 - Items Venta no muestra armas de fuego, escudos ni colecciones de espadas avanzadas.
 - La única espada comprable inicial es la **Espada Básica**, con daño base 10; el daño básico sigue siendo Melee + daño base.
 - Las skins de personaje pasan a ser **armaduras exclusivas de la clase Melee**; no se usan skins humanas.
