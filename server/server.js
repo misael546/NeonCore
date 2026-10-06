@@ -594,7 +594,7 @@ function dropItem(roomCode,p,itemId,qty,x,y){
   const drop={
     id:'d_'+Math.random().toString(36).slice(2,10),
     itemId:id,
-    name:id==='gold'?'ORO':id==='ammo'?'MUNICIÓN':'OBJETO',
+    name:id==='gold'?'ORO':'OBJETO',
     qty:Math.max(1,Math.floor(Number(qty)||0)),
     x:clamp(Number(x)||0,35,WORLD.w-35),
     y:clamp(Number(y)||0,35,WORLD.h-35),
