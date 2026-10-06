@@ -814,7 +814,7 @@ const ARMOR_CATALOG=[
 {id:"plasma_violet",name:"ESPADADURA PLASMA",rarity:"Mítico",currency:"gold",price:60000,armorRating:60,desc:"Placas de plasma de alta energía."},
 {id:"aurora",name:"CORAZA AURORA",rarity:"Épico",currency:"diamonds",price:250,armorRating:90,desc:"Coraza polar luminosa."}
 ];
-let cosmeticShopNpc={...merchantNpc};
+let cosmeticMerchantNpc={...merchantNpc};
 let ownedSkins=["core_default","neon_runner","signal_amber","pulse_guard","shadow_scout","pixel_human"],equippedSkin="pixel_human";
 let ownedArmors=[],equippedArmor="";
 let ownedWeapons=["sword_neo"],equippedWeaponSkin="",ownedWeaponSkins=[];
@@ -1410,7 +1410,7 @@ function connectMultiplayer(roomMode="quick",roomCode=""){ const publicRoomAuto=
           if(Number.isFinite(m.diamonds))p.diamonds=m.diamonds;
           if(Number.isFinite(m.ammo))p.ammo=m.ammo;
           if(Number.isFinite(m.maxAmmo))p.maxAmmo=m.maxAmmo;
-          if(m.merchantNpc){merchantNpc.x=Number(m.merchantNpc.x)||merchantNpc.x;merchantNpc.y=Number(m.merchantNpc.y)||merchantNpc.y;merchantNpc.r=Number(m.merchantNpc.r)||merchantNpc.r;cosmeticShopNpc={...merchantNpc};}
+          if(m.merchantNpc){merchantNpc.x=Number(m.merchantNpc.x)||merchantNpc.x;merchantNpc.y=Number(m.merchantNpc.y)||merchantNpc.y;merchantNpc.r=Number(m.merchantNpc.r)||merchantNpc.r;cosmeticMerchantNpc={...merchantNpc};}
           if(m.weapon)p.weapon=m.weapon;
           updateResourceHud();
          }else if(m.type==="cosmetic_state"){
@@ -1423,7 +1423,7 @@ function connectMultiplayer(roomMode="quick",roomCode=""){ const publicRoomAuto=
           if(Array.isArray(m.ownedWeapons))ownedWeapons=m.ownedWeapons;
           if(Object.prototype.hasOwnProperty.call(m,"weapon"))p.weapon=m.weapon;
           if(m.unlockedWeapon&&!ownedWeapons.includes(m.unlockedWeapon))ownedWeapons=[...ownedWeapons,m.unlockedWeapon];
-          if(m.merchantNpc){merchantNpc.x=Number(m.merchantNpc.x)||merchantNpc.x;merchantNpc.y=Number(m.merchantNpc.y)||merchantNpc.y;merchantNpc.r=Number(m.merchantNpc.r)||merchantNpc.r;cosmeticShopNpc={...merchantNpc};}
+          if(m.merchantNpc){merchantNpc.x=Number(m.merchantNpc.x)||merchantNpc.x;merchantNpc.y=Number(m.merchantNpc.y)||merchantNpc.y;merchantNpc.r=Number(m.merchantNpc.r)||merchantNpc.r;cosmeticMerchantNpc={...merchantNpc};}
           renderCosmeticShop();showCosmeticMsg(m.message||"SHOP actualizado.");updateResourceHud();
         }else if(m.type==="cosmetic_result"){
           if(Array.isArray(m.ownedSkins))ownedSkins=m.ownedSkins;
