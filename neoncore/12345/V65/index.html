@@ -623,38 +623,9 @@ function desiredNeonMusicState(){
   }catch{return gameActive?"exploration":"menu";}
 }
 
-function startNeonMusic(state){
-  if(!neonAudio.enabled)return;
-  ensureNeonMusicTracks();
-  const key=neonMusic.tracks[state]?state:"exploration";
-  neonMusic.desired=key;
-  if(neonMusic.current===key){
-    const current=neonMusic.elements[key];
-    if(current&&current.paused)current.play().catch(()=>{});
-    return;
-  }
-  const now=performance.now();
-  if(neonMusic.current && now-neonMusic.lastSwitch<700 && state!=="bonus" && state!=="tension")return;
-  neonMusic.lastSwitch=now;
-  const next=neonMusic.elements[key];
-  const old=neonMusic.current?neonMusic.elements[neonMusic.current]:null;
-  if(old)fadeNeonMusic(old,0,260);
-  if(next){
-    next.volume=0;
-    next.currentTime=0;
-    next.play().then(()=>fadeNeonMusic(next,.78,500)).catch(()=>{});
-  }
-  neonMusic.current=key;
-}
 
-function stopNeonMusic(){
-  for(const key of Object.keys(neonMusic.elements)){
-    const a=neonMusic.elements[key];
-    try{a.pause();a.currentTime=0;a.volume=0;}catch{}
-  }
-  neonMusic.current="";
-  neonMusic.desired="";
-}
+
+
 
 function updateNeonMusicState(force=false){
   if(!neonAudio.enabled)return;
