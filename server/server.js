@@ -1,4 +1,4 @@
-/* V66 · inventario, items, venta y equipo */
+/* V68 · cuentas, combate y jefe pixel */
 'use strict';
 
 const http = require('http');
@@ -1137,7 +1137,7 @@ function createEnemy(kind='drone'){
     patrolTargetX:spawn.x,patrolTargetY:spawn.y,
     patrolUntil:now+1200+Math.random()*3200,
     r:stats.r,hp:stats.hp,maxHp:stats.hp,speed:stats.speed,damage:stats.damage,
-    attackCooldown:stats.attackCooldown,lastAttackAt:0,lastBossShotAt:0,lastBossAreaAt:0,
+    attackCooldown:stats.attackCooldown,lastAttackAt:0,lastBossShotAt:0,lastBossAreaAt:0,lastBossAttackAt:0,
     bossArea:null,kind,name:stats.name||'',level,shape:stats.shape
   };
 }
@@ -1225,8 +1225,18 @@ function moveEnemyToward(enemy, tx, ty, dt, walls) {
   enemy.vx = dx * enemy.speed;
   enemy.vy = dy * enemy.speed;
 
-  const nextX = clamp(enemy.x + enemy.vx * dt, 35, WORLD.w - 35);
-  const nextY = clamp(enemy.y + enemy.vy * dt, 35, WORLD.h - 35);
+  let nextX = clamp(enemy.x + enemy.vx * dt, 35, WORLD.w - 35);
+  let nextY = clamp(enemy.y + enemy.vy * dt, 35, WORLD.h - 35);
+  if(enemy.kind==='boss'){
+    const dx=nextX-SAFE_ZONE.x,dy=nextY-SAFE_ZONE.y;
+    const minDistance=SAFE_ZONE.r+enemy.r+18;
+    const d=Math.hypot(dx,dy);
+    if(d<minDistance){
+      const nx=dx/Math.max(1,d),ny=dy/Math.max(1,d);
+      nextX=SAFE_ZONE.x+nx*minDistance;
+      nextY=SAFE_ZONE.y+ny*minDistance;
+    }
+  }
 
   if (!collidesWithWall(nextX, nextY, enemy.r, walls)) {
     enemy.x = nextX;
@@ -2526,7 +2536,7 @@ wss.on('connection', async (ws) => {
       }
 
       if (msg.type === 'set_name') {
-        if(!p.pendingGoogleAuth || p.joined)return;
+        if(!p.pendingGoogleAuth)return;
         const result=await finalizeNewAccountName(p,msg.name);
         if(!result.ok){send(ws,{type:'name_result',ok:false,reason:result.reason,message:result.reason==='name_taken'?'Ese nombre ya está ocupado.':result.reason==='name_reserved'?'Ese nombre está reservado.':'El nombre debe tener al menos 2 caracteres.'});return;}
         p.pendingGoogleAuth=false;p.joined=true;p.hasSaved=false;p.nameLocked=true;applyCombatStats(p);await persistPlayer(p);send(ws,{type:'name_result',ok:true,name:p.name});
@@ -2961,7 +2971,8 @@ setInterval(() => {
             hitAt: now + Math.max(450, Math.min(BOSS_AOE_WARNING_MS, travelTime * 1000))
           };
 
-          bossProjectiles.push({
+          boss.lastBossAttackAt=now;
+        bossProjectiles.push({
             id: 'bp_' + Math.random().toString(36).slice(2, 10),
             targetId: target.id,
             x: boss.x,
