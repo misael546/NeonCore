@@ -436,7 +436,7 @@ html.pc-controls #controlConfigBtn,html.touch-controls #controlConfigBtn{display
   </div>
 </section>
 </div></div>
-<div id="dropConfirm" class="dropConfirm" aria-hidden="true"><div class="dropConfirmCard"><strong>DROPEAR?</strong><span id="dropConfirmText">¿Quieres soltar este stack de objeto obsoleto?</span><div><button id="dropConfirmNo" type="button">NO</button><button id="dropConfirmYes" type="button">SÍ, SOLTAR</button></div></div></div>
+<div id="dropConfirm" class="dropConfirm" aria-hidden="true"><div class="dropConfirmCard"><strong>DROPEAR?</strong><span id="dropConfirmText">¿Quieres soltar este stack de munición?</span><div><button id="dropConfirmNo" type="button">NO</button><button id="dropConfirmYes" type="button">SÍ, SOLTAR</button></div></div></div>
 <button id="pickupBtn" type="button" aria-label="Recoger objeto cercano" title="Recoger">✋</button>
 <script>
 "use strict";
@@ -582,7 +582,7 @@ function desiredNeonMusicState(){
   try{
     if(!gameActive)return "menu";
     const cosmetic=document.getElementById("cosmeticShop");
-    if((cosmetic&&cosmetic.style.display==="flex")||(legacy_ammo&&legacy_ammo.style.display!=="none"))return "bonus";
+    if((cosmetic&&cosmetic.style.display==="flex")||(ammo&&ammo.style.display!=="none"))return "bonus";
     if(bossWarnings&&bossWarnings.length>0)return "boss";
     const recentCombat=(performance.now()-Number(p.lastShot||0))<5500;
     let nearbyEnemy=false,nearbyBoss=false;
@@ -789,7 +789,7 @@ function drawNeonProjectiles(){
   }
 }
 const world={w:6000,h:4400};
-const p={x:3000,y:2208,r:16,angle:0,hp:150,maxHp:150,xp:0,level:1,score:0,kills:0,pvpKills:0,power:140,damage:141,defense:0,speed:205,fireRate:700,lastShot:0,alive:true,gold:0,diamonds:0,legacy_ammo:0,maxAmmo:0,weapon:"sword_neo",melee:1,equippedSkin:"pixel_human",equippedBackpack:""};
+const p={x:3000,y:2208,r:16,angle:0,hp:150,maxHp:150,xp:0,level:1,score:0,kills:0,pvpKills:0,power:140,damage:141,defense:0,speed:205,fireRate:700,lastShot:0,alive:true,gold:0,diamonds:0,ammo:0,maxAmmo:0,weapon:"sword_neo",melee:1,equippedSkin:"pixel_human",equippedBackpack:""};
 const merchantNpc={x:3240,y:2208,r:24};
 const weaponNames={sword_neo:"ESPADA BÁSICA"};
 const weaponStats={
@@ -1415,7 +1415,7 @@ function connectMultiplayer(roomMode="quick",roomCode=""){ const publicRoomAuto=
           if(Number.isFinite(m.killsToLevel))serverKillsToLevel=m.killsToLevel;
           if(Number.isFinite(m.gold))p.gold=m.gold;
           if(Number.isFinite(m.diamonds))p.diamonds=m.diamonds;
-          if(Number.isFinite(m.legacy_ammo))p.legacy_ammo=m.legacy_ammo;
+          if(Number.isFinite(m.ammo))p.ammo=m.ammo;
           if(Number.isFinite(m.maxAmmo))p.maxAmmo=m.maxAmmo;
           if(m.merchantNpc){merchantNpc.x=Number(m.merchantNpc.x)||merchantNpc.x;merchantNpc.y=Number(m.merchantNpc.y)||merchantNpc.y;merchantNpc.r=Number(m.merchantNpc.r)||merchantNpc.r;cosmeticMerchantNpc={...merchantNpc};}
           if(m.weapon)p.weapon=m.weapon;
@@ -1446,7 +1446,7 @@ function connectMultiplayer(roomMode="quick",roomCode=""){ const publicRoomAuto=
         }else if(m.type==="premium_purchase_result"){
           showCosmeticMsg(m.message||"Compras reales aún no activadas.");
         }else if(m.type==="hp_regen"){p.hp=Math.min(Number(m.maxHp)||p.maxHp,Number(m.hp)||p.hp);if(m.safeZone){document.documentElement.classList.add("safe-zone-active");}else{document.documentElement.classList.remove("safe-zone-active");}updateHud();
-        }else if(m.type==="legacy_ammo_empty"){audioTone(220,.1,"square",.05,-120);audioTone(110,.16,"square",.04,0,.06);p.legacy_ammo=0;updateResourceHud();showShopMsg("Sin objeto obsoleto. Ve con el vendedor.");
+        }else if(m.type==="ammo_empty"){audioTone(220,.1,"square",.05,-120);audioTone(110,.16,"square",.04,0,.06);p.ammo=0;updateResourceHud();showShopMsg("Sin munición. Ve con el vendedor.");
         }else if(m.type==="melee_result"){
           if(Number.isFinite(Number(m.damage)))p.damage=Number(m.damage);
           if(Number.isFinite(Number(m.meleeLevel)))serverMeleeLevel=Number(m.meleeLevel);
@@ -1461,7 +1461,7 @@ function connectMultiplayer(roomMode="quick",roomCode=""){ const publicRoomAuto=
         }else if(m.type==="melee_effect"){
           meleeSlashes.push({x:Number(m.x)||0,y:Number(m.y)||0,angle:Number(m.angle)||0,startAt:performance.now(),duration:m.isCombo?420:220,color:m.isCombo?"#fff0a6":"#f5d76e",arc:m.isCombo?Math.PI*1.7:1.1,radius:m.isCombo?GRID_SIZE*1.8:GRID_SIZE*.95,sword:m.sword||"sword_neo",isCombo:!!m.isCombo});
         }else if(m.type==="shot_result"){
-          if(Number.isFinite(Number(m.legacy_ammo)))p.legacy_ammo=Math.max(0,Number(m.legacy_ammo));
+          if(Number.isFinite(Number(m.ammo)))p.ammo=Math.max(0,Number(m.ammo));
           const pendingLocal=neonProjectiles.slice().reverse().find(q=>q.pending);
           if(!m.ok){
             for(let i=neonProjectiles.length-1;i>=0;i--)if(neonProjectiles[i]?.pending){neonProjectiles.splice(i,1);break;}
@@ -1495,7 +1495,7 @@ function connectMultiplayer(roomMode="quick",roomCode=""){ const publicRoomAuto=
           showToast(m.message||"Banco desactivado.");
         }else if(m.type==="shop_result"){
           if(Number.isFinite(m.gold))p.gold=m.gold;
-          if(Object.prototype.hasOwnProperty.call(m,"legacy_ammo"))p.legacy_ammo=Number(m.legacy_ammo)||0;
+          if(Object.prototype.hasOwnProperty.call(m,"ammo"))p.ammo=Number(m.ammo)||0;
           if(Object.prototype.hasOwnProperty.call(m,"maxAmmo"))p.maxAmmo=Number(m.maxAmmo)||0;
           if(Object.prototype.hasOwnProperty.call(m,"weapon"))p.weapon=m.weapon;
           if(Array.isArray(m.ownedWeapons))ownedWeapons=m.ownedWeapons;
@@ -2172,16 +2172,16 @@ function updateHud(){
   updateResourceHud();
 }
 
-function clientInventoryTotal(itemId="legacy_ammo"){let total=0;for(const slot of inventorySlots||[])if(slot&&String(slot.itemId||slot.id||"")===String(itemId))total+=Math.max(0,Number(slot.qty)||0);return total;}
+function clientInventoryTotal(itemId="ammo"){let total=0;for(const slot of inventorySlots||[])if(slot&&String(slot.itemId||slot.id||"")===String(itemId))total+=Math.max(0,Number(slot.qty)||0);return total;}
 function clientItemDef(id){
   const key=String(id||"");
-  if(key==="legacy_ammo")return {id:"legacy_ammo",name:"OBJETO OBSOLETO",category:"consumable",stackable:true};
+  if(key==="ammo")return {id:"ammo",name:"MUNICIÓN",category:"consumable",stackable:true};
   return itemShopCatalog.find(x=>String(x.id)===key)||null;
 }
 function itemIcon(id){
   const def=clientItemDef(id)||{},key=String(id||"");
   if(key==="backpack_basic")return '<img class="backpackIconImg" src="./assets/backpack.svg" alt="Inventario">';
-  if(key==="legacy_ammo")return "🔸";
+  if(key==="ammo")return "🔸";
   if(def.category==="armor")return "🛡";
   if(def.category==="weapon")return def.weaponType==="melee"?"🗡️":"🗡️";
   return "📦";
@@ -2189,16 +2189,16 @@ function itemIcon(id){
 function consumeClientAmmo(count=1){
   let remaining=Math.max(0,Math.floor(Number(count)||0));
   for(let i=0;i<inventorySlots.length&&remaining>0;i++){
-    const slot=inventorySlots[i];if(!slot||String(slot.itemId||slot.id||"")!=="legacy_ammo")continue;
+    const slot=inventorySlots[i];if(!slot||String(slot.itemId||slot.id||"")!=="ammo")continue;
     const take=Math.min(remaining,Math.max(0,Number(slot.qty)||0));slot.qty-=take;remaining-=take;if(slot.qty<=0)inventorySlots[i]=null;
   }
-  p.legacy_ammo=clientInventoryTotal("legacy_ammo");renderInventory();updateResourceHud();
+  p.ammo=clientInventoryTotal("ammo");renderInventory();updateResourceHud();
 }
 function syncClientInventory(slots,capacity){
   const src=Array.isArray(slots)?slots:[],cap=Math.max(BASE_INVENTORY_SLOTS,Math.min(MAX_INVENTORY_SLOTS,Math.floor(Number(capacity)||src.length||BASE_INVENTORY_SLOTS)));
   inventoryCapacityClient=cap;
   inventorySlots=Array.from({length:cap},(_,i)=>{const raw=src[i];if(!raw)return null;const itemId=String(raw.itemId||raw.id||""),qty=Math.max(0,Math.min(INVENTORY_STACK_MAX,Math.floor(Number(raw.qty)||0)));return itemId&&qty>0?{itemId,qty}:null;});
-  p.legacy_ammo=clientInventoryTotal("legacy_ammo");p.maxAmmo=cap*INVENTORY_STACK_MAX;renderInventory();
+  p.ammo=clientInventoryTotal("ammo");p.maxAmmo=cap*INVENTORY_STACK_MAX;renderInventory();
 }
 function renderEquipmentSlot(id,itemId){
   const el=document.getElementById(id);if(!el)return;
@@ -2210,7 +2210,7 @@ function renderEquipmentSlot(id,itemId){
 }
 function renderInventory(){
   const grid=document.getElementById("inventoryGrid"),cap=document.getElementById("inventoryCapacity"),hint=document.getElementById("inventoryCapacityHint");if(!grid)return;
-  const total=clientInventoryTotal("legacy_ammo"),max=inventoryCapacityClient*INVENTORY_STACK_MAX;
+  const total=clientInventoryTotal("ammo"),max=inventoryCapacityClient*INVENTORY_STACK_MAX;
   if(cap)cap.textContent=total+" / "+max;
   if(hint)hint.textContent=String(inventoryCapacityClient);
   renderEquipmentSlot("equippedBackpackSlot",equippedBackpack);
@@ -2292,7 +2292,7 @@ function drawDrops(){
   }
 }
 let neonHudSignature="";
-function updateResourceHud(){const signature=[p.gold||0,p.diamonds||0,p.level||1,p.damage||0,serverDefense||0,p.maxHp||0,p.speed||0,serverFatigue||0,serverMaxFatigue||100,serverComboCount||0,serverMeleeLevel||1,serverMeleeXpIntoLevel||0,serverMeleeXpNeed||100,serverDefenseLevel||1,serverDefenseXpIntoLevel||0,serverDefenseXpNeed||100].join("|");if(signature===neonHudSignature)return;neonHudSignature=signature;const g=document.getElementById("gold"),d=document.getElementById("diamonds"),a=document.getElementById("legacy_ammo"),m=document.getElementById("maxAmmo"),f=document.getElementById("fire");if(g)g.textContent=p.gold||0;if(d)d.textContent=p.diamonds||0;if(a)a.textContent="";if(m)m.textContent="";if(f)f.style.display="none";
+function updateResourceHud(){const signature=[p.gold||0,p.diamonds||0,p.level||1,p.damage||0,serverDefense||0,p.maxHp||0,p.speed||0,serverFatigue||0,serverMaxFatigue||100,serverComboCount||0,serverMeleeLevel||1,serverMeleeXpIntoLevel||0,serverMeleeXpNeed||100,serverDefenseLevel||1,serverDefenseXpIntoLevel||0,serverDefenseXpNeed||100].join("|");if(signature===neonHudSignature)return;neonHudSignature=signature;const g=document.getElementById("gold"),d=document.getElementById("diamonds"),a=document.getElementById("ammo"),m=document.getElementById("maxAmmo"),f=document.getElementById("fire");if(g)g.textContent=p.gold||0;if(d)d.textContent=p.diamonds||0;if(a)a.textContent="";if(m)m.textContent="";if(f)f.style.display="none";
 const ff=document.getElementById("fatigueFill"),ft=document.getElementById("fatigue"),fm=document.getElementById("maxFatigue");
 if(ff)ff.style.width=clamp((serverFatigue||0)/(serverMaxFatigue||100)*100,0,100)+"%";
 if(ft)ft.textContent=Math.floor(serverFatigue||0);
