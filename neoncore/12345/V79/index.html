@@ -1419,7 +1419,7 @@ function connectMultiplayer(roomMode="quick",roomCode=""){ const publicRoomAuto=
           if(m.merchantNpc){merchantNpc.x=Number(m.merchantNpc.x)||merchantNpc.x;merchantNpc.y=Number(m.merchantNpc.y)||merchantNpc.y;merchantNpc.r=Number(m.merchantNpc.r)||merchantNpc.r;cosmeticMerchantNpc={...merchantNpc};}
           if(m.weapon)p.weapon=m.weapon;
           updateResourceHud();
-         else if(m.type==="fatigue_update"){serverFatigue=Math.max(0,Number(m.fatigue)||0);serverMaxFatigue=Math.max(1,Number(m.maxFatigue)||100);serverComboCount=Math.max(0,Number(m.comboCount)||0);updateResourceHud();return;}
+        }else if(m.type==="fatigue_update"){serverFatigue=Math.max(0,Number(m.fatigue)||0);serverMaxFatigue=Math.max(1,Number(m.maxFatigue)||100);serverComboCount=Math.max(0,Number(m.comboCount)||0);updateResourceHud();return;}
          else if(m.type==="cosmetic_state"){
           ownedSkins=Array.isArray(m.ownedSkins)?m.ownedSkins:["core_default"];
           equippedSkin=m.equippedSkin||"";p.equippedSkin=equippedSkin;
@@ -1446,8 +1446,20 @@ function connectMultiplayer(roomMode="quick",roomCode=""){ const publicRoomAuto=
           showCosmeticMsg(m.message||"Compras reales aún no activadas.");
         }else if(m.type==="hp_regen"){p.hp=Math.min(Number(m.maxHp)||p.maxHp,Number(m.hp)||p.hp);if(m.safeZone){document.documentElement.classList.add("safe-zone-active");}else{document.documentElement.classList.remove("safe-zone-active");}updateHud();
         }else if(m.type==="ammo_empty"){audioTone(220,.1,"square",.05,-120);audioTone(110,.16,"square",.04,0,.06);p.ammo=0;updateResourceHud();showShopMsg("Sin munición. Ve con el vendedor.");
-        }else if(m.type==="melee_result"){if(Number.isFinite(Number(m.damage)))p.damage=Number(m.damage);if(Number.isFinite(Number(m.meleeLevel)))serverMeleeLevel=Number(m.meleeLevel);if(m.hit){burst(Number(m.x)||p.x,Number(m.y)||p.y,"#f5d76e",16);hitTexts.push({x:Number(m.x)||p.x,y:Number(m.y)||p.y,text:"-"+Number(m.damage||0),life:1.0,color:"#ffe08a"});}updateStatsPanel();
-        }else if(m.type==="melee_effect"){meleeSlashes.push({x:Number(m.x)||0,y:Number(m.y)||0,angle:Number(m.angle)||0,startAt:performance.now(),duration:260,color:"#f5d76e",arc:1.1,radius:GRID_SIZE*.95,sword:m.sword||"sword_neo"});
+        }else if(m.type==="melee_result"){
+          if(Number.isFinite(Number(m.damage)))p.damage=Number(m.damage);
+          if(Number.isFinite(Number(m.meleeLevel)))serverMeleeLevel=Number(m.meleeLevel);
+          if(Number.isFinite(Number(m.fatigue)))serverFatigue=Math.max(0,Number(m.fatigue));
+          if(Number.isFinite(Number(m.maxFatigue)))serverMaxFatigue=Math.max(1,Number(m.maxFatigue));
+          if(Number.isFinite(Number(m.comboCount)))localComboCount=serverComboCount=Math.max(0,Number(m.comboCount));
+          if(m.hit){
+            burst(Number(m.x)||p.x,Number(m.y)||p.y,m.isCombo?"#fff0a6":"#f5d76e",m.isCombo?28:16);
+            hitTexts.push({x:Number(m.x)||p.x,y:Number(m.y)||p.y,text:"-"+Number(m.damage||0),life:1.0,color:m.isCombo?"#fff0a6":"#ffe08a"});
+          }
+          if(m.isCombo)meleeSlashes.push({x:p.x,y:p.y,angle:p.angle,startAt:performance.now(),duration:420,color:"#fff0a6",arc:Math.PI*1.7,radius:GRID_SIZE*1.8,sword:p.weapon,isCombo:true});
+          updateStatsPanel();updateResourceHud();
+        }else if(m.type==="melee_effect"){
+          meleeSlashes.push({x:Number(m.x)||0,y:Number(m.y)||0,angle:Number(m.angle)||0,startAt:performance.now(),duration:m.isCombo?420:220,color:m.isCombo?"#fff0a6":"#f5d76e",arc:m.isCombo?Math.PI*1.7:1.1,radius:m.isCombo?GRID_SIZE*1.8:GRID_SIZE*.95,sword:m.sword||"sword_neo",isCombo:!!m.isCombo});
         }else if(m.type==="shot_result"){
           if(Number.isFinite(Number(m.ammo)))p.ammo=Math.max(0,Number(m.ammo));
           const pendingLocal=neonProjectiles.slice().reverse().find(q=>q.pending);
@@ -1695,7 +1707,7 @@ function returnToMenu(){
     try{multiplayerSocket.close()}catch{}
     multiplayerSocket=null;
   }
-  p.x=3000;p.y=2200;p.hp=p.maxHp;p.alive=true;
+  p.x=3000;p.y=2208;p.hp=p.maxHp;p.alive=true;
   bullets.length=0;
   neonProjectiles.length=0;
   resetAllControls();
@@ -1991,13 +2003,6 @@ function drawTank(x,y,angle,color="#39e7ff",r=24,weapon="",skinId="",armorId="",
 
   const skin=String(skinId||"core_default");
   let bodyFill=color,visorFill="#dfffff",ring="#39e7ff";
-  if(skin==="neon_runner"){bodyFill="#45e88b";visorFill="#eafff3";ring="#6ff3b0";}
-  else if(skin==="signal_amber"){bodyFill="#d88935";visorFill="#fff1cc";ring="#ffd76a";}
-  else if(skin==="pulse_guard"){bodyFill="#8d68e8";visorFill="#f4edff";ring="#c58cff";}
-  else if(skin==="shadow_scout"){bodyFill="#52637f";visorFill="#e5efff";ring="#8da2c1";}
-  else if(skin==="pixel_human"){
-    bodyFill="#5b6b78";visorFill="#eef5f7";ring="#9fb5bf";
-  }
   else if(skin==="pixel_cyan"){ctx.fillStyle="#a8fbff";ctx.fillRect(-r*.45,-r*.45,5,5);ctx.fillRect(r*.18,-r*.58,6,6);ctx.fillRect(-r*.6,r*.08,4,4);}
   else if(skin==="rust_core"){ctx.strokeStyle="#ffad63";ctx.lineWidth=2;ctx.beginPath();ctx.arc(0,0,r*.72,-.9,.2);ctx.stroke();ctx.beginPath();ctx.arc(0,0,r*.72,1.8,2.65);ctx.stroke();}
   else if(skin==="toxic_orb"){ctx.strokeStyle="#d7ffc8";ctx.lineWidth=2;ctx.beginPath();ctx.arc(0,0,r*.72,.4,2.7);ctx.stroke();}
@@ -2011,6 +2016,12 @@ function drawTank(x,y,angle,color="#39e7ff",r=24,weapon="",skinId="",armorId="",
   else if(skin==="demon_infernal"){ctx.strokeStyle="#ff6b4e";ctx.lineWidth=2.5;ctx.beginPath();ctx.arc(0,0,r*.8,0,Math.PI*2);ctx.stroke();}
 
   drawSkinEffects(skin,r);
+  // Silueta base melee: casco, torso, piernas y guantes simples.
+  ctx.fillStyle="#56646b";ctx.fillRect(-r*.42,-r*.45,r*.84,r*.75);
+  ctx.fillStyle="#a9b7bc";ctx.fillRect(-r*.34,-r*.82,r*.68,r*.35);
+  ctx.fillStyle="#253238";ctx.fillRect(-r*.42,-r*.52,r*.84,r*.14);
+  ctx.fillStyle="#dfe8eb";ctx.fillRect(-r*.22,-r*.42,r*.44,r*.12);
+  ctx.fillStyle="#35434a";ctx.fillRect(-r*.36,r*.3,r*.24,r*.36);ctx.fillRect(r*.12,r*.3,r*.24,r*.36);
   ctx.restore();
   if(armorId)drawArmorOverlay(armorId,r,walkPhase,walkBlend);
 
@@ -2789,12 +2800,9 @@ function frame(now){
 }
 requestAnimationFrame(frame);
 </script>
-<script>(function(){var ua=String(navigator.userAgent||"");var touch=Number(navigator.maxTouchPoints||0)>0||"ontouchstart"in window;var android=/Android/i.test(ua);if(!touch||!android)return;document.documentElement.classList.add("neon-touch");var btn=document.createElement("button");btn.id="neonFullscreenButton";btn.type="button";btn.setAttribute("aria-label","Activar pantalla completa");btn.innerHTML="<span>⛶</span><b>PANTALLA COMPLETA</b>";document.body.appendChild(btn);function active(){return !!document.fullscreenElement||!!document.webkitFullscreenElement;}function refresh(){btn.style.display=active()?"none":"flex";}function enter(){if(active())return;try{var root=document.documentElement;if(root.requestFullscreen){var p=root.requestFullscreen();if(p&&typeof p.then==="function"){p.then(refresh).catch(function(){var b=btn.querySelector("b");if(b)b.textContent="TOCA DE NUEVO";setTimeout(function(){var x=btn.querySelector("b");if(x)x.textContent="PANTALLA COMPLETA";},1800);});}else refresh();return;}if(root.webkitRequestFullscreen){root.webkitRequestFullscreen();refresh();return;}var b2=btn.querySelector("b");if(b2)b2.textContent="NO COMPATIBLE";}catch(e){var b3=btn.querySelector("b");if(b3)b3.textContent="NO DISPONIBLE";}}btn.addEventListener("click",function(e){e.preventDefault();e.stopPropagation();enter();});document.addEventListener("fullscreenchange",refresh);document.addEventListener("webkitfullscreenchange",refresh);refresh();})();</script><div id="neonMusicCredit" style="position:fixed;right:6px;bottom:4px;z-index:2;color:#ffffff;font:7px Arial,sans-serif;opacity:.22;pointer-events:none">MUSIC · tricksntraps · OpenGameArt · CC0 · HUMAN · Belohlavek · CC0 · ZOMBIE · Curt · CC0 · SKELETON · tbbk · CC0 · MINOTAUR · Chasersgaming · CC-BY 4.0 · DESERT · AdebGameSoft · CC0</div>
+<script>(function(){var ua=String(navigator.userAgent||"");var touch=Number(navigator.maxTouchPoints||0)>0||"ontouchstart"in window;var android=/Android/i.test(ua);if(!touch||!android)return;document.documentElement.classList.add("neon-touch");var btn=document.createElement("button");btn.id="neonFullscreenButton";btn.type="button";btn.setAttribute("aria-label","Activar pantalla completa");btn.innerHTML="<span>⛶</span><b>PANTALLA COMPLETA</b>";document.body.appendChild(btn);function active(){return !!document.fullscreenElement||!!document.webkitFullscreenElement;}function refresh(){btn.style.display=active()?"none":"flex";}function enter(){if(active())return;try{var root=document.documentElement;if(root.requestFullscreen){var p=root.requestFullscreen();if(p&&typeof p.then==="function"){p.then(refresh).catch(function(){var b=btn.querySelector("b");if(b)b.textContent="TOCA DE NUEVO";setTimeout(function(){var x=btn.querySelector("b");if(x)x.textContent="PANTALLA COMPLETA";},1800);});}else refresh();return;}if(root.webkitRequestFullscreen){root.webkitRequestFullscreen();refresh();return;}var b2=btn.querySelector("b");if(b2)b2.textContent="NO COMPATIBLE";}catch(e){var b3=btn.querySelector("b");if(b3)b3.textContent="NO DISPONIBLE";}}btn.addEventListener("click",function(e){e.preventDefault();e.stopPropagation();enter();});document.addEventListener("fullscreenchange",refresh);document.addEventListener("webkitfullscreenchange",refresh);refresh();})();</script><div id="neonMusicCredit" style="position:fixed;right:6px;bottom:4px;z-index:2;color:#ffffff;font:7px Arial,sans-serif;opacity:.22;pointer-events:none">MUSIC · tricksntraps · OpenGameArt · CC0 · HUMAN · Belohlavek · CC0 · DESERT · AdebGameSoft · CC0</div>
 <script id="neonV79Assets">
-window.__neonHumanSprite=new Image();
-window.__neonHumanSprite.src="https://lpc.opengameart.org/sites/default/files/ch003.png";
-window.__neonMinotaurSprite=new Image();
-window.__neonMinotaurSprite.src="https://opengameart.org/sites/default/files/minotaur_spritesheet_nes.png";
+// V79: mobs y jugador se renderizan con pixel-art procedural original.
 // V79: terreno desértico pixel-art original y ligero; no se usa wallpaper de mapa.
 
 /* V79 FINAL INPUT: real grid movement, no auto-run, 2D pixel world */
