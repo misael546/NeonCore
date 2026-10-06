@@ -1,4 +1,4 @@
-/* V70 · cuentas, combate V2 y jefes */
+/* V71 · cuentas, cuadrícula, melee y jefes */
 'use strict';
 
 const http = require('http');
@@ -45,14 +45,14 @@ const DATABASE_SCHEMA_VERSION = Math.max(3, Number(UNIFIED_RELEASE_MANIFEST.data
 const SERVER_VERSION = RELEASE_ID;
 const SERVER_UPDATE_MESSAGE = 'NUEVA ACTUALIZACIÓN DISPONIBLE. Neon Core volverá al menú para cargar la nueva versión.';
 
-const AMMO_PACK_SIZE = 100;
-const AMMO_PACK_COST = 75;
+const AMMO_PACK_SIZE = 0;
+const AMMO_PACK_COST = 0;
 const BASE_INVENTORY_SLOTS = 16;
 const BACKPACK_EXTRA_SLOTS = 16;
 const INVENTORY_SLOTS = BASE_INVENTORY_SLOTS;
 const MAX_INVENTORY_SLOTS = BASE_INVENTORY_SLOTS + BACKPACK_EXTRA_SLOTS;
 const INVENTORY_STACK_MAX = 500;
-const MAX_AMMO = BASE_INVENTORY_SLOTS * INVENTORY_STACK_MAX;
+const MAX_AMMO = 0;
 const PICKUP_RADIUS = 85;
 const DROP_LIFETIME_MS = 10 * 60 * 1000;
 const PROJECTILE_SPEED = 1200;
@@ -62,31 +62,23 @@ const PROJECTILE_RANGE = 1000;
 const PISTOLERO_MAX_LEVEL = 1000;
 const PISTOLERO_XP_PER_HIT = 10;
 const PISTOLERO_XP_PER_KILL = 40;
+const MELEE_MAX_LEVEL = 1000;
+const MELEE_XP_PER_HIT = 10;
+const MELEE_GRID_SIZE = 48;
+const MELEE_COOLDOWN_MS = 650;
 
 const SHOP_NPC = { x: 3250, y: 2200, r: 24 };
 const SHOP_INTERACTION_RADIUS = 180;
 const BANK_ENABLED = false;
 
 const WEAPONS = {
-  blaster: { name: 'BLASTER · NEONSTORM', cost: 0, power: 100, fireRate: 650, maxAmmo:8000, range: 1000, type:'ranged', forSale:true },
-  pulse: { name: 'PULSE · PRISMA', cost: 500, power: 200, fireRate: 650, maxAmmo:8000, range: 1000, type:'ranged', forSale:true },
-  cannon: { name: 'CANNON · SOLARIS', cost: 1500, power: 400, fireRate: 650, maxAmmo:8000, range: 1000, type:'ranged', forSale:true },
-  railgun: { name: 'RAILGUN · ECLIPSE', cost: 6500, power: 743, fireRate: 650, maxAmmo:8000, range: 1000, type:'ranged', forSale:true },
-  nova: { name: 'NOVA · SUPERNOVA', cost: 22000, power: 1486, fireRate: 650, maxAmmo:8000, range: 1000, type:'ranged', forSale:true },
-  plasma: { name: 'PLASMA · INFERNO', cost: 60000, power: 2286, fireRate: 650, maxAmmo:8000, range: 1000, type:'ranged', forSale:false },
-  vortex: { name: 'VORTEX · SHARD', cost: 150000, power: 3286, fireRate: 650, maxAmmo:8000, range: 1000, type:'ranged', forSale:false },
-  quasar: { name: 'QUASAR · RAY', cost: 400000, power: 4429, fireRate: 650, maxAmmo:8000, range: 1000, type:'ranged', forSale:false },
-  singularity: { name: 'SINGULARITY · CORE', cost: 900000, power: 6000, fireRate: 650, maxAmmo:8000, range: 1000, type:'ranged', forSale:false },
-  omega: { name: 'OMEGA · ASCENSION', cost: 2000000, power: 8000, fireRate: 650, maxAmmo:8000, range:1000, type:'ranged', forSale:false },
-
-  sword_neo: { name:'ESPADA NEO', cost:300, power:140, fireRate:700, maxAmmo:0, range:150, arc:1.05, type:'melee', forSale:true },
-  sword_pulse: { name:'ESPADA PULSO', cost:1200, power:280, fireRate:700, maxAmmo:0, range:160, arc:1.10, type:'melee', forSale:true },
-  sword_void: { name:'ESPADA VACÍO', cost:4500, power:520, fireRate:760, maxAmmo:0, range:170, arc:1.15, type:'melee', forSale:true },
-  sword_solar: { name:'ESPADA SOLAR', cost:15000, power:850, fireRate:820, maxAmmo:0, range:180, arc:1.20, type:'melee', forSale:true },
-  sword_omega: { name:'ESPADA OMEGA', cost:50000, power:1400, fireRate:900, maxAmmo:0, range:195, arc:1.25, type:'melee', forSale:true }
+  sword_neo:{name:'ESPADA NEO',cost:300,power:140,fireRate:700,maxAmmo:0,range:48,arc:1.05,type:'melee',forSale:true,skin:'https://opengameart.org/sites/default/files/sword4_1.png'},
+  sword_pulse:{name:'ESPADA PULSO',cost:1200,power:280,fireRate:720,maxAmmo:0,range:48,arc:1.10,type:'melee',forSale:true,skin:'https://opengameart.org/sites/default/files/sword-3_0.png'},
+  sword_void:{name:'ESPADA VACÍO',cost:4500,power:520,fireRate:760,maxAmmo:0,range:48,arc:1.15,type:'melee',forSale:true,skin:'https://opengameart.org/sites/default/files/sword2_8.png'},
+  sword_solar:{name:'ESPADA SOLAR',cost:15000,power:850,fireRate:820,maxAmmo:0,range:48,arc:1.20,type:'melee',forSale:true,skin:'https://opengameart.org/sites/default/files/sword_39.png'},
+  sword_omega:{name:'ESPADA OMEGA',cost:50000,power:1400,fireRate:900,maxAmmo:0,range:48,arc:1.25,type:'melee',forSale:true,skin:'https://opengameart.org/sites/default/files/katana_2.png'}
 };
-
-const SHOP_FIREARM_IDS = Object.freeze(['blaster','pulse','cannon','railgun','nova']);
+const SHOP_FIREARM_IDS = Object.freeze([]);
 const SHOP_SWORD_IDS = Object.freeze(['sword_neo','sword_pulse','sword_void','sword_solar','sword_omega']);
 const SHOP_ARMOR_IDS = Object.freeze(['pixel_cyan','rust_core','toxic_orb','plasma_violet','aurora']);
 const BACKPACK_ITEM_ID = 'backpack_basic';
@@ -325,30 +317,9 @@ function masteryXpIntoLevel(xp) {
   return remaining;
 }
 
-function pistoleroXpToNextLevel(level) {
-  return 100 * Math.max(1, Math.min(PISTOLERO_MAX_LEVEL, Number(level) || 1));
-}
-function pistoleroLevelFromXp(xp) {
-  let level = 1, remaining = Math.max(0, Number(xp) || 0);
-  while (level < PISTOLERO_MAX_LEVEL && remaining >= pistoleroXpToNextLevel(level)) { remaining -= pistoleroXpToNextLevel(level); level += 1; }
-  return level;
-}
-function pistoleroXpIntoLevel(xp) {
-  let level = 1, remaining = Math.max(0, Number(xp) || 0);
-  while (level < PISTOLERO_MAX_LEVEL && remaining >= pistoleroXpToNextLevel(level)) { remaining -= pistoleroXpToNextLevel(level); level += 1; }
-  return remaining;
-}
-function weaponPowerAttackBonus(power) {
-  return Math.max(0, Math.floor((Number(power) || 0) / 20));
-}
-function addPistoleroXp(p, amount) {
-  if (!p) return false;
-  const before=pistoleroLevelFromXp(p.pistoleroXp);
-  p.pistoleroXp=Math.max(0,Math.floor(Number(p.pistoleroXp)||0)+Math.max(0,Math.floor(Number(amount)||0)));
-  const after=pistoleroLevelFromXp(p.pistoleroXp);
-  p.pistoleroLevel=after;
-  return after>before;
-}
+function pistoleroXpToNextLevel(level){return masteryXpToNextLevel(level)}function pistoleroLevelFromXp(xp){return masteryLevelFromXp(xp)}function pistoleroXpIntoLevel(xp){return masteryXpIntoLevel(xp)}
+function weaponPowerAttackBonus(power){return Math.max(0,Math.floor(Number(power)||0));}
+function addPistoleroXp(p,amount){return addDamageXp(p,amount);}
 
 function inSafeZone(x, y, pad = 0) {
   return Math.hypot(x - SAFE_ZONE.x, y - SAFE_ZONE.y) <= SAFE_ZONE.r + pad;
@@ -406,8 +377,9 @@ function publicPlayer(p) {
     weapon: p.weapon,
     power: Number(p.power) || 0,
     powerAttackBonus: weaponPowerAttackBonus(p.power),
-    pistoleroLevel: pistoleroLevelFromXp(p.pistoleroXp),
-    pistoleroXp: Math.max(0, Number(p.pistoleroXp) || 0),
+    meleeLevel: masteryLevelFromXp(p.meleeXp||0),
+    meleeXp: Math.max(0,Number(p.meleeXp)||0),
+    meleeXp: Math.max(0, Number(p.meleeXp) || 0),
     equippedSkin: cosmetics.getSkin(p.equippedSkin) ? p.equippedSkin : 'pixel_human',
     equippedArmor: cosmetics.getArmor(p.equippedArmor) ? p.equippedArmor : '',
     equippedBackpack: p.equippedBackpack || ''
@@ -445,7 +417,8 @@ function sendStats(p) {
     power: Number(p.power) || 0,
     powerAttackBonus: weaponPowerAttackBonus(p.power),
     damage: Number(p.damage) || 1,
-    pistoleroLevel: pistoleroLevelFromXp(p.pistoleroXp),
+    meleeLevel: masteryLevelFromXp(p.meleeXp||0),
+    meleeXp: Math.max(0,Number(p.meleeXp)||0),
     pistoleroXp: Math.max(0, Number(p.pistoleroXp) || 0),
     pistoleroXpIntoLevel: pistoleroXpIntoLevel(p.pistoleroXp),
     pistoleroXpNeed: pistoleroXpToNextLevel(pistoleroLevelFromXp(p.pistoleroXp)),
@@ -461,12 +434,16 @@ function sendStats(p) {
     killsToLevel: nextKills,
     gold: p.gold || 0,
     diamonds: p.diamonds || 0,
-    ammo: inventoryTotal(p,"ammo"),
-    maxAmmo: maxAmmoForPlayer(p),
+    ammo: 0,
+    maxAmmo: 0,
+    meleeLevel: masteryLevelFromXp(p.meleeXp||0),
+    meleeXp: Math.max(0,Number(p.meleeXp)||0),
+    meleeXpIntoLevel: masteryXpIntoLevel(p.meleeXp||0),
+    meleeXpNeed: masteryXpToNextLevel(masteryLevelFromXp(p.meleeXp||0)),
     inventory: inventoryPayload(p),
     inventoryCapacity: inventoryCapacity(p),
     weapon: p.weapon,
-    ownedWeapons: normalizeOwnedWeapons(p.ownedWeapons, p.weapon || ''),
+    ownedWeapons: normalizeOwnedWeapons(p.ownedWeapons, p.weapon || 'sword_neo'),
     shopNpc: SHOP_NPC,
     bankEnabled: BANK_ENABLED,
     equippedSkin: cosmetics.getSkin(p.equippedSkin) ? p.equippedSkin : 'core_default',
@@ -498,7 +475,7 @@ function capturePlayerData(p) {
     inventory: inventoryPayload(p),
     pistoleroLevel: pistoleroLevelFromXp(p.pistoleroXp),
     pistoleroXp: Math.max(0, Number(p.pistoleroXp) || 0),
-    weapon: WEAPONS[p.weapon] ? p.weapon : null,
+    weapon: WEAPONS[p.weapon] ? p.weapon : 'sword_neo',
     ownedWeapons: normalizeOwnedWeapons(p.ownedWeapons, p.weapon || ''),
     bankedGold: Math.max(0, Number(p.bankedGold) || 0),
     bankedDiamonds: Math.max(0, Number(p.bankedDiamonds) || 0),
@@ -755,11 +732,7 @@ function applyCombatStats(p) {
   syncAmmoFromInventory(p);
 }
 
-function addDamageXp(p, amount) {
-  // Compatibilidad con saves antiguos: el ataque ahora depende del arsenal.
-  void amount;
-  applyCombatStats(p);
-}
+function addDamageXp(p,amount){if(!p)return;const gain=Math.max(0,Math.floor(Number(amount)||0));p.meleeXp=Math.max(0,Number(p.meleeXp)||0)+gain;p.meleeLevel=masteryLevelFromXp(p.meleeXp);applyCombatStats(p);}
 
 function addDefenseXp(p,amount){
   if(!p)return;
@@ -1218,35 +1191,7 @@ function choosePatrolTarget(enemy, walls) {
   enemy.patrolUntil = Date.now() + 1500;
 }
 
-function moveEnemyToward(enemy, tx, ty, dt, walls) {
-  const distance = Math.max(1, Math.hypot(tx - enemy.x, ty - enemy.y));
-  const dx = (tx - enemy.x) / distance;
-  const dy = (ty - enemy.y) / distance;
-  enemy.vx = dx * enemy.speed;
-  enemy.vy = dy * enemy.speed;
-
-  let nextX = clamp(enemy.x + enemy.vx * dt, 35, WORLD.w - 35);
-  let nextY = clamp(enemy.y + enemy.vy * dt, 35, WORLD.h - 35);
-  if(enemy.kind==='boss'){
-    const dx=nextX-SAFE_ZONE.x,dy=nextY-SAFE_ZONE.y;
-    const minDistance=SAFE_ZONE.r+enemy.r+18;
-    const d=Math.hypot(dx,dy);
-    if(d<minDistance){
-      const nx=dx/Math.max(1,d),ny=dy/Math.max(1,d);
-      nextX=SAFE_ZONE.x+nx*minDistance;
-      nextY=SAFE_ZONE.y+ny*minDistance;
-    }
-  }
-
-  if (!collidesWithWall(nextX, nextY, enemy.r, walls)) {
-    enemy.x = nextX;
-    enemy.y = nextY;
-  } else if (!collidesWithWall(nextX, enemy.y, enemy.r, walls)) {
-    enemy.x = nextX;
-  } else if (!collidesWithWall(enemy.x, nextY, enemy.r, walls)) {
-    enemy.y = nextY;
-  }
-}
+function moveEnemyToward(enemy,tx,ty,dt,walls){if(enemy.kind==='boss'){const distance=Math.max(1,Math.hypot(tx-enemy.x,ty-enemy.y));const dx=(tx-enemy.x)/distance,dy=(ty-enemy.y)/distance;const step=enemy.speed*dt;const nx=clamp(enemy.x+dx*step,35,WORLD.w-35),ny=clamp(enemy.y+dy*step,35,WORLD.h-35);if(!collidesWithWall(nx,ny,enemy.r,walls)){enemy.x=nx;enemy.y=ny;}return;}const cx=Math.round(enemy.x/MELEE_GRID_SIZE),cy=Math.round(enemy.y/MELEE_GRID_SIZE),tcx=Math.round(tx/MELEE_GRID_SIZE),tcy=Math.round(ty/MELEE_GRID_SIZE);const man=Math.abs(tcx-cx)+Math.abs(tcy-cy);if(man<=1){enemy.x=cx*MELEE_GRID_SIZE;enemy.y=cy*MELEE_GRID_SIZE;enemy.vx=0;enemy.vy=0;return;}const now=Date.now();if(now<(enemy.gridMoveAt||0))return;let nx=cx,ny=cy;if(Math.abs(tcx-cx)>=Math.abs(tcy-cy))nx+=Math.sign(tcx-cx);else ny+=Math.sign(tcy-cy);const px=clamp(nx*MELEE_GRID_SIZE,MELEE_GRID_SIZE,WORLD.w-MELEE_GRID_SIZE),py=clamp(ny*MELEE_GRID_SIZE,MELEE_GRID_SIZE,WORLD.h-MELEE_GRID_SIZE);if(!collidesWithWall(px,py,enemy.r,walls)){enemy.x=px;enemy.y=py;enemy.gridMoveAt=now+420;enemy.vx=(nx-cx)*MELEE_GRID_SIZE/0.42;enemy.vy=(ny-cy)*MELEE_GRID_SIZE/0.42;}}
 
 function ensureRoomEnemies(code) {
   if (!roomEnemies.has(code)) roomEnemies.set(code, []);
@@ -1823,328 +1768,25 @@ async function withdrawBank(ws) {
   });
 }
 
-function buyAmmo(ws){const p=clients.get(ws);if(!p)return;if(!p.room)return send(ws,{type:'shop_result',ok:false,message:'No estás dentro de una sala.'});if(!p.alive)return send(ws,{type:'shop_result',ok:false,message:'No puedes comprar estando destruido.'});if(Math.hypot(p.x-SHOP_NPC.x,p.y-SHOP_NPC.y)>SHOP_INTERACTION_RADIUS)return send(ws,{type:'shop_result',ok:false,message:'Párate sobre el SHOP.'});const ammo=inventoryTotal(p,'ammo'),gold=Math.max(0,Number(p.gold)||0);if(ammo>=maxAmmoForPlayer(p))return send(ws,{type:'shop_result',ok:false,message:'La mochila está llena de munición.'});if(gold<AMMO_PACK_COST)return send(ws,{type:'shop_result',ok:false,message:'Necesitas '+AMMO_PACK_COST+' de oro.'});const before=ammo;addInventoryItem(p,'ammo',AMMO_PACK_SIZE);const purchased=inventoryTotal(p,'ammo')-before;if(purchased<=0)return send(ws,{type:'shop_result',ok:false,message:'No hay espacio para más munición.'});p.gold=gold-AMMO_PACK_COST;void persistPlayer(p);send(ws,{type:'shop_result',ok:true,message:'Compraste '+purchased+' balas y fueron guardadas en el inventario.',gold:p.gold,ammo:inventoryTotal(p,'ammo'),maxAmmo:maxAmmoForPlayer(p)});sendInventoryState(p,'Munición guardada en la mochila.');sendStats(p);}function handleShotV2(ws, requestedAngle, requestedOriginX, requestedOriginY) {
-  const shooter = clients.get(ws);
-  if (!shooter || !shooter.room || !shooter.alive) return;
-  let weapon = WEAPONS[shooter.weapon];
-  if (!weapon) {
-    shooter.weapon = 'blaster';
-    weapon = WEAPONS.blaster;
-    applyCombatStats(shooter);
-  }
-
-  const isMelee=weapon.type==='melee';
-  const availableAmmo=inventoryTotal(shooter,'ammo');shooter.ammo=availableAmmo;
-  if(!isMelee&&availableAmmo<=0)return send(ws,{type:'ammo_empty'});
-  const now=Date.now();
-  const cooldown = Math.max(WEAPON_FIRE_RATE, Number(weapon.fireRate) || WEAPON_FIRE_RATE);
-  if (now - shooter.lastShot < cooldown) return send(ws, { type: 'shot_result', ok: false, reason: 'cooldown', ammo: shooter.ammo || 0, retryIn: Math.max(0,cooldown-(now-shooter.lastShot)) });
-  shooter.lastShot = now;
-
-  const room = rooms.get(shooter.room);
-  if (!room) return;
-
-  shooter.fireRate = WEAPON_FIRE_RATE;
-  const damage = clamp(Number(shooter.damage) || 1, 1, 1000);
-  const maxRange = Math.max(40, Number(weapon.range) || PROJECTILE_RANGE);
-  const centerX = Number(shooter.x) || 0, centerY = Number(shooter.y) || 0;
-  const requestedX = Number(requestedOriginX), requestedY = Number(requestedOriginY);
-  const fallbackAngle = Number.isFinite(Number(requestedAngle)) ? Number(requestedAngle) : Number(shooter.angle)||0;
-  const safeOriginX = Number.isFinite(requestedX) ? requestedX : centerX + Math.cos(fallbackAngle)*22;
-  const safeOriginY = Number.isFinite(requestedY) ? requestedY : centerY + Math.sin(fallbackAngle)*22;
-  const originDistance = Math.hypot(safeOriginX-centerX, safeOriginY-centerY);
-  const maxOriginOffset = Math.max(80, (Number(shooter.r)||24) * 4.5);
-  const validOrigin = Number.isFinite(requestedX) && Number.isFinite(requestedY) && originDistance <= maxOriginOffset;
-  const shotX = centerX, shotY = centerY;
-  const requested = Number(requestedAngle);
-  const shotAngle = Number.isFinite(requested) && Math.abs(requested) <= Math.PI * 4
-    ? Math.atan2(Math.sin(requested), Math.cos(requested))
-    : (Number(shooter.angle) || 0);
-  shooter.angle = shotAngle;
-  const dirX = Math.cos(shotAngle), dirY = Math.sin(shotAngle);
-  const enemies = ensureRoomEnemies(shooter.room);
-  const walls = ensureRoomWalls(shooter.room);
-
-  let targetPlayer = null, targetEnemy = null, best = Infinity;
-  const arc=Number(weapon.arc)||1.1;
-  const angleDiff=(a,b)=>Math.abs(Math.atan2(Math.sin(a-b),Math.cos(a-b)));
-  const acceptMelee=(tx,ty,radius)=>{
-    const dx=tx-shotX,dy=ty-shotY,distance=Math.hypot(dx,dy);
-    if(distance>maxRange||distance<1)return Infinity;
-    if(angleDiff(Math.atan2(dy,dx),shotAngle)>arc*.5)return Infinity;
-    return Math.max(0,distance-Math.max(10,radius));
-  };
-  for(const otherWs of room){
-    const target=clients.get(otherWs);
-    if(!target||target===shooter||!target.alive||inSafeZone(target.x,target.y,24))continue;
-    const d=isMelee?acceptMelee(target.x,target.y,30):rayCircleDistance(shotX,shotY,dirX,dirY,target.x,target.y,28);
-    if(d<=maxRange&&d<best){best=d;targetPlayer={ws:otherWs,p:target};targetEnemy=null;}
-  }
-  for(const enemy of enemies){
-    const radius=Math.max(18,Number(enemy.r)||22)+4;
-    let d=isMelee?acceptMelee(enemy.x,enemy.y,radius):rayCircleDistance(shotX,shotY,dirX,dirY,enemy.x,enemy.y,radius);
-    if(!isMelee&&d>maxRange){
-      const dx=enemy.x-shotX,dy=enemy.y-shotY,dist=Math.hypot(dx,dy);
-      if(dist<=maxRange+radius){
-        const diff=angleDiff(Math.atan2(dy,dx),shotAngle);
-        const lateral=Math.abs(Math.sin(diff))*dist;
-        const forward=Math.cos(diff)*dist;
-        if(forward>=0&&forward<=maxRange&&diff<=0.24&&lateral<=radius*1.35)d=Math.max(0,forward-radius);
-      }
-    }
-    if(d<=maxRange&&d<best){best=d;targetEnemy=enemy;targetPlayer=null;}
-  }
-  let nearestWall=null, nearestWallDistance=Infinity;
-  if(!isMelee)for(const wall of walls){
-    const d=rayAabbDistance(shotX,shotY,dirX,dirY,wall);
-    if(d>=0&&d<=maxRange&&d<nearestWallDistance){nearestWallDistance=d;nearestWall=wall;}
-  }
-  const impactDistance=Math.min(maxRange,nearestWallDistance,best);
-  const impactX=shotX+dirX*impactDistance, impactY=shotY+dirY*impactDistance;
-  const blockedByWall=!!(nearestWall&&nearestWallDistance<=best);
-  const hitKind=blockedByWall?'wall':targetPlayer?'player':targetEnemy?'enemy':'range';
-  const hitTarget=targetPlayer?.p?.id||targetEnemy?.id||'';
-  const travelSpeed=PROJECTILE_SPEED;
-  const travelMs=Math.max(70,Math.round((impactDistance/travelSpeed)*1000));
-
-  let consumedAmmo=0;
-  if(!isMelee){
-    const removedAmmo=removeInventoryAmount(shooter,'ammo',1);
-    if(removedAmmo!==1){shooter.lastShot=0;syncAmmoFromInventory(shooter);return send(ws,{type:'shot_result',ok:false,reason:'ammo_sync',ammo:shooter.ammo||0});}
-    consumedAmmo=1;
-  }
-  const melee=isMelee;
-  send(ws,{type:'shot_result',ok:true,ammo:shooter.ammo,maxAmmo:maxAmmoForPlayer(shooter),x:shotX,y:shotY,angle:shotAngle,damage,range:maxRange,travelDistance:isMelee?Math.max(1,best<Infinity?best:maxRange):impactDistance,impactX,impactY,hitKind,hitTarget,travelMs:isMelee?0:travelMs,weapon:shooter.weapon,weaponType:weapon.type,melee,consumedAmmo});
-  sendInventoryState(shooter);
-  sendStats(shooter);
-  broadcastRoom(shooter.room,{type:'player_shot',shotId:'s_'+Math.random().toString(36).slice(2,10),id:shooter.id,power:shooter.power,damage,projectileSpeed:PROJECTILE_SPEED,x:shotX,y:shotY,originX:shotX,originY:shotY,angle:shotAngle,weapon:shooter.weapon,weaponType:weapon.type,melee,isMelee,range:maxRange,travelDistance:impactDistance,impactX,impactY,hitKind,hitTarget,travelMs});
-
-  // El disparo ya fue validado y consumió munición. El daño se aplica de inmediato.
-  // El proyectil que ve el jugador es únicamente la representación visual del impacto.
-  try{
-    if(!clients.has(ws)||!shooter.room||!shooter.alive)return;
-    if (nearestWall && nearestWallDistance <= best) {
-    nearestWall.hp = clamp(nearestWall.hp - damage * 0.8, 0, nearestWall.maxHp);
-
-    broadcastRoom(shooter.room, {
-      type: 'wall_hit',
-      id: nearestWall.id,
-      hp: nearestWall.hp,
-      x: nearestWall.x,
-      y: nearestWall.y
-    });
-
-    if (nearestWall.hp <= 0) {
-      const index = walls.findIndex((wall) => wall.id === nearestWall.id);
-      const destroyedWall = index >= 0 ? walls.splice(index, 1)[0] : null;
-      if (destroyedWall) {
-        const respawns = roomWallRespawns.get(shooter.room) || [];
-        respawns.push({
-          respawnAt: Date.now() + WALL_RESPAWN_MS,
-          wall: { ...destroyedWall, hp: destroyedWall.maxHp }
-        });
-        roomWallRespawns.set(shooter.room, respawns);
-
-        broadcastRoom(shooter.room, {
-          type: 'wall_dead',
-          id: destroyedWall.id,
-          x: destroyedWall.x,
-          y: destroyedWall.y,
-          diamond: null
-        });
-      }
-    }
-
-    return;
-  }
-
-  if (targetPlayer) {
-    const target = targetPlayer.p;
-    const targetMaxHp = maxHpForLevel(target.level);
-
-    const actualDamage = Math.max(1, damage - (target.defense || 0));
-applyCombatStats(shooter);
-
-    target.hp = clamp(
-      target.hp - actualDamage,
-      0,
-      targetMaxHp
-    );
-send(targetPlayer.ws, {
-      type: 'pvp_damage',
-      from: shooter.id,
-      amount: damage,
-      hp: target.hp,
-      maxHp: targetMaxHp,
-      defenseXp: masteryXpIntoLevel(target.defenseXp),
-      defenseXpNeed: masteryXpToNextLevel(masteryLevelFromXp(target.defenseXp)),
-      defenseLevel: masteryLevelFromXp(target.defenseXp)
-    });
-
-    broadcastRoom(shooter.room, {
-      type: 'pvp_hit',
-      shooter: shooter.id,
-      target: target.id,
-      amount: actualDamage,
-      hp: target.hp,
-      maxHp: targetMaxHp
-    });
-
-    send(shooter.ws, {
-      type: 'hit_confirm',
-      kind: 'player',
-      target: target.id,
-      amount: actualDamage,
-      x: target.x,
-      y: target.y,
-      damageXp: masteryXpIntoLevel(shooter.damageXp),
-      pistoleroLevel: pistoleroLevelFromXp(shooter.pistoleroXp),
-      pistoleroXp: Math.max(0, Number(shooter.pistoleroXp) || 0),
-      pistoleroXpIntoLevel: pistoleroXpIntoLevel(shooter.pistoleroXp),
-      pistoleroXpNeed: pistoleroXpToNextLevel(pistoleroLevelFromXp(shooter.pistoleroXp)),
-      attack: shooter.damage,
-      powerAttackBonus: weaponPowerAttackBonus(shooter.power),
-      damageXpNeed: masteryXpToNextLevel(masteryLevelFromXp(shooter.damageXp)),
-      damageLevel: masteryLevelFromXp(shooter.damageXp)
-    });
-
-    sendStats(shooter);
-
-    if (target.hp <= 0) {
-      const lostScore = target.score || 0;
-      markPlayerDead(target);
-
-      shooter.kills = (shooter.kills || 0) + 1;
-      shooter.pvpKills = (shooter.pvpKills || 0) + 1;
-      shooter.score = (shooter.score || 0) + 25;
-      shooter.xp = (shooter.xp || 0) + 40;
-      addDamageXp(shooter, 20);
-applyCombatStats(shooter);
-
-      levelUpIfNeeded(shooter);
-
-      void persistPlayer(target);
-      void persistPlayer(shooter);
-
-      send(targetPlayer.ws, {
-        type: 'pvp_dead',
-        x: target.x,
-        y: target.y,
-        killer: shooter.name,
-        lostScore,
-        hp: target.hp,
-        maxHp: maxHpForLevel(target.level),
-        ammo: target.ammo,
-        level: target.level
-      });
-
-      sendStats(target);
-      send(targetPlayer.ws, {
-        type: 'respawn_ok',
-        x: target.x,
-        y: target.y,
-        hp: target.hp,
-        maxHp: maxHpForLevel(target.level),
-        speed: target.speed,
-        weapon: target.weapon,
-        ammo: target.ammo,
-        level: target.level,
-        xp: target.xp,
-        safeZone: SAFE_ZONE,
-        spawnProtectionMs: 5000
-      });
-      sendStats(shooter);
-
-      broadcastRoom(shooter.room, {
-        type: 'pvp_kill',
-        killer: shooter.id,
-        target: target.id
-      });
-
-      sendPlayerList(shooter.room);
-    }
-
-    return;
-  }
-
-  if (targetEnemy) {
-    const incomingDamage = targetEnemy.kind === 'boss' ? Math.max(1, Math.round(damage * 0.55)) : damage;
-    addPistoleroXp(shooter, PISTOLERO_XP_PER_HIT);
-    applyCombatStats(shooter);
-    targetEnemy.hp = clamp(targetEnemy.hp - incomingDamage, 0, targetEnemy.maxHp);
-
-    broadcastRoom(shooter.room, {
-      type: 'enemy_hit',
-      id: targetEnemy.id,
-      hp: targetEnemy.hp,
-      x: targetEnemy.x,
-      y: targetEnemy.y
-    });
-
-    send(shooter.ws, {
-      type: 'hit_confirm',
-      kind: 'enemy',
-      target: targetEnemy.id,
-      amount: damage,
-      x: targetEnemy.x,
-      y: targetEnemy.y,
-      power: shooter.power,
-      attack: shooter.damage,
-      pistoleroLevel: pistoleroLevelFromXp(shooter.pistoleroXp),
-      pistoleroXp: Math.max(0, Number(shooter.pistoleroXp) || 0),
-      pistoleroXpIntoLevel: pistoleroXpIntoLevel(shooter.pistoleroXp),
-      pistoleroXpNeed: pistoleroXpToNextLevel(pistoleroLevelFromXp(shooter.pistoleroXp)),
-      powerAttackBonus: weaponPowerAttackBonus(shooter.power)
-    });
-
-    sendStats(shooter);
-
-    if (targetEnemy.hp <= 0) {
-      const isBoss = targetEnemy.kind === 'boss';
-      const reward = isBoss ? BOSS_GOLD_REWARD : targetEnemy.kind === 'elite' ? 500 : 40;
-      const xp = isBoss ? BOSS_XP_REWARD : targetEnemy.kind === 'elite' ? 250 : 70;
-
-      // El oro de los mobs ya no entra directo: cae físicamente al suelo.
-      spawnGoldDrops(shooter.room,targetEnemy.kind === 'boss' ? BOSS_GOLD_REWARD : reward,targetEnemy.x,targetEnemy.y);
-
-      const index = enemies.findIndex((enemy) => enemy.id === targetEnemy.id);
-      if (index >= 0) enemies.splice(index, 1);
-      scheduleEnemyRespawn(shooter.room, targetEnemy.kind);
-
-      shooter.kills = (shooter.kills || 0) + 1;
-      shooter.score = (shooter.score || 0) + reward;
-      shooter.xp = (shooter.xp || 0) + xp;
-
-      addPistoleroXp(shooter, PISTOLERO_XP_PER_KILL);
-      applyCombatStats(shooter);
-      levelUpIfNeeded(shooter);
-      void persistPlayer(shooter);
-      sendStats(shooter);
-      // Sincroniza nivel, score y kills con la lista de jugadores después de cada baja PvE.
-      if (shooter.room) { sendPlayerList(shooter.room); sendDropState(shooter.room); }
-
-      if (isBoss) {
-        roomBossProjectiles.set(shooter.room, []);
-        send(shooter.ws, {
-          type: 'boss_reward',
-          gold: 0,
-          diamonds: 0,
-          dropGold: reward,
-          xp,
-          message: '☄️ DESTRUCTOR ESTELAR DESTRUIDO · ORO EN EL SUELO · +5,000 XP'
-        });
-      }
-
-      broadcastRoom(shooter.room, {
-        type: 'enemy_dead',
-        id: targetEnemy.id,
-        killer: shooter.id,
-        boss: isBoss,
-        respawnMs: isBoss ? BOSS_RESPAWN_MS : MOB_RESPAWN_MS
-      });
-    }
-  }
-  }catch(error){ console.error('[PROJECTILE HIT]',error?.message||error); }
+function buyAmmo(ws){const p=clients.get(ws);if(!p)return;if(!p.room)return send(ws,{type:'shop_result',ok:false,message:'No estás dentro de una sala.'});if(!p.alive)return send(ws,{type:'shop_result',ok:false,message:'No puedes comprar estando destruido.'});if(Math.hypot(p.x-SHOP_NPC.x,p.y-SHOP_NPC.y)>SHOP_INTERACTION_RADIUS)return send(ws,{type:'shop_result',ok:false,message:'Párate sobre el SHOP.'});const ammo=inventoryTotal(p,'ammo'),gold=Math.max(0,Number(p.gold)||0);if(ammo>=maxAmmoForPlayer(p))return send(ws,{type:'shop_result',ok:false,message:'La mochila está llena de munición.'});if(gold<AMMO_PACK_COST)return send(ws,{type:'shop_result',ok:false,message:'Necesitas '+AMMO_PACK_COST+' de oro.'});const before=ammo;addInventoryItem(p,'ammo',AMMO_PACK_SIZE);const purchased=inventoryTotal(p,'ammo')-before;if(purchased<=0)return send(ws,{type:'shop_result',ok:false,message:'No hay espacio para más munición.'});p.gold=gold-AMMO_PACK_COST;void persistPlayer(p);send(ws,{type:'shop_result',ok:true,message:'Compraste '+purchased+' balas y fueron guardadas en el inventario.',gold:p.gold,ammo:inventoryTotal(p,'ammo'),maxAmmo:maxAmmoForPlayer(p)});sendInventoryState(p,'Munición guardada en la mochila.');sendStats(p);}function handleShotV2(ws,cellX,cellY,requestedAngle){
+  const p=clients.get(ws);if(!p||!p.room||!p.alive)return;
+  const sword=WEAPONS[p.weapon]||WEAPONS.sword_neo;const now=Date.now();
+  if(now-(p.lastShot||0)<Math.max(MELEE_COOLDOWN_MS,Number(sword.fireRate)||700))return send(ws,{type:'melee_result',ok:false,reason:'cooldown'});
+  const room=rooms.get(p.room);if(!room)return;
+  const cx=Math.round(Number.isFinite(Number(cellX))?Number(cellX):p.x/MELEE_GRID_SIZE),cy=Math.round(Number.isFinite(Number(cellY))?Number(cellY):p.y/MELEE_GRID_SIZE);
+  const px=Math.round(p.x/MELEE_GRID_SIZE),py=Math.round(p.y/MELEE_GRID_SIZE);
+  if(Math.abs(cx-px)+Math.abs(cy-py)>1)return send(ws,{type:'melee_result',ok:false,reason:'not_adjacent'});
+  p.lastShot=now;p.angle=Number.isFinite(Number(requestedAngle))?Number(requestedAngle):p.angle;applyCombatStats(p);
+  const enemies=ensureRoomEnemies(p.room);let targetEnemy=null;let targetPlayer=null;
+  for(const e of enemies){if(e.kind==='boss'||e.dead)continue;if(Math.abs(Math.round(e.x/MELEE_GRID_SIZE)-px)+Math.abs(Math.round(e.y/MELEE_GRID_SIZE)-py)<=1){targetEnemy=e;break;}}
+  for(const ws2 of room){const other=clients.get(ws2);if(!other||other===p||!other.alive||inSafeZone(other.x,other.y,24))continue;if(Math.abs(Math.round(other.x/MELEE_GRID_SIZE)-px)+Math.abs(Math.round(other.y/MELEE_GRID_SIZE)-py)<=1){targetPlayer={ws:ws2,p:other};break;}}
+  const damage=Math.max(1,Math.round(Number(p.meleeLevel||1)+Number(sword.power||0)));
+  let hit=false,hitX=p.x,hitY=p.y,targetId='';
+  if(targetEnemy){targetEnemy.hp=clamp(targetEnemy.hp-damage,0,targetEnemy.maxHp);targetEnemy.lastHitAt=now;hit=true;hitX=targetEnemy.x;hitY=targetEnemy.y;targetId=targetEnemy.id;addDamageXp(p,MELEE_XP_PER_HIT);if(targetEnemy.hp<=0){const reward=Math.max(1,Math.round(120+targetEnemy.level*18));p.gold=(Number(p.gold)||0)+reward;p.kills=(Number(p.kills)||0)+1;p.xp=(Number(p.xp)||0)+Math.max(20,targetEnemy.level*12);despawnEnemy(p.room,targetEnemy,'defeated');}}
+  if(targetPlayer){const actual=Math.max(1,Math.round(damage-Math.max(0,Number(targetPlayer.p.defense)||0)*.55));targetPlayer.p.hp=clamp(targetPlayer.p.hp-actual,0,maxHpForLevel(targetPlayer.p.level));hit=true;hitX=targetPlayer.p.x;hitY=targetPlayer.p.y;targetId=targetPlayer.p.id;addDamageXp(p,MELEE_XP_PER_HIT);send(targetPlayer.ws,{type:'pvp_damage',amount:actual,hp:targetPlayer.p.hp,maxHp:maxHpForLevel(targetPlayer.p.level),attacker:p.name});if(targetPlayer.p.hp<=0&&targetPlayer.p.alive&&!targetPlayer.p.frozen)markPlayerDead(targetPlayer.p);}
+  send(ws,{type:'melee_result',ok:true,hit,targetId,damage,meleeLevel:p.meleeLevel,x:hitX,y:hitY});
+  broadcastRoom(p.room,{type:'melee_effect',attackerId:p.id,x:p.x,y:p.y,angle:p.angle,hitX,hitY,sword:p.weapon,hit});
+  sendStats(p);if(targetPlayer)sendStats(targetPlayer.p);
 }
 
 function createPlayer(ws) {
@@ -2182,17 +1824,17 @@ function createPlayer(ws) {
     equippedSkin: 'core_default',
     ownedArmors: [],
     equippedArmor: '',
-    ownedWeapons: ['blaster'],
+    ownedWeapons: ['sword_neo'],
     equippedWeaponSkin: '',
     ownedWeaponSkins: [],
     redeemedCodes: [],
     inventory: emptyInventory(),
-    ammo: 120,
-    starterAmmoGranted: true,
+    ammo: 0,
+    starterAmmoGranted: false,
     pistoleroXp: 0,
     pistoleroLevel: 1,
     powerAttackBonus: 0,
-    weapon: 'blaster',
+    weapon: 'sword_neo',
     color: '#39e7ff',
     room: '',
     alive: true,
@@ -2728,10 +2370,9 @@ wss.on('connection', async (ws) => {
         return;
       }
 
-      if (msg.type === 'fire') {
-        if (!p.frozen) handleShotV2(ws, msg.angle, msg.originX, msg.originY)
-        return;
-      }
+      if (msg.type === 'melee_attack') { if (!p.frozen) handleShotV2(ws,msg.cellX,msg.cellY,msg.angle); return; }
+      if (msg.type === 'grid_state') { if(!p.room||p.frozen||!p.alive)return; const cx=Math.round(Number(msg.cellX)||p.x/MELEE_GRID_SIZE),cy=Math.round(Number(msg.cellY)||p.y/MELEE_GRID_SIZE); const nx=clamp(cx*MELEE_GRID_SIZE,MELEE_GRID_SIZE,WORLD.w-MELEE_GRID_SIZE),ny=clamp(cy*MELEE_GRID_SIZE,MELEE_GRID_SIZE,WORLD.h-MELEE_GRID_SIZE); const dist=Math.hypot(nx-p.x,ny-p.y); if(dist<=MELEE_GRID_SIZE*1.5){p.x=nx;p.y=ny;if(Number.isFinite(Number(msg.angle)))p.angle=Number(msg.angle);p.lastStateAt=Date.now();broadcastRoom(p.room,{type:'player_update',player:publicPlayer(p)},ws);} return; }
+      if (msg.type === 'fire') { return; }
 
       if (msg.type === 'deposit_bank') {
         if (!p.frozen) await depositBank(ws);
@@ -2891,6 +2532,9 @@ wss.on('connection', async (ws) => {
     console.error('[WS ERROR]', error?.message || error);
   });
 });
+
+// V71: servidor autoritativo de cuadrícula. Los enemigos regulares avanzan casilla por casilla y se detienen a una casilla del objetivo.
+setInterval(()=>{for(const [code,room] of rooms){if(!room||!room.size)continue;const enemies=roomEnemies.get(code)||[];const players=roomPlayers(room).filter(p=>p.alive&&!p.frozen);for(const e of enemies){if(e.kind==='boss'||e.dead)continue;let target=null,best=Infinity;for(const pl of players){if(inSafeZone(pl.x,pl.y,24))continue;const d=Math.hypot(pl.x-e.x,pl.y-e.y);if(d<=e.aggroRadius&&d<best){best=d;target=pl;}}if(target){const tcx=Math.round(target.x/MELEE_GRID_SIZE),tcy=Math.round(target.y/MELEE_GRID_SIZE),ecx=Math.round(e.x/MELEE_GRID_SIZE),ecy=Math.round(e.y/MELEE_GRID_SIZE);if(Math.abs(tcx-ecx)+Math.abs(tcy-ecy)<=1){e.x=ecx*MELEE_GRID_SIZE;e.y=ecy*MELEE_GRID_SIZE;e.vx=0;e.vy=0;} }}}},180);
 
 startServerUpdateHeartbeat();
 
@@ -3260,7 +2904,7 @@ setInterval(() => {
         moveEnemyToward(enemy, target.x, target.y, dt, walls);
 
         if (
-          best < enemy.r + 24 &&
+          best <= MELEE_GRID_SIZE*1.25 &&
           now - (enemy.lastAttackAt || 0) >= (enemy.attackCooldown || ENEMY_ATTACK_COOLDOWN_MS) &&
           hasLineOfSight(enemy.x, enemy.y, target.x, target.y, walls)
         ) {
