@@ -25,7 +25,11 @@ let UNIFIED_RELEASE_MANIFEST = {
 };
 
 try {
-  const manifestPath = path.join(__dirname, '..', 'release.json');
+  const manifestCandidates = [
+    path.join(__dirname, 'release.json'),
+    path.join(__dirname, '..', 'release.json')
+  ];
+  const manifestPath = manifestCandidates.find(candidate => fs.existsSync(candidate)) || manifestCandidates[0];
   UNIFIED_RELEASE_MANIFEST = {
     ...UNIFIED_RELEASE_MANIFEST,
     ...JSON.parse(fs.readFileSync(manifestPath, 'utf8'))
