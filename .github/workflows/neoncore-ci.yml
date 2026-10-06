@@ -34,23 +34,33 @@ jobs:
           const fs = require('fs');
           const vm = require('vm');
 
-          const html = fs.readFileSync('index.html', 'utf8');
-          const scripts = html.split('<script>').slice(1).map((part) => part.split('</script>')[0]).filter((code) => code.trim());
+          const release = JSON.parse(fs.readFileSync('release.json', 'utf8'));
+          const targets = [
+            release.clientPath.replace(/^\\/NeonCore\\//, ''),
+            'index.html',
+            'neoncore/index.html'
+          ];
 
-          if (!scripts.length) {
-            throw new Error('No JavaScript blocks found in client.');
-          }
+          let total = 0;
+          for (const file of targets) {
+            const html = fs.readFileSync(file, 'utf8');
+            const scripts = [...html.matchAll(/<script(?:\\s[^>]*)?>([\\s\\S]*?)<\\/script>/gi)]
+              .map((m) => m[1])
+              .filter((code) => code.trim());
 
-          for (let i = 0; i < scripts.length; i++) {
-            try {
-              new vm.Script(scripts[i], { filename: 'client-script-' + (i + 1) + '.js' });
-            } catch (error) {
-              console.error(error);
-              process.exit(1);
+            for (let i = 0; i < scripts.length; i++) {
+              try {
+                new vm.Script(scripts[i], { filename: file + '#script-' + (i + 1) });
+              } catch (error) {
+                console.error(error);
+                process.exit(1);
+              }
+              total++;
             }
           }
 
-          console.log('Validated ' + scripts.length + ' client script block(s).');
+          if (!total) throw new Error('No JavaScript blocks found in checked client/entry files.');
+          console.log('Validated ' + total + ' client script block(s).');
           NODE
 
       - name: Validate JSON
