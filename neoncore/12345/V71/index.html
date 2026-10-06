@@ -1517,6 +1517,8 @@ function connectMultiplayer(roomMode="quick",roomCode=""){ const publicRoomAuto=
           showCosmeticMsg(m.message||"Compras reales aún no activadas.");
         }else if(m.type==="hp_regen"){p.hp=Math.min(Number(m.maxHp)||p.maxHp,Number(m.hp)||p.hp);if(m.safeZone){document.documentElement.classList.add("safe-zone-active");}else{document.documentElement.classList.remove("safe-zone-active");}updateHud();
         }else if(m.type==="ammo_empty"){audioTone(220,.1,"square",.05,-120);audioTone(110,.16,"square",.04,0,.06);p.ammo=0;updateResourceHud();showShopMsg("Sin munición. Ve con el vendedor.");
+        }else if(m.type==="melee_result"){if(Number.isFinite(Number(m.damage)))p.damage=Number(m.damage);if(Number.isFinite(Number(m.meleeLevel)))serverMeleeLevel=Number(m.meleeLevel);if(m.hit){burst(Number(m.x)||p.x,Number(m.y)||p.y,"#f5d76e",16);hitTexts.push({x:Number(m.x)||p.x,y:Number(m.y)||p.y,text:"-"+Number(m.damage||0),life:1.0,color:"#ffe08a"});}updateStatsPanel();
+        }else if(m.type==="melee_effect"){meleeSlashes.push({x:Number(m.x)||0,y:Number(m.y)||0,angle:Number(m.angle)||0,startAt:performance.now(),duration:260,color:"#f5d76e",arc:1.1,radius:GRID_SIZE*.95,sword:m.sword||"sword_neo"});
         }else if(m.type==="shot_result"){
           if(Number.isFinite(Number(m.ammo)))p.ammo=Math.max(0,Number(m.ammo));
           const pendingLocal=neonProjectiles.slice().reverse().find(q=>q.pending);
