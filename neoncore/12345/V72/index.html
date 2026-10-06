@@ -2142,14 +2142,16 @@ function showShopMsg(msg){
 
 function drawShopNpc(){
   const x=sx(shopNpc.x),y=sy(shopNpc.y),t=performance.now()/1000;
-  ctx.save();
-  ctx.globalAlpha=.16;ctx.fillStyle="#39e7ff";ctx.beginPath();ctx.arc(x,y,48+Math.sin(t*2.2)*4,0,Math.PI*2);ctx.fill();
-  ctx.strokeStyle="#7df3ff";ctx.lineWidth=2.5;ctx.setLineDash([8,5]);ctx.beginPath();ctx.arc(x,y,shopNpc.r+8,0,Math.PI*2);ctx.stroke();ctx.setLineDash([]);
-  ctx.fillStyle="#09111f";ctx.beginPath();ctx.arc(x,y,24,0,Math.PI*2);ctx.fill();ctx.strokeStyle="#7df3ff";ctx.lineWidth=3;ctx.stroke();
-  ctx.fillStyle="#39e7ff";ctx.font="bold 19px Arial";ctx.textAlign="center";ctx.textBaseline="middle";ctx.fillText("⚡",x,y);
-  for(let i=0;i<10;i++){const a=-t*.75+i*Math.PI/5;ctx.fillStyle=i%2?"#7df3ff":"#fff";ctx.globalAlpha=.9;ctx.beginPath();ctx.arc(x+Math.cos(a)*34,y+Math.sin(a)*34,2,0,Math.PI*2);ctx.fill();}
-  ctx.globalAlpha=1;ctx.fillStyle="#fff";ctx.font="bold 12px Arial";ctx.fillText("SHOP",x,y-42);
-  ctx.fillStyle="#39e7ff";ctx.font="bold 9px Arial";ctx.fillText("ARSENAL · ESPADADURAS",x,y+40);
+  ctx.save();ctx.imageSmoothingEnabled=false;
+  // 2D pixel-art vendor marker, no neon/futuristic styling.
+  ctx.fillStyle="rgba(0,0,0,.25)";ctx.fillRect(x-10,y+12,20,5);
+  ctx.fillStyle="#6b3f22";ctx.fillRect(x-9,y-3,18,18);
+  ctx.fillStyle="#d5a36a";ctx.fillRect(x-8,y-16,16,13);
+  ctx.fillStyle="#3d2418";ctx.fillRect(x-10,y-19,20,5);
+  ctx.fillStyle="#fff1c1";ctx.fillRect(x-5,y-11,3,3);ctx.fillRect(x+2,y-11,3,3);
+  ctx.fillStyle="#f0c36b";ctx.fillRect(x-12,y+2,4,10);ctx.fillRect(x+8,y+2,4,10);
+  ctx.fillStyle="#4d2b1c";ctx.font="bold 9px monospace";ctx.textAlign="center";ctx.fillText("SHOP",x,y-28);
+  ctx.globalAlpha=.35+.12*Math.sin(t*3);ctx.fillStyle="#f0c36b";ctx.fillRect(x-15,y+19,30,2);
   ctx.restore();
 }
 function showCosmeticMsg(message){
