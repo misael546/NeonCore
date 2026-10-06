@@ -32,17 +32,17 @@ jobs:
           done
           echo "NeonCore current release was not detected"
           exit 1
-      - name: Wait for Render current version
+      - name: Wait for Belmo current version
         run: |
           expected="$(python3 -c 'import json; print(json.load(open("release.json", encoding="utf-8"))["serverVersion"])')"
           for i in $(seq 1 36); do
-            if curl -fsSL "https://neon-core-multiplayer.onrender.com/health?menuSmokeCI=$i" | grep -Fq "\"version\":\"$expected\""; then
-              echo "Render server is live: $expected"
+            if curl -fsSL "https://neoncore-da6f.onbelmo.uk/health?menuSmokeCI=$i" | grep -Fq "\"version\":\"$expected\""; then
+              echo "Belmo server is live: $expected"
               exit 0
             fi
             sleep 5
           done
-          echo "Render server was not detected"
+          echo "Belmo server was not detected"
           exit 1
       - name: Run menu smoke test
         run: npx playwright test .github/tests/neoncore-menu-smoke.spec.js --workers=1
