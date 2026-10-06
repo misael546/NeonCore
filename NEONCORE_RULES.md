@@ -279,13 +279,13 @@ Cuando exista una instrucción nueva y explícita del usuario, aplicar la nueva 
 - La espada se dibuja como arma pixel-art cuerpo a cuerpo y acompaña la orientación/animación del personaje.
 
 
-## 21. Estado V80
+## 21. Estado V81
 - El cliente móvil no muestra ni ejecuta joystick derecho de ataque.
 - La configuración móvil solo explica toque de casilla y selección de enemigo.
 - La sección Items Venta no muestra munición.
 
 
-## 22. Combate y Mercader V80
+## 22. Combate y Mercader V81
 - La cuadrícula táctil es visible y sus casillas deben ser claramente legibles; el centro de cada casilla es el punto válido del jugador, nunca una intersección de líneas.
 - La casilla de destino de caminar se marca con un cuadro azul visible.
 - La casilla del enemigo seleccionado se marca con un cuadro dorado que sigue la casilla actual del enemigo.
@@ -295,7 +295,7 @@ Cuando exista una instrucción nueva y explícita del usuario, aplicar la nueva 
 - El Mercader abre la tienda únicamente al tocarlo/clicarlo directamente estando dentro del radio válido.
 
 
-## 23. Movimiento táctil y Mercader V80
+## 23. Movimiento táctil y Mercader V81
 - El toque de movimiento se convierte usando la posición real del canvas, no las coordenadas globales de pantalla.
 - El destino seleccionado corresponde exactamente a una casilla de la cuadrícula de 24 px y el personaje avanza casilla por casilla.
 - Los cuadros de destino y objetivo se muestran ampliados visualmente a 32 px para facilitar el toque, sin alterar la cuadrícula autoritativa de combate.
@@ -309,9 +309,9 @@ Cuando exista una instrucción nueva y explícita del usuario, aplicar la nueva 
 - El código maestro actual de pruebas es `NEONMASTER`; se puede ejecutar desde el chat del servidor escribiendo `/code NEONMASTER`. El mismo código se conserva y se amplía cuando se agregue contenido nuevo.
 - Items Venta no muestra armas de fuego, escudos ni colecciones de espadas avanzadas.
 - La única espada comprable inicial es la **Espada Básica**, con daño base 10; el daño básico sigue siendo Melee + daño base.
-- Las skins de personaje pasan a ser **armaduras exclusivas de la clase Melee**; no se usan skins humanas.
-- La primera armadura es sencilla y las siguientes pueden aumentar visualmente su complejidad por progresión.
-- El cansancio funciona como recurso de combate: se recupera gradualmente y se consume con ataques; el ataque especial de combo consume más.
+- Las apariencias de personaje son **skins cosméticas exclusivas de la clase Melee**; no son armaduras con estadísticas.
+- Existe una skin predeterminada gratuita; las demás skins se desbloquean mediante compra o código.
+- El cansancio se recupera gradualmente y solo se consume al usar el ataque especial.
 - El ataque básico no consume cansancio. El ataque especial tiene botón propio, cuesta cansancio y tiene un cooldown independiente de 3 segundos; no depende de contar golpes básicos.
 - El movimiento táctil debe caer en el centro de una casilla de 24 px; los puntos de aparición y la zona segura deben estar alineados a la cuadrícula.
 - Los mobs normales y élite deben ser más débiles y usar nombres/diseños originales de temática desértica; no usar el antiguo dron/minotauro visual.
