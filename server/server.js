@@ -8,6 +8,8 @@ const { WebSocketServer } = require('ws');
 const storage = require('./storage');
 const cosmetics = require('./cosmetics');
 const crypto = require('crypto');
+const { GOOGLE_CLIENT_ID, verifyGoogleCredential } = require('./google-auth');
+const memoryAccountsByGoogle = new Map();
 
 const PORT = Number(process.env.PORT || 10000);
 
@@ -180,6 +182,36 @@ function accountNameKey(name){return normalizeAccountName(name).toLocaleLowerCas
 function isReservedAccountName(name){const key=accountNameKey(name).replace(/[ _-]+/g,'');return RESERVED_ACCOUNT_NAMES.has(key)||key.startsWith('admin')||key.startsWith('owner');}
 function sanitizeAccountToken(token){return String(token||'').trim().slice(0,128);}
 function newMemoryAccount(name){const cleanName=normalizeAccountName(name),accountId='acc_'+crypto.randomUUID().replace(/-/g,''),accountToken=crypto.randomBytes(32).toString('base64url'),raw=crypto.randomBytes(12).toString('hex').toUpperCase(),recoveryCode='NEON-'+raw.slice(0,8)+'-'+raw.slice(8,16)+'-'+raw.slice(16,24),a={accountId,accountToken,name:cleanName,playerSaveKey:accountId,recoveryCode,createdAt:new Date().toISOString(),updatedAt:new Date().toISOString()};memoryAccountsByToken.set(accountToken,a);memoryAccountNames.set(accountNameKey(cleanName),a);memoryRecoveryByCode.set(recoveryCode.replace(/[^A-Z0-9]/g,''),a);return {ok:true,created:true,...a};}
+async function authenticateGoogleAccount(idToken){
+  const google=await verifyGoogleCredential(idToken);
+  if(!google.ok)return google;
+  const existing=await storage.findAccountByGoogleSub(google.sub);
+  if(existing)return {ok:true,created:false,...existing,googleSub:google.sub,email:google.email};
+  const mem=memoryAccountsByGoogle.get(google.sub);
+  if(mem)return {ok:true,created:false,...mem,googleSub:google.sub,email:google.email};
+  const tempName='Cuenta-'+google.sub.slice(-10).replace(/[^A-Za-z0-9]/g,'');
+  if(storage.enabled){
+    const created=await storage.createAccountWithGoogle(tempName,google.sub);
+    if(created?.ok)return {...created,googleSub:google.sub,email:google.email};
+    if(created?.reason==='duplicate'){const again=await storage.findAccountByGoogleSub(google.sub);if(again)return {ok:true,created:false,...again,googleSub:google.sub,email:google.email};}
+    return created;
+  }
+  const accountToken=crypto.randomBytes(32).toString('base64url');
+  const accountId='acc_'+crypto.randomUUID().replace(/-/g,'');
+  const a={ok:true,created:true,accountId,accountToken,name:tempName,playerSaveKey:accountId,googleSub:google.sub,email:google.email,createdAt:new Date().toISOString(),updatedAt:new Date().toISOString()};
+  memoryAccountsByToken.set(accountToken,a);memoryAccountNames.set(accountNameKey(tempName),a);memoryAccountsByGoogle.set(google.sub,a);
+  return a;
+}
+async function finalizeNewAccountName(p,requestedName){
+  const clean=normalizeAccountName(requestedName);if(clean.length<2)return {ok:false,reason:'invalid_name'};
+  if(isReservedAccountName(clean))return {ok:false,reason:'name_reserved'};
+  const key=accountNameKey(clean);
+  for(const other of clients.values()){if(other!==p&&other?.name&&accountNameKey(other.name)===key)return {ok:false,reason:'name_taken'};}
+  const existing=await storage.findAccountByName(clean);if(existing&&existing.accountId!==p.accountId)return {ok:false,reason:'name_taken'};
+  if(!storage.enabled){const old=memoryAccountsByToken.get(p.accountToken);if(memoryAccountNames.has(key)&&memoryAccountNames.get(key)!==old)return {ok:false,reason:'name_taken'};if(old){memoryAccountNames.delete(accountNameKey(old.name));old.name=clean;old.updatedAt=new Date().toISOString();memoryAccountNames.set(key,old);}}
+  else {const renamed=await storage.renameAccount(p.accountId,clean);if(!renamed.ok)return renamed;}
+  p.name=clean;p.nameLocked=true;return {ok:true};
+}
 async function authenticateOrCreateAccount(requestedName,accountToken,legacySaveKey){
   const token=sanitizeAccountToken(accountToken);
   if(token){
@@ -2136,6 +2168,11 @@ function createPlayer(ws) {
     persistChain: Promise.resolve(),
     hasSaved: false,
     joined: false,
+    googleSub: '',
+    accountEmail: '',
+    pendingGoogleAuth: false,
+    pendingRoomMode: 'join',
+    pendingRoomCode: '12345',
     ws
   };
 
@@ -2174,6 +2211,11 @@ const httpServer = http.createServer(async (req, res) => {
   }
 
 
+
+  if (pathname === '/auth/google/config' && req.method === 'GET') {
+    res.writeHead(200, {'Content-Type':'application/json; charset=utf-8','Access-Control-Allow-Origin':'*','Cache-Control':'no-store'});
+    return res.end(JSON.stringify({ok:Boolean(GOOGLE_CLIENT_ID),clientId:GOOGLE_CLIENT_ID}));
+  }
 
   if (pathname === '/client') {
     try {
@@ -2301,10 +2343,14 @@ wss.on('connection', async (ws) => {
         }
 
         const requestedName=normalizeAccountName(msg.name||'Jugador')||'Jugador';
+        const googleIdToken=String(msg.googleIdToken||'').trim();
+        if(!googleIdToken){send(ws,{type:'room_error',reason:'google_required',message:'Debes iniciar sesión con Google para entrar a NeonCore.'});return;}
+        const googleAccount=await authenticateGoogleAccount(googleIdToken);
+        if(!googleAccount?.ok){send(ws,{type:'room_error',reason:'google_invalid',message:googleAccount?.reason==='not_configured'?'Google aún no está configurado en el servidor.':'No se pudo validar tu cuenta de Google.'});return;}
         const legacySaveKey=String(msg.saveKey||'').replace(/[^a-zA-Z0-9_-]/g,'').slice(0,80);
         const accountToken=sanitizeAccountToken(msg.accountToken);
         let account;
-        try{account=await authenticateOrCreateAccount(requestedName,accountToken,legacySaveKey);}
+        try{account=googleAccount;account.accountToken=String(account.accountToken||'');}
         catch(error){
           console.error('[ACCOUNT AUTH]',error?.stack||error);
           send(ws,{type:'room_error',reason:'account_error',message:'No se pudo validar la cuenta. Intenta de nuevo.'});return;
@@ -2319,6 +2365,9 @@ wss.on('connection', async (ws) => {
           send(ws,{type:'room_error',reason:account.reason||'account_error',message:accountMessages[account.reason]||'No se pudo crear o validar la cuenta.'});return;
         }
         p.accountId=String(account.accountId||'').slice(0,96);
+        p.googleSub=String(account.googleSub||'').slice(0,128);
+        p.accountEmail=String(account.email||'').slice(0,254);
+        p.accountToken=String(account.accountToken||'').slice(0,128);
         p.saveKey=String(account.playerSaveKey||p.accountId||'').slice(0,96);
         p.name=normalizeAccountName(account.name||requestedName)||'Jugador';
 
@@ -2394,7 +2443,7 @@ wss.on('connection', async (ws) => {
         }
 
         if (!saved) {
-          p.nameLocked = true;
+          p.nameLocked = false;
         }
 
         if (msg.color) {
@@ -2407,7 +2456,9 @@ wss.on('connection', async (ws) => {
         applyCombatStats(p);
         p.joined = true;
 
-        send(ws,{type:'account_authenticated',accountId:p.accountId,name:p.name,nameLocked:true,created:!!account.created,accountToken:account.created?String(account.accountToken||''):'',recoveryCode:String(account.recoveryCode||'')});
+        send(ws,{type:'account_authenticated',accountId:p.accountId,name:saved?p.name:'',nameLocked:!!saved,created:!!account.created,accountToken:account.created?String(account.accountToken||''):'',recoveryCode:'',googleEmail:p.accountEmail,needsName:!saved});
+
+        if(!saved){p.pendingGoogleAuth=true;p.pendingRoomMode=msg.createRoom?'create':(msg.room?'join':'quick');p.pendingRoomCode=String(msg.room||'12345').slice(0,5);send(ws,{type:'account_needs_name',message:'Cuenta Google verificada. Elige tu nombre de jugador.'});return;}
 
         if (msg.room) {
           await joinRoom(ws, msg.room, false);
@@ -2450,6 +2501,15 @@ wss.on('connection', async (ws) => {
         });
 
         return;
+      }
+
+      if (msg.type === 'set_name') {
+        if(!p.pendingGoogleAuth || p.joined)return;
+        const result=await finalizeNewAccountName(p,msg.name);
+        if(!result.ok){send(ws,{type:'name_result',ok:false,reason:result.reason,message:result.reason==='name_taken'?'Ese nombre ya está ocupado.':result.reason==='name_reserved'?'Ese nombre está reservado.':'El nombre debe tener al menos 2 caracteres.'});return;}
+        p.pendingGoogleAuth=false;p.joined=true;p.hasSaved=false;p.nameLocked=true;applyCombatStats(p);await persistPlayer(p);send(ws,{type:'name_result',ok:true,name:p.name});
+        if(p.pendingRoomMode==='create')await joinRoom(ws,'',true);else await joinRoom(ws,p.pendingRoomMode==='join'?p.pendingRoomCode:'OPEN',false);
+        send(ws,{type:'account_authenticated',accountId:p.accountId,name:p.name,nameLocked:true,created:true});sendPlayerList(p.room);return;
       }
 
       if (msg.type === 'chat') {
