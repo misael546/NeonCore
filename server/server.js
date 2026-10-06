@@ -82,7 +82,7 @@ const WEAPONS = {
   sword_pulse:{name:'ESPADA PULSO',cost:1200,power:280,fireRate:720,maxAmmo:0,range:48,arc:1.10,type:'melee',forSale:false,skin:'https://opengameart.org/sites/default/files/sword-3_0.png'},
   sword_void:{name:'ESPADA VACÍO',cost:4500,power:520,fireRate:760,maxAmmo:0,range:48,arc:1.15,type:'melee',forSale:false,skin:'https://opengameart.org/sites/default/files/sword2_8.png'},
   sword_solar:{name:'ESPADA SOLAR',cost:15000,power:850,fireRate:820,maxAmmo:0,range:48,arc:1.20,type:'melee',forSale:false,skin:'https://opengameart.org/sites/default/files/sword_39.png'},
-  sword_omega:{name:'ESPADA OMEGA',cost:50000,power:1400,fireRate:900,maxAmmo:0,range:48,arc:1.25,type:'melee',forSale:true,skin:'https://opengameart.org/sites/default/files/katana_2.png'}
+  sword_omega:{name:'ESPADA OMEGA',cost:50000,power:1400,fireRate:900,maxAmmo:0,range:48,arc:1.25,type:'melee',forSale:false,skin:'https://opengameart.org/sites/default/files/katana_2.png'}
 };
 const SHOP_FIREARM_IDS = Object.freeze([]);
 const SHOP_SWORD_IDS = Object.freeze(['sword_neo']);
@@ -693,18 +693,7 @@ function pickupNearby(ws){
   sendDropState(p.room);
 }
 function normalizeOwnedWeapons(value, fallbackWeapon = '') {
-  const input = Array.isArray(value) ? value : [];
-  const out = [];
-  const seen = new Set();
-  for (const raw of input) {
-    const id = String(raw || '');
-    if (!WEAPONS[id] || seen.has(id)) continue;
-    seen.add(id);
-    out.push(id);
-  }
-  if (WEAPONS[fallbackWeapon] && !seen.has(fallbackWeapon)) out.push(fallbackWeapon);
-  if (!out.includes('sword_neo')) out.unshift('sword_neo');
-  return out;
+  return ['sword_neo'];
 }
 
 function weaponSkinAttackBonus(p) {
@@ -718,7 +707,7 @@ function skinDefenseBonus(){return 0;}
 function defenseLevelFromXp(xp){return masteryLevelFromXp(xp);}
 function defenseXpIntoCurrentLevel(xp){return masteryXpIntoLevel(xp);}
 
-function applyCombatStats(p){const item=WEAPONS[p.weapon]||WEAPONS.sword_neo;p.weapon=WEAPONS[p.weapon]?p.weapon:'sword_neo';const meleeLevel=masteryLevelFromXp(p.meleeXp||0);p.meleeLevel=meleeLevel;p.power=Math.max(0,Number(item.power)||0);p.powerAttackBonus=Number(item.power)||0;p.damage=Math.max(1,meleeLevel+Number(item.power||0));p.fireRate=Number(item.fireRate)||700;p.defense=Math.max(0,defenseLevelFromXp(p.defenseXp)-1);p.speed=speedForLevel(p.level);p.ammo=0;}
+function applyCombatStats(p){p.weapon='sword_neo';const item=WEAPONS.sword_neo;const meleeLevel=masteryLevelFromXp(p.meleeXp||0);p.meleeLevel=meleeLevel;p.power=Math.max(0,Number(item.power)||0);p.powerAttackBonus=Number(item.power)||0;p.damage=Math.max(1,meleeLevel+Number(item.power||0));p.fireRate=Number(item.fireRate)||700;p.defense=Math.max(0,defenseLevelFromXp(p.defenseXp)-1);p.speed=speedForLevel(p.level);p.ammo=0;}
 
 function addDamageXp(p,amount){if(!p)return;const gain=Math.max(0,Math.floor(Number(amount)||0));p.meleeXp=Math.max(0,Number(p.meleeXp)||0)+gain;p.meleeLevel=masteryLevelFromXp(p.meleeXp);applyCombatStats(p);}
 
