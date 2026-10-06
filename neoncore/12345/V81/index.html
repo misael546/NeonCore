@@ -822,7 +822,7 @@ let cosmeticShopWasNear=false,cosmeticShopDismissedUntil=0;
 let equippedBackpack="",inventoryCapacityClient=16,itemShopCatalog=[],itemShopStock={};
 let bullets=[],enemies=[],drops=[],particles=[],walls=[],hitTexts=[],bossProjectiles=[],bossWarnings=[];
 let inventorySlots=Array.from({length:INVENTORY_SLOTS},()=>null);
-let serverXpNeed=100,serverKillsToLevel=5,serverPower=10,serverDefense=0,serverDefenseLevel=1,serverDefenseXp=0,serverDefenseXpIntoLevel=0,serverDefenseXpNeed=100,serverMeleeLevel=1,serverMeleeXp=0,serverMeleeXpIntoLevel=0,serverMeleeXpNeed=100,serverPowerAttackBonus=0,serverFatigue=100,serverMaxFatigue=100,
+let serverXpNeed=100,serverKillsToLevel=5,serverPower=10,serverDefense=0,serverDefenseLevel=1,serverDefenseXp=0,serverDefenseXpIntoLevel=0,serverDefenseXpNeed=100,serverMeleeLevel=1,serverMeleeXp=0,serverMeleeXpIntoLevel=0,serverMeleeXpNeed=100,serverPowerAttackBonus=0,serverFatigue=100,serverMaxFatigue=100;
 let gameActive=false;
 let camera={x:p.x,y:p.y},last=performance.now(),playerName="";
 let safeZone={x:3012,y:2220,r:300};
@@ -2317,7 +2317,7 @@ function renderItemShop(){
     const owned=clientInventoryTotal(item.id)>0||p.weapon===item.id||equippedSkin===item.id||equippedBackpack===item.id;
     const isSword=String(item.id)==="sword_neo";
     const visual=isSword?'<img src="'+(swordSkinsV81[item.id]||"")+'" style="max-width:86px;max-height:52px;image-rendering:pixelated" alt="">':item.category==="backpack"?"🎒":"🛡️";
-    const extra=isSword?"⚔ MELEE + "+Number(item.power||0):(item.category==="backpack"?"+"+Number(item.slotsBonus||16)+" ESPACIOS":"🛡 DEFENSA "+Number(item.skinStyleLevel||0));
+    const extra=isSword?"⚔ MELEE + "+Number(item.power||0):(item.category==="backpack"?"+"+Number(item.slotsBonus||16)+" ESPACIOS":"SKIN MELEE COSMÉTICA");
     return '<button type="button" class="shopWeaponCard itemShopCard '+(owned?"equipped":"")+'" data-item-buy="'+item.id+'" '+((soldOut||owned)?"disabled":"")+'><div class="itemVisual">'+visual+'</div><div class="weaponCardHead"><strong>'+item.name+'</strong><span>'+(isSword?"ESPADA":item.category==="backpack"?"MOCHILA":"ESPADA")+'</span></div><div class="weaponStats">'+extra+'</div><small>'+item.rarity+' · '+(isSword?"Daño base de espada + Melee":item.category==="backpack"?"INVENTARIO AMPLIADO":"Equipo permanente")+'</small><small>'+(soldOut?"AGOTADO":owned?"YA LO TIENES":itemCostText(item)+(stock!==undefined?" · x"+stock:""))+'</small><div class="cosmeticAction">'+(soldOut?"AGOTADO":owned?"YA EQUIPADO/EN INVENTARIO":"COMPRAR")+'</div></button>';
   }).join("");
   grid.querySelectorAll("[data-item-buy]").forEach(card=>card.addEventListener("click",e=>{e.preventDefault();e.stopPropagation();sendItemShopCommand("buy_item",card.dataset.itemBuy);}));
