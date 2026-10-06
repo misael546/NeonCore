@@ -1,4 +1,4 @@
-/* V79 · melee, cuadrícula, cansancio y combate por combo */
+/* V81 · melee, cuadrícula, cansancio, skins y combate por objetivo */
 'use strict';
 
 const http = require('http');
@@ -2213,7 +2213,7 @@ wss.on('connection', async (ws) => {
           serverStartedAt: SERVER_STARTED_AT,
           message: SERVER_UPDATE_MESSAGE,
           required: true,
-          clientPath: String(UNIFIED_RELEASE_MANIFEST.clientPath || '/NeonCore/neoncore/12345/V74/index.html')
+          clientPath: String(UNIFIED_RELEASE_MANIFEST.clientPath || '/neoncore/12345/V81/index.html')
         });
 
         return;
