@@ -50,6 +50,9 @@ jobs:
                   subprocess.run(["node", "--check", str(tmp)], check=True)
                   checked += 1
               print(f"{path}: {checked} scripts OK")
+          for server_file in ["server/server.js", "server/cosmetics.js", "server/storage.js", "server/google-auth.js"]:
+              subprocess.run(["node", "--check", server_file], check=True)
+              print(f"{server_file}: syntax OK")
           PY
 
       - name: Verify official entry
