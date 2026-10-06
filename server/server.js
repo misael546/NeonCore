@@ -2596,14 +2596,16 @@ setInterval(() => {
           // El Destructor fija un punto de impacto. El proyectil viaja hasta el
           // centro del círculo de advertencia y EXPLOTA ahí; no atraviesa ni
           // aplica daño de contacto a jugadores o mobs durante el trayecto.
-          const distance = Math.max(1, Math.hypot(target.x - boss.x, target.y - boss.y));
+          const targetCellX=Math.round(target.x/MELEE_GRID_SIZE),targetCellY=Math.round(target.y/MELEE_GRID_SIZE);
+          const impactX=targetCellX*MELEE_GRID_SIZE,impactY=targetCellY*MELEE_GRID_SIZE;
+          const distance = Math.max(1, Math.hypot(impactX - boss.x, impactY - boss.y));
           const travelTime = distance / BOSS_PROJECTILE_SPEED;
 
           const bossLevel=Number(boss.level)||1;
           const warning = {
             id: 'ba_' + Math.random().toString(36).slice(2, 10),
-            x: target.x,
-            y: target.y,
+            x: impactX,
+            y: impactY,
             r: BOSS_AOE_RADIUS,
             damage: BOSS_AOE_DAMAGE + Math.max(0,bossLevel-1)*8,
             telegraphAt: now,
@@ -2616,10 +2618,10 @@ setInterval(() => {
             targetId: target.id,
             x: boss.x,
             y: boss.y,
-            vx: ((target.x - boss.x) / distance) * BOSS_PROJECTILE_SPEED,
-            vy: ((target.y - boss.y) / distance) * BOSS_PROJECTILE_SPEED,
-            impactX: target.x,
-            impactY: target.y,
+            vx: ((impactX - boss.x) / distance) * BOSS_PROJECTILE_SPEED,
+            vy: ((impactY - boss.y) / distance) * BOSS_PROJECTILE_SPEED,
+            impactX,
+            impactY,
             r: 18,
             damage: BOSS_PROJECTILE_DAMAGE + Math.max(0,bossLevel-1)*10,
             range: distance,
