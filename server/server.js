@@ -67,8 +67,8 @@ const MELEE_XP_PER_HIT = 10;
 const MELEE_GRID_SIZE = 24;
 const MELEE_COOLDOWN_MS = 650;
 
-const SHOP_NPC = { x: 3250, y: 2200, r: 24 };
-const SHOP_INTERACTION_RADIUS = 180;
+const MERCHANT_NPC = { x: 3250, y: 2200, r: 24 };
+const MERCHANT_INTERACTION_RADIUS = 180;
 const BANK_ENABLED = false;
 
 const WEAPONS = {
@@ -445,7 +445,7 @@ function sendStats(p) {
     inventoryCapacity: inventoryCapacity(p),
     weapon: p.weapon,
     ownedWeapons: normalizeOwnedWeapons(p.ownedWeapons, p.weapon || 'sword_neo'),
-    shopNpc: SHOP_NPC,
+    merchantNpc: MERCHANT_NPC,
     bankEnabled: BANK_ENABLED,
     equippedSkin: cosmetics.getSkin(p.equippedSkin) ? p.equippedSkin : 'core_default',
     equippedArmor: cosmetics.getArmor(p.equippedArmor) ? p.equippedArmor : '',
@@ -1394,12 +1394,12 @@ function findPlayer(id, room) {
 
 function sendItemShopState(p,message='',openOnly=false){
   if(!p?.ws)return;
-  send(p.ws,{type:'item_shop_state',message,openOnly:!!openOnly,near:cosmeticShopNearby(p),items:publicItemCatalog(),stock:Object.fromEntries(SHOP_STOCK),gold:Math.max(0,Number(p.gold)||0),diamonds:Math.max(0,Number(p.diamonds)||0),inventory:inventoryPayload(p),inventoryCapacity:inventoryCapacity(p),equippedWeapon:p.weapon||'',equippedArmor:p.equippedArmor||'',equippedBackpack:p.equippedBackpack||'',shopNpc:SHOP_NPC});
+  send(p.ws,{type:'item_shop_state',message,openOnly:!!openOnly,near:merchantNearby(p),items:publicItemCatalog(),stock:Object.fromEntries(SHOP_STOCK),gold:Math.max(0,Number(p.gold)||0),diamonds:Math.max(0,Number(p.diamonds)||0),inventory:inventoryPayload(p),inventoryCapacity:inventoryCapacity(p),equippedWeapon:p.weapon||'',equippedArmor:p.equippedArmor||'',equippedBackpack:p.equippedBackpack||'',merchantNpc:MERCHANT_NPC});
 }
 function buyShopItem(ws,itemId){
   const p=clients.get(ws);if(!p)return;
   if(!p.room||!p.alive)return send(ws,{type:'item_shop_result',ok:false,message:'No puedes comprar ahora.'});
-  if(!cosmeticShopNearby(p))return send(ws,{type:'item_shop_result',ok:false,message:'Párate sobre el SHOP.'});
+  if(!merchantNearby(p))return send(ws,{type:'item_shop_result',ok:false,message:'Párate sobre el SHOP.'});
   const id=String(itemId||''),item=getItemDefinition(id);if(!item)return send(ws,{type:'item_shop_result',ok:false,message:'Ese objeto no está a la venta.'});
   const stock=SHOP_STOCK.get(id);if(stock!==undefined&&stock<=0)return send(ws,{type:'item_shop_result',ok:false,message:'Ese objeto se agotó por ahora.'});
   const owned=inventoryTotal(p,id)+(p.weapon===id?1:0)+(p.equippedArmor===id?1:0)+(p.equippedBackpack===id?1:0);
@@ -1417,7 +1417,7 @@ function buyShopItem(ws,itemId){
 function sellInventoryItem(ws,slotIndex,qtyRequested=1){
   const p=clients.get(ws);if(!p)return;
   if(!p.room||!p.alive)return send(ws,{type:'item_shop_result',ok:false,message:'No puedes vender ahora.'});
-  if(!cosmeticShopNearby(p))return send(ws,{type:'item_shop_result',ok:false,message:'Párate sobre el SHOP.'});
+  if(!merchantNearby(p))return send(ws,{type:'item_shop_result',ok:false,message:'Párate sobre el SHOP.'});
   const idx=Math.floor(Number(slotIndex));if(!Number.isInteger(idx)||idx<0||idx>=inventoryCapacity(p))return send(ws,{type:'item_shop_result',ok:false,message:'Espacio inválido.'});
   p.inventory=normalizeInventory(p.inventory,inventoryCapacity(p));const slot=p.inventory[idx];if(!slot)return send(ws,{type:'item_shop_result',ok:false,message:'Ese espacio está vacío.'});
   if(slot.itemId===p.weapon||slot.itemId===p.equippedArmor||slot.itemId===p.equippedBackpack)return send(ws,{type:'item_shop_result',ok:false,message:'No puedes vender un objeto equipado.'});
@@ -1449,7 +1449,7 @@ function shopBuy(ws, requestedWeapon) {
   const p = clients.get(ws);
   if (!p) return;
   if (!p.room || !p.alive) return send(ws, { type: 'shop_result', ok: false, message: 'No puedes usar el arsenal ahora.' });
-  if (!cosmeticShopNearby(p)) return send(ws, { type: 'shop_result', ok: false, message: 'Párate sobre el SHOP.' });
+  if (!merchantNearby(p)) return send(ws, { type: 'shop_result', ok: false, message: 'Párate sobre el SHOP.' });
 
   const weaponId = String(requestedWeapon || '');
   const item = WEAPONS[weaponId];
@@ -1514,7 +1514,7 @@ function buyWeaponSkin(ws, skinId) {
   const p = clients.get(ws);
   if (!p) return;
   if (!p.room || !p.alive) return cosmeticShopError(ws, 'No puedes usar armaduras de arma ahora.');
-  if (!cosmeticShopNearby(p)) return cosmeticShopError(ws, 'Párate sobre el SHOP.');
+  if (!merchantNearby(p)) return cosmeticShopError(ws, 'Párate sobre el SHOP.');
 
   const skin = cosmetics.getWeaponSkin(skinId);
   if (!skin) return cosmeticShopError(ws, 'Armadura de arma no disponible.');
@@ -1550,7 +1550,7 @@ function equipWeaponSkin(ws, skinId) {
   const p = clients.get(ws);
   if (!p) return;
   if (!p.room || !p.alive) return cosmeticShopError(ws, 'No puedes cambiar el diseño del arma ahora.');
-  if (!cosmeticShopNearby(p)) return cosmeticShopError(ws, 'Acércate al SHOP.');
+  if (!merchantNearby(p)) return cosmeticShopError(ws, 'Acércate al SHOP.');
 
   const id = String(skinId || '');
   p.ownedWeaponSkins = cosmetics.normalizeOwnedWeaponSkins(p.ownedWeaponSkins);
@@ -1576,8 +1576,8 @@ function equipWeaponSkin(ws, skinId) {
   sendPlayerList(p.room);
 }
 
-function cosmeticShopNearby(p) {
-  return !!p && Math.hypot(p.x - SHOP_NPC.x, p.y - SHOP_NPC.y) <= SHOP_INTERACTION_RADIUS;
+function merchantNearby(p) {
+  return !!p && Math.hypot(p.x - MERCHANT_NPC.x, p.y - MERCHANT_NPC.y) <= MERCHANT_INTERACTION_RADIUS;
 }
 
 function sendCosmeticState(p,message='Tienda lista.',unlockedSkin='',unlockedWeapon='',unlockedWeaponSkin='',unlockedArmor=''){
@@ -1592,7 +1592,7 @@ function sendCosmeticState(p,message='Tienda lista.',unlockedSkin='',unlockedWea
     ownedArmors:cosmetics.normalizeOwnedArmors(p.ownedArmors),
     equippedArmor:cosmetics.getArmor(p.equippedArmor)?p.equippedArmor:'',
     ownedWeapons:normalizeOwnedWeapons(p.ownedWeapons,p.weapon||''),weapon:p.weapon,
-    weaponSkinCatalog:cosmetics.publicWeaponCatalog(),shopNpc:SHOP_NPC,
+    weaponSkinCatalog:cosmetics.publicWeaponCatalog(),merchantNpc:MERCHANT_NPC,
     catalog:cosmetics.publicCatalog(),armorCatalog:cosmetics.publicArmorCatalog().filter(a=>SHOP_ARMOR_IDS.includes(a.id)),
     realMoneyOffers:cosmetics.publicRealMoneyOffers(),realMoneyEnabled:false});
 }
@@ -1600,7 +1600,7 @@ function cosmeticShopError(ws,message){send(ws,{type:'cosmetic_result',ok:false,
 function buyCosmeticArmor(ws,armorId){
   const p=clients.get(ws);if(!p)return;
   if(!p.room||!p.alive)return cosmeticShopError(ws,'No puedes usar armaduras ahora.');
-  if(!cosmeticShopNearby(p))return cosmeticShopError(ws,'Párate sobre el SHOP.');
+  if(!merchantNearby(p))return cosmeticShopError(ws,'Párate sobre el SHOP.');
   const armor=cosmetics.getArmor(armorId);if(!armor||!SHOP_ARMOR_IDS.includes(String(armorId||'')))return cosmeticShopError(ws,'Armadura no disponible para venta.');
   p.ownedArmors=cosmetics.normalizeOwnedArmors(p.ownedArmors);
   if(p.ownedArmors.includes(armor.id)){p.equippedArmor=armor.id;void persistPlayer(p);sendCosmeticState(p,'Armadura equipada: '+armor.name,'','','',armor.id);sendStats(p);sendPlayerList(p.room);return;}
@@ -1614,7 +1614,7 @@ function buyCosmeticArmor(ws,armorId){
 function equipCosmeticArmor(ws,armorId){
   const p=clients.get(ws);if(!p)return;
   if(!p.room||!p.alive)return cosmeticShopError(ws,'No puedes cambiar de armadura ahora.');
-  if(!cosmeticShopNearby(p))return cosmeticShopError(ws,'Acércate al SHOP.');
+  if(!merchantNearby(p))return cosmeticShopError(ws,'Acércate al SHOP.');
   const id=String(armorId||'');p.ownedArmors=cosmetics.normalizeOwnedArmors(p.ownedArmors);
   if(!id||!cosmetics.getArmor(id)||!p.ownedArmors.includes(id))return cosmeticShopError(ws,'Armadura bloqueada.');
   p.equippedArmor=p.equippedArmor===id?'':id;void persistPlayer(p);
@@ -1623,7 +1623,7 @@ function equipCosmeticArmor(ws,armorId){
 function buyCosmeticSkin(ws,skinId){
   const p=clients.get(ws);if(!p)return;
   const id=String(skinId||'');if(!p.room||!p.alive)return cosmeticShopError(ws,'No puedes cambiar tu skin ahora.');
-  if(!cosmeticShopNearby(p))return cosmeticShopError(ws,'Acércate al SHOP.');
+  if(!merchantNearby(p))return cosmeticShopError(ws,'Acércate al SHOP.');
   if(!cosmetics.getSkin(id)||!cosmetics.STARTER_SKINS.includes(id))return cosmeticShopError(ws,'Skin base no disponible.');
   p.ownedSkins=cosmetics.normalizeOwnedSkins(p.ownedSkins);p.equippedSkin=id;void persistPlayer(p);
   sendCosmeticState(p,'Skin base equipada: '+cosmetics.getSkin(id).name+'.');sendStats(p);sendPlayerList(p.room);
@@ -1634,7 +1634,7 @@ async function redeemCosmeticCode(ws, rawCode) {
   const p = clients.get(ws);
   if (!p) return;
   if (!p.room || !p.alive) return cosmeticShopError(ws, 'No puedes usar códigos ahora.');
-  if (!cosmeticShopNearby(p)) return cosmeticShopError(ws, 'Acércate al SHOP.');
+  if (!merchantNearby(p)) return cosmeticShopError(ws, 'Acércate al SHOP.');
 
   const code = String(rawCode || '').trim().toUpperCase().replace(/[^A-Z0-9_-]/g, '').slice(0, 32);
   if (!code) return cosmeticShopError(ws, 'Escribe un código.');
@@ -1746,7 +1746,7 @@ async function withdrawBank(ws) {
   });
 }
 
-function buyAmmo(ws){const p=clients.get(ws);if(!p)return;if(!p.room)return send(ws,{type:'shop_result',ok:false,message:'No estás dentro de una sala.'});if(!p.alive)return send(ws,{type:'shop_result',ok:false,message:'No puedes comprar estando destruido.'});if(Math.hypot(p.x-SHOP_NPC.x,p.y-SHOP_NPC.y)>SHOP_INTERACTION_RADIUS)return send(ws,{type:'shop_result',ok:false,message:'Párate sobre el SHOP.'});const ammo=inventoryTotal(p,'ammo'),gold=Math.max(0,Number(p.gold)||0);if(ammo>=maxAmmoForPlayer(p))return send(ws,{type:'shop_result',ok:false,message:'La mochila está llena de munición.'});if(gold<AMMO_PACK_COST)return send(ws,{type:'shop_result',ok:false,message:'Necesitas '+AMMO_PACK_COST+' de oro.'});const before=ammo;addInventoryItem(p,'ammo',AMMO_PACK_SIZE);const purchased=inventoryTotal(p,'ammo')-before;if(purchased<=0)return send(ws,{type:'shop_result',ok:false,message:'No hay espacio para más munición.'});p.gold=gold-AMMO_PACK_COST;void persistPlayer(p);send(ws,{type:'shop_result',ok:true,message:'Compraste '+purchased+' balas y fueron guardadas en el inventario.',gold:p.gold,ammo:inventoryTotal(p,'ammo'),maxAmmo:maxAmmoForPlayer(p)});sendInventoryState(p,'Munición guardada en la mochila.');sendStats(p);}function handleShotV2(ws,cellX,cellY,requestedAngle){
+function buyAmmo(ws){const p=clients.get(ws);if(!p)return;if(!p.room)return send(ws,{type:'shop_result',ok:false,message:'No estás dentro de una sala.'});if(!p.alive)return send(ws,{type:'shop_result',ok:false,message:'No puedes comprar estando destruido.'});if(Math.hypot(p.x-MERCHANT_NPC.x,p.y-MERCHANT_NPC.y)>MERCHANT_INTERACTION_RADIUS)return send(ws,{type:'shop_result',ok:false,message:'Párate sobre el SHOP.'});const ammo=inventoryTotal(p,'ammo'),gold=Math.max(0,Number(p.gold)||0);if(ammo>=maxAmmoForPlayer(p))return send(ws,{type:'shop_result',ok:false,message:'La mochila está llena de munición.'});if(gold<AMMO_PACK_COST)return send(ws,{type:'shop_result',ok:false,message:'Necesitas '+AMMO_PACK_COST+' de oro.'});const before=ammo;addInventoryItem(p,'ammo',AMMO_PACK_SIZE);const purchased=inventoryTotal(p,'ammo')-before;if(purchased<=0)return send(ws,{type:'shop_result',ok:false,message:'No hay espacio para más munición.'});p.gold=gold-AMMO_PACK_COST;void persistPlayer(p);send(ws,{type:'shop_result',ok:true,message:'Compraste '+purchased+' balas y fueron guardadas en el inventario.',gold:p.gold,ammo:inventoryTotal(p,'ammo'),maxAmmo:maxAmmoForPlayer(p)});sendInventoryState(p,'Munición guardada en la mochila.');sendStats(p);}function handleShotV2(ws,cellX,cellY,requestedAngle,targetId){
   const p=clients.get(ws);if(!p||!p.room||!p.alive)return;
   const sword=WEAPONS[p.weapon]||WEAPONS.sword_neo;const now=Date.now();
   if(now-(p.lastShot||0)<Math.max(MELEE_COOLDOWN_MS,Number(sword.fireRate)||700))return send(ws,{type:'melee_result',ok:false,reason:'cooldown'});
@@ -1756,7 +1756,14 @@ function buyAmmo(ws){const p=clients.get(ws);if(!p)return;if(!p.room)return send
   if(Math.abs(cx-px)+Math.abs(cy-py)>1)return send(ws,{type:'melee_result',ok:false,reason:'not_adjacent'});
   p.lastShot=now;p.angle=Number.isFinite(Number(requestedAngle))?Number(requestedAngle):p.angle;applyCombatStats(p);
   const enemies=ensureRoomEnemies(p.room);let targetEnemy=null;let targetPlayer=null;
-  for(const e of enemies){if(e.kind==='boss'||e.dead)continue;if(Math.abs(Math.round(e.x/MELEE_GRID_SIZE)-px)+Math.abs(Math.round(e.y/MELEE_GRID_SIZE)-py)<=1){targetEnemy=e;break;}}
+  const requestedTarget=String(targetId||'');
+  if(requestedTarget){
+    targetEnemy=enemies.find(e=>e&&!e.dead&&e.kind!=='boss'&&String(e.id||'')===requestedTarget)||null;
+    if(targetEnemy&&Math.abs(Math.round(targetEnemy.x/MELEE_GRID_SIZE)-px)+Math.abs(Math.round(targetEnemy.y/MELEE_GRID_SIZE)-py)>1)targetEnemy=null;
+  }
+  if(!targetEnemy){
+    for(const e of enemies){if(e.kind==='boss'||e.dead)continue;if(Math.abs(Math.round(e.x/MELEE_GRID_SIZE)-px)+Math.abs(Math.round(e.y/MELEE_GRID_SIZE)-py)<=1){targetEnemy=e;break;}}
+  }
   for(const ws2 of room){const other=clients.get(ws2);if(!other||other===p||!other.alive||inSafeZone(other.x,other.y,24))continue;if(Math.abs(Math.round(other.x/MELEE_GRID_SIZE)-px)+Math.abs(Math.round(other.y/MELEE_GRID_SIZE)-py)<=1){targetPlayer={ws:ws2,p:other};break;}}
   const damage=Math.max(1,Math.round(Number(p.meleeLevel||1)+Number(sword.power||0)));
   let hit=false,hitX=p.x,hitY=p.y,targetId='';
@@ -2351,7 +2358,7 @@ wss.on('connection', async (ws) => {
         return;
       }
 
-      if (msg.type === 'melee_attack') { if (!p.frozen) handleShotV2(ws,msg.cellX,msg.cellY,msg.angle); return; }
+      if (msg.type === 'melee_attack') { if (!p.frozen) handleShotV2(ws,msg.cellX,msg.cellY,msg.angle,msg.targetId); return; }
       if (msg.type === 'grid_state') { if(!p.room||p.frozen||!p.alive)return; const cx=Math.round(Number(msg.cellX)||p.x/MELEE_GRID_SIZE),cy=Math.round(Number(msg.cellY)||p.y/MELEE_GRID_SIZE); const nx=clamp(cx*MELEE_GRID_SIZE,MELEE_GRID_SIZE,WORLD.w-MELEE_GRID_SIZE),ny=clamp(cy*MELEE_GRID_SIZE,MELEE_GRID_SIZE,WORLD.h-MELEE_GRID_SIZE); const dist=Math.hypot(nx-p.x,ny-p.y); if(dist<=MELEE_GRID_SIZE*1.45){p.x=nx;p.y=ny;if(Number.isFinite(Number(msg.angle)))p.angle=Number(msg.angle);p.lastStateAt=Date.now();broadcastRoom(p.room,{type:'player_update',player:publicPlayer(p)},ws);} return; }
       if (msg.type === 'fire') { return; }
 
