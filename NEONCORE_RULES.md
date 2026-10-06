@@ -19,7 +19,7 @@
 
 ## 2. Regla crítica de versiones
 
-- La versión vigente del proyecto es **V73**.
+- La versión vigente del proyecto es **V74**.
 - Cada cambio que modifique el cliente/juego debe crear una **nueva V**.
 - Nunca modificar una V anterior para introducir una nueva modificación del cliente.
 - Después de crear la nueva V, eliminar las V antiguas del cliente para que quede solamente la versión vigente.
@@ -232,10 +232,10 @@ No dejar:
 
 ## 18. Estado conocido al crear este documento
 
-- Cliente actual: **V73**.
-- V73 usa terreno 2D pixel-art por tiles, jugador 2D pixel-art y movimiento por casillas.
+- Cliente actual: **V74**.
+- V74 usa terreno 2D pixel-art por tiles, jugador 2D pixel-art y movimiento por casillas.
 - V72 introduce movimiento por cuadrícula invisible, combate melee y el nuevo bioma desértico.
-- V72 fue reemplazada y eliminada al publicar V73. V73 es la versión vigente.
+- V72 fue reemplazada y eliminada al publicar V74. V74 es la versión vigente.
 - No deben restaurarse esas V.
 - La limpieza anterior eliminó referencias de BUILD y de los parámetros legacy de actualización en los archivos auditados.
 - Se detectó y eliminó duplicación de `startNeonMusic` y `stopNeonMusic` en V70.
@@ -259,4 +259,13 @@ y se refiera a este documento, usarlo como fuente de continuidad del proyecto y 
 Cuando exista una instrucción nueva y explícita del usuario, aplicar la nueva instrucción sin borrar las reglas permanentes que sigan siendo compatibles.
 
 ---
-Última versión de cliente registrada en este documento: **V73**
+Última versión de cliente registrada en este documento: **V74**
+
+
+## 16. Dirección visual actual
+- El juego es un RPG 2D pixel art; no usar como terreno el antiguo mapa neon, rejilla neon ni fondos tipo wallpaper.
+- El terreno actual debe ser desértico, legible y ligero, con arena, piedras, cactus y decoración pixel-art original.
+- Se puede tomar como referencia la claridad de lectura de RPG/MMORPG 2D clásicos como Rucoy Online, pero no copiar sus sprites, mapas, código ni assets propietarios.
+- Los personajes deben leerse como sprites pixel-art, con orientación por dirección y armas visibles en la mano.
+- Las espadas deben acompañar la orientación del personaje y tener una animación de ataque/swing claramente visible.
+- El NPC de la tienda NO abre automáticamente por proximidad. Solo se abre al tocar/hacer clic directamente sobre el NPC estando suficientemente cerca.
