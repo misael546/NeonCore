@@ -436,7 +436,7 @@ html.pc-controls #controlConfigBtn,html.touch-controls #controlConfigBtn{display
   </div>
 </section>
 </div></div>
-<div id="dropConfirm" class="dropConfirm" aria-hidden="true"><div class="dropConfirmCard"><strong>DROPEAR?</strong><span id="dropConfirmText">¿Quieres soltar este stack de munición?</span><div><button id="dropConfirmNo" type="button">NO</button><button id="dropConfirmYes" type="button">SÍ, SOLTAR</button></div></div></div>
+<div id="dropConfirm" class="dropConfirm" aria-hidden="true"><div class="dropConfirmCard"><strong>DROPEAR?</strong><div><button id="dropConfirmNo" type="button">NO</button><button id="dropConfirmYes" type="button">SÍ, SOLTAR</button></div></div></div>
 <button id="pickupBtn" type="button" aria-label="Recoger objeto cercano" title="Recoger">✋</button>
 <script>
 "use strict";
@@ -2175,24 +2175,14 @@ function updateHud(){
 function clientInventoryTotal(itemId="ammo"){let total=0;for(const slot of inventorySlots||[])if(slot&&String(slot.itemId||slot.id||"")===String(itemId))total+=Math.max(0,Number(slot.qty)||0);return total;}
 function clientItemDef(id){
   const key=String(id||"");
-  if(key==="ammo")return {id:"ammo",name:"MUNICIÓN",category:"consumable",stackable:true};
   return itemShopCatalog.find(x=>String(x.id)===key)||null;
 }
 function itemIcon(id){
   const def=clientItemDef(id)||{},key=String(id||"");
   if(key==="backpack_basic")return '<img class="backpackIconImg" src="./assets/backpack.svg" alt="Inventario">';
-  if(key==="ammo")return "🔸";
   if(def.category==="armor")return "🛡";
   if(def.category==="weapon")return def.weaponType==="melee"?"🗡️":"🗡️";
   return "📦";
-}
-function consumeClientAmmo(count=1){
-  let remaining=Math.max(0,Math.floor(Number(count)||0));
-  for(let i=0;i<inventorySlots.length&&remaining>0;i++){
-    const slot=inventorySlots[i];if(!slot||String(slot.itemId||slot.id||"")!=="ammo")continue;
-    const take=Math.min(remaining,Math.max(0,Number(slot.qty)||0));slot.qty-=take;remaining-=take;if(slot.qty<=0)inventorySlots[i]=null;
-  }
-  p.ammo=clientInventoryTotal("ammo");renderInventory();updateResourceHud();
 }
 function syncClientInventory(slots,capacity){
   const src=Array.isArray(slots)?slots:[],cap=Math.max(BASE_INVENTORY_SLOTS,Math.min(MAX_INVENTORY_SLOTS,Math.floor(Number(capacity)||src.length||BASE_INVENTORY_SLOTS)));
