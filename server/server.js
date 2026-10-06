@@ -1,4 +1,4 @@
-/* V74 · cuentas, cuadrícula, melee y jefes */
+/* V79 · melee, cuadrícula, cansancio y combate por combo */
 'use strict';
 
 const http = require('http');
@@ -15,7 +15,7 @@ const PORT = Number(process.env.PORT || 10000);
 
 const WORLD = { w: 6000, h: 4400 };
 const MAX_PLAYERS = 16;
-const SAFE_ZONE = { x: 3000, y: 2200, r: 300 };
+const SAFE_ZONE = { x: 3000, y: 2208, r: 300 };
 
 let UNIFIED_RELEASE_MANIFEST = {
   game: 'Neon Core',
@@ -66,21 +66,27 @@ const MELEE_MAX_LEVEL = 1000;
 const MELEE_XP_PER_HIT = 10;
 const MELEE_GRID_SIZE = 24;
 const MELEE_COOLDOWN_MS = 650;
+const MAX_FATIGUE = 100;
+const BASIC_ATTACK_FATIGUE = 2;
+const COMBO_ATTACK_FATIGUE = 20;
+const FATIGUE_REGEN_PER_SEC = 7;
+const COMBO_WINDOW_MS = 2200;
+const COMBO_HITS_REQUIRED = 3;
 
-const MERCHANT_NPC = { x: 3250, y: 2200, r: 24 };
+const MERCHANT_NPC = { x: 3240, y: 2208, r: 24 };
 const MERCHANT_INTERACTION_RADIUS = 180;
 const BANK_ENABLED = false;
 
 const WEAPONS = {
-  sword_neo:{name:'ESPADA NEO',cost:300,power:140,fireRate:700,maxAmmo:0,range:48,arc:1.05,type:'melee',forSale:true,skin:'https://opengameart.org/sites/default/files/sword4_1.png'},
-  sword_pulse:{name:'ESPADA PULSO',cost:1200,power:280,fireRate:720,maxAmmo:0,range:48,arc:1.10,type:'melee',forSale:true,skin:'https://opengameart.org/sites/default/files/sword-3_0.png'},
-  sword_void:{name:'ESPADA VACÍO',cost:4500,power:520,fireRate:760,maxAmmo:0,range:48,arc:1.15,type:'melee',forSale:true,skin:'https://opengameart.org/sites/default/files/sword2_8.png'},
-  sword_solar:{name:'ESPADA SOLAR',cost:15000,power:850,fireRate:820,maxAmmo:0,range:48,arc:1.20,type:'melee',forSale:true,skin:'https://opengameart.org/sites/default/files/sword_39.png'},
+  sword_neo:{name:'ESPADA BÁSICA',cost:100,power:10,fireRate:650,maxAmmo:0,range:48,arc:1.05,type:'melee',forSale:true,skin:'https://opengameart.org/sites/default/files/sword4_1.png'},
+  sword_pulse:{name:'ESPADA PULSO',cost:1200,power:280,fireRate:720,maxAmmo:0,range:48,arc:1.10,type:'melee',forSale:false,skin:'https://opengameart.org/sites/default/files/sword-3_0.png'},
+  sword_void:{name:'ESPADA VACÍO',cost:4500,power:520,fireRate:760,maxAmmo:0,range:48,arc:1.15,type:'melee',forSale:false,skin:'https://opengameart.org/sites/default/files/sword2_8.png'},
+  sword_solar:{name:'ESPADA SOLAR',cost:15000,power:850,fireRate:820,maxAmmo:0,range:48,arc:1.20,type:'melee',forSale:false,skin:'https://opengameart.org/sites/default/files/sword_39.png'},
   sword_omega:{name:'ESPADA OMEGA',cost:50000,power:1400,fireRate:900,maxAmmo:0,range:48,arc:1.25,type:'melee',forSale:true,skin:'https://opengameart.org/sites/default/files/katana_2.png'}
 };
 const SHOP_FIREARM_IDS = Object.freeze([]);
-const SHOP_SWORD_IDS = Object.freeze(['sword_neo','sword_pulse','sword_void','sword_solar','sword_omega']);
-const SHOP_ARMOR_IDS = Object.freeze(['pixel_cyan','rust_core','toxic_orb','plasma_violet','aurora']);
+const SHOP_SWORD_IDS = Object.freeze(['sword_neo']);
+const SHOP_ARMOR_IDS = Object.freeze([]);
 const BACKPACK_ITEM_ID = 'backpack_basic';
 const BACKPACK_ITEM = Object.freeze({
   id: BACKPACK_ITEM_ID, name:'MOCHILA BÁSICA', rarity:'Común', category:'backpack',
@@ -381,6 +387,9 @@ function publicPlayer(p) {
     powerAttackBonus: weaponPowerAttackBonus(p.power),
     meleeLevel: masteryLevelFromXp(p.meleeXp||0),
     meleeXp: Math.max(0,Number(p.meleeXp)||0),
+    fatigue: Math.max(0,Math.min(Number(p.maxFatigue)||MAX_FATIGUE,Number(p.fatigue)||0)),
+    maxFatigue: Number(p.maxFatigue)||MAX_FATIGUE,
+    comboCount: Math.max(0,Number(p.comboCount)||0),
     equippedSkin: cosmetics.getSkin(p.equippedSkin) ? p.equippedSkin : 'pixel_human',
     equippedArmor: cosmetics.getArmor(p.equippedArmor) ? p.equippedArmor : '',
     equippedBackpack: p.equippedBackpack || ''
@@ -441,6 +450,9 @@ function sendStats(p) {
     meleeXp: Math.max(0,Number(p.meleeXp)||0),
     meleeXpIntoLevel: masteryXpIntoLevel(p.meleeXp||0),
     meleeXpNeed: masteryXpToNextLevel(masteryLevelFromXp(p.meleeXp||0)),
+    fatigue: Math.max(0,Math.min(Number(p.maxFatigue)||MAX_FATIGUE,Number(p.fatigue)||0)),
+    maxFatigue: Number(p.maxFatigue)||MAX_FATIGUE,
+    comboCount: Math.max(0,Number(p.comboCount)||0),
     inventory: inventoryPayload(p),
     inventoryCapacity: inventoryCapacity(p),
     weapon: p.weapon,
@@ -1057,22 +1069,22 @@ function enemyStats(kind,level=1) {
   if(kind==='boss'){
     return {
       r:54,hp:BOSS_HP+Math.max(0,lv-1)*900,speed:58+Math.max(0,lv-1)*1.4,damage:0,
-      name:BOSS_NAME,areaRadius:BOSS_AGGRO_RANGE,aggroRadius:BOSS_AGGRO_RANGE,
+      name:'COLOSO DE ARENA',areaRadius:BOSS_AGGRO_RANGE,aggroRadius:BOSS_AGGRO_RANGE,
       attackRange:BOSS_ATTACK_RANGE,leashRadius:Infinity,attackCooldown:0,shape:'boss'
     };
   }
   if(kind==='elite'){
     return {
-      r:30,hp:700+Math.max(0,lv-1)*75,speed:82+Math.max(0,lv-1)*1.8,
-      damage:36+Math.max(0,lv-1)*2.6,areaRadius:360,aggroRadius:620,leashRadius:520,
-      attackCooldown:Math.max(440,650-Math.max(0,lv-1)*7),shape:'hex',name:'GUARDIÁN NEÓN'
+      r:26,hp:360+Math.max(0,lv-1)*34,speed:70+Math.max(0,lv-1)*1.1,
+      damage:12+Math.max(0,lv-1)*1.15,areaRadius:320,aggroRadius:560,leashRadius:500,
+      attackCooldown:Math.max(520,760-Math.max(0,lv-1)*5),shape:'hex',name:'GUARDIÁN DE DUNAS'
     };
   }
   return {
-    r:22,hp:140+Math.max(0,lv-1)*28,speed:72+Math.max(0,lv-1)*1.5,
-    damage:18+Math.max(0,lv-1)*1.25,areaRadius:190,aggroRadius:440,leashRadius:420,
-    attackCooldown:Math.max(500,760-Math.max(0,lv-1)*6),
-    shape:['square','triangle','hex'][Math.floor(Math.random()*3)],name:'DRON NEÓN'
+    r:20,hp:90+Math.max(0,lv-1)*16,speed:68+Math.max(0,lv-1)*1.0,
+    damage:8+Math.max(0,lv-1)*0.75,areaRadius:180,aggroRadius:400,leashRadius:390,
+    attackCooldown:Math.max(560,820-Math.max(0,lv-1)*5),
+    shape:['square','triangle','hex'][Math.floor(Math.random()*3)],name:'ESCARABAJO DE ARENA'
   };
 }
 
@@ -1362,22 +1374,9 @@ function spawnPosition(code) {
   const index = room.size;
 
   const spots = [
-    [3000, 2200],
-    [2900, 2200],
-    [3100, 2200],
-    [3000, 2100],
-    [2750, 2200],
-    [3000, 2300],
-    [3000, 1900],
-    [3000, 2500],
-    [2700, 1900],
-    [3300, 1900],
-    [2700, 2500],
-    [3300, 2500],
-    [2850, 1850],
-    [3150, 1850],
-    [2850, 2550],
-    [3150, 2550]
+    [3000,2208],[2976,2208],[3024,2208],[3000,2184],[3000,2232],
+    [2976,2184],[3024,2184],[2976,2232],[3024,2232],[2952,2208],
+    [3048,2208],[3000,2160],[3000,2256],[2952,2184],[3048,2232]
   ];
 
   const spot = spots[index % spots.length];
@@ -1748,29 +1747,74 @@ async function withdrawBank(ws) {
 
 function buyAmmo(ws){const p=clients.get(ws);if(!p)return;if(!p.room)return send(ws,{type:'shop_result',ok:false,message:'No estás dentro de una sala.'});if(!p.alive)return send(ws,{type:'shop_result',ok:false,message:'No puedes comprar estando destruido.'});if(Math.hypot(p.x-MERCHANT_NPC.x,p.y-MERCHANT_NPC.y)>MERCHANT_INTERACTION_RADIUS)return send(ws,{type:'shop_result',ok:false,message:'Párate sobre el SHOP.'});const ammo=inventoryTotal(p,'ammo'),gold=Math.max(0,Number(p.gold)||0);if(ammo>=maxAmmoForPlayer(p))return send(ws,{type:'shop_result',ok:false,message:'La mochila está llena de munición.'});if(gold<AMMO_PACK_COST)return send(ws,{type:'shop_result',ok:false,message:'Necesitas '+AMMO_PACK_COST+' de oro.'});const before=ammo;addInventoryItem(p,'ammo',AMMO_PACK_SIZE);const purchased=inventoryTotal(p,'ammo')-before;if(purchased<=0)return send(ws,{type:'shop_result',ok:false,message:'No hay espacio para más munición.'});p.gold=gold-AMMO_PACK_COST;void persistPlayer(p);send(ws,{type:'shop_result',ok:true,message:'Compraste '+purchased+' balas y fueron guardadas en el inventario.',gold:p.gold,ammo:inventoryTotal(p,'ammo'),maxAmmo:maxAmmoForPlayer(p)});sendInventoryState(p,'Munición guardada en la mochila.');sendStats(p);}function handleShotV2(ws,cellX,cellY,requestedAngle,targetId){
   const p=clients.get(ws);if(!p||!p.room||!p.alive)return;
-  const sword=WEAPONS[p.weapon]||WEAPONS.sword_neo;const now=Date.now();
-  if(now-(p.lastShot||0)<Math.max(MELEE_COOLDOWN_MS,Number(sword.fireRate)||700))return send(ws,{type:'melee_result',ok:false,reason:'cooldown'});
+  const sword=WEAPONS[p.weapon]||WEAPONS.sword_neo,now=Date.now();
+  if(now-(p.lastShot||0)<Math.max(MELEE_COOLDOWN_MS,Number(sword.fireRate)||650))return send(ws,{type:'melee_result',ok:false,reason:'cooldown'});
   const room=rooms.get(p.room);if(!room)return;
   const cx=Math.round(Number.isFinite(Number(cellX))?Number(cellX):p.x/MELEE_GRID_SIZE),cy=Math.round(Number.isFinite(Number(cellY))?Number(cellY):p.y/MELEE_GRID_SIZE);
   const px=Math.round(p.x/MELEE_GRID_SIZE),py=Math.round(p.y/MELEE_GRID_SIZE);
   if(Math.abs(cx-px)+Math.abs(cy-py)>1)return send(ws,{type:'melee_result',ok:false,reason:'not_adjacent'});
-  p.lastShot=now;p.angle=Number.isFinite(Number(requestedAngle))?Number(requestedAngle):p.angle;applyCombatStats(p);
-  const enemies=ensureRoomEnemies(p.room);let targetEnemy=null;let targetPlayer=null;
-  const requestedTarget=String(targetId||'');
-  if(requestedTarget){
-    targetEnemy=enemies.find(e=>e&&!e.dead&&e.kind!=='boss'&&String(e.id||'')===requestedTarget)||null;
-    if(targetEnemy&&Math.abs(Math.round(targetEnemy.x/MELEE_GRID_SIZE)-px)+Math.abs(Math.round(targetEnemy.y/MELEE_GRID_SIZE)-py)>1)targetEnemy=null;
-  }
+
+  const isCombo=Number(p.comboCount||0)>=COMBO_HITS_REQUIRED && now<=Number(p.comboExpiresAt||0);
+  const fatigue=Math.max(0,Number(p.fatigue)||0);
+  if(isCombo && fatigue<COMBO_ATTACK_FATIGUE)return send(ws,{type:'melee_result',ok:false,reason:'fatigue',fatigue,maxFatigue:MAX_FATIGUE});
+  if(!isCombo && fatigue<BASIC_ATTACK_FATIGUE)return send(ws,{type:'melee_result',ok:false,reason:'fatigue',fatigue,maxFatigue:MAX_FATIGUE});
+
+  p.lastShot=now;
+  p.angle=Number.isFinite(Number(requestedAngle))?Number(requestedAngle):p.angle;
+  applyCombatStats(p);
+
+  const enemies=ensureRoomEnemies(p.room);
+  const requestedTarget=String(targetId||"");
+  let targetEnemy=requestedTarget
+    ? enemies.find(e=>e&&!e.dead&&e.kind!=='boss'&&String(e.id||'')===requestedTarget)||null
+    : null;
+  if(targetEnemy && Math.abs(Math.round(targetEnemy.x/MELEE_GRID_SIZE)-px)+Math.abs(Math.round(targetEnemy.y/MELEE_GRID_SIZE)-py)>1)targetEnemy=null;
   if(!targetEnemy){
-    for(const e of enemies){if(e.kind==='boss'||e.dead)continue;if(Math.abs(Math.round(e.x/MELEE_GRID_SIZE)-px)+Math.abs(Math.round(e.y/MELEE_GRID_SIZE)-py)<=1){targetEnemy=e;break;}}
+    for(const e of enemies){
+      if(e.kind==='boss'||e.dead)continue;
+      if(Math.abs(Math.round(e.x/MELEE_GRID_SIZE)-px)+Math.abs(Math.round(e.y/MELEE_GRID_SIZE)-py)<=1){targetEnemy=e;break;}
+    }
   }
-  for(const ws2 of room){const other=clients.get(ws2);if(!other||other===p||!other.alive||inSafeZone(other.x,other.y,24))continue;if(Math.abs(Math.round(other.x/MELEE_GRID_SIZE)-px)+Math.abs(Math.round(other.y/MELEE_GRID_SIZE)-py)<=1){targetPlayer={ws:ws2,p:other};break;}}
-  const damage=Math.max(1,Math.round(Number(p.meleeLevel||1)+Number(sword.power||0)));
-  let hit=false,hitX=p.x,hitY=p.y,hitTargetId='';
-  if(targetEnemy){targetEnemy.hp=clamp(targetEnemy.hp-damage,0,targetEnemy.maxHp);targetEnemy.lastHitAt=now;hit=true;hitX=targetEnemy.x;hitY=targetEnemy.y;hitTargetId=targetEnemy.id;addDamageXp(p,MELEE_XP_PER_HIT);if(targetEnemy.hp<=0){const reward=Math.max(1,Math.round(120+targetEnemy.level*18));p.gold=(Number(p.gold)||0)+reward;p.kills=(Number(p.kills)||0)+1;p.xp=(Number(p.xp)||0)+Math.max(20,targetEnemy.level*12);despawnEnemy(p.room,targetEnemy,'defeated');}}
-  if(targetPlayer){const actual=Math.max(1,Math.round(damage-Math.max(0,Number(targetPlayer.p.defense)||0)*.55));targetPlayer.p.hp=clamp(targetPlayer.p.hp-actual,0,maxHpForLevel(targetPlayer.p.level));hit=true;hitX=targetPlayer.p.x;hitY=targetPlayer.p.y;hitTargetId=targetPlayer.p.id;addDamageXp(p,MELEE_XP_PER_HIT);send(targetPlayer.ws,{type:'pvp_damage',amount:actual,hp:targetPlayer.p.hp,maxHp:maxHpForLevel(targetPlayer.p.level),attacker:p.name});if(targetPlayer.p.hp<=0&&targetPlayer.p.alive&&!targetPlayer.p.frozen)markPlayerDead(targetPlayer.p);}
-  send(ws,{type:'melee_result',ok:true,hit,targetId:hitTargetId,damage,meleeLevel:p.meleeLevel,x:hitX,y:hitY});
-  broadcastRoom(p.room,{type:'melee_effect',attackerId:p.id,x:p.x,y:p.y,angle:p.angle,hitX,hitY,sword:p.weapon,hit});
+
+  const basicDamage=Math.max(1,Math.round(Number(p.meleeLevel||1)+Number(sword.power||0)));
+  const specialDamage=Math.max(basicDamage+1,Math.round(basicDamage*2.2));
+  const damage=isCombo?specialDamage:basicDamage;
+  let hit=false,hitX=p.x,hitY=p.y,hitTargetId='',hitTargets=[];
+  const hitSet=new Set();
+
+  if(isCombo){
+    for(const e of enemies){
+      if(e.kind==='boss'||e.dead)continue;
+      const ex=Math.round(e.x/MELEE_GRID_SIZE),ey=Math.round(e.y/MELEE_GRID_SIZE);
+      if(Math.max(Math.abs(ex-px),Math.abs(ey-py))>1)continue;
+      e.hp=clamp(e.hp-damage,0,e.maxHp);e.lastHitAt=now;hit=true;hitX=e.x;hitY=e.y;hitTargets.push(e.id);hitSet.add(e.id);addDamageXp(p,MELEE_XP_PER_HIT);
+      if(e.hp<=0){
+        const reward=Math.max(1,Math.round(120+e.level*18));p.gold=(Number(p.gold)||0)+reward;p.kills=(Number(p.kills)||0)+1;p.xp=(Number(p.xp)||0)+Math.max(20,e.level*12);levelUpIfNeeded(p);despawnEnemy(p.room,e,'defeated');
+      }
+    }
+  }else if(targetEnemy){
+    targetEnemy.hp=clamp(targetEnemy.hp-damage,0,targetEnemy.maxHp);targetEnemy.lastHitAt=now;hit=true;hitX=targetEnemy.x;hitY=targetEnemy.y;hitTargetId=targetEnemy.id;hitTargets=[targetEnemy.id];hitSet.add(targetEnemy.id);addDamageXp(p,MELEE_XP_PER_HIT);
+    if(targetEnemy.hp<=0){
+      const reward=Math.max(1,Math.round(120+targetEnemy.level*18));p.gold=(Number(p.gold)||0)+reward;p.kills=(Number(p.kills)||0)+1;p.xp=(Number(p.xp)||0)+Math.max(20,targetEnemy.level*12);levelUpIfNeeded(p);despawnEnemy(p.room,targetEnemy,'defeated');
+    }
+  }
+
+  let targetPlayer=null;
+  for(const ws2 of room){
+    const other=clients.get(ws2);if(!other||other===p||!other.alive||inSafeZone(other.x,other.y,24))continue;
+    if(Math.abs(Math.round(other.x/MELEE_GRID_SIZE)-px)+Math.abs(Math.round(other.y/MELEE_GRID_SIZE)-py)<=1){targetPlayer={ws:ws2,p:other};break;}
+  }
+  if(targetPlayer&&!isCombo){
+    const actual=Math.max(1,Math.round(damage-Math.max(0,Number(targetPlayer.p.defense)||0)*.55));
+    targetPlayer.p.hp=clamp(targetPlayer.p.hp-actual,0,maxHpForLevel(targetPlayer.p.level));hit=true;hitX=targetPlayer.p.x;hitY=targetPlayer.p.y;hitTargetId=targetPlayer.p.id;addDamageXp(p,MELEE_XP_PER_HIT);
+    send(targetPlayer.ws,{type:'pvp_damage',amount:actual,hp:targetPlayer.p.hp,maxHp:maxHpForLevel(targetPlayer.p.level),attacker:p.name});
+    if(targetPlayer.p.hp<=0&&targetPlayer.p.alive&&!targetPlayer.p.frozen)markPlayerDead(targetPlayer.p);
+  }
+
+  p.fatigue=clamp(fatigue-(isCombo?COMBO_ATTACK_FATIGUE:BASIC_ATTACK_FATIGUE),0,MAX_FATIGUE);
+  if(isCombo){p.comboCount=0;p.comboExpiresAt=0;}else if(hit){p.comboCount=(now<=Number(p.comboExpiresAt||0)?Number(p.comboCount||0):0)+1;p.comboExpiresAt=now+COMBO_WINDOW_MS;}
+  send(ws,{type:'melee_result',ok:true,hit,targetId:hitTargetId,targets:hitTargets,damage,isCombo,comboCount:p.comboCount,fatigue:p.fatigue,maxFatigue:MAX_FATIGUE,meleeLevel:p.meleeLevel,x:hitX,y:hitY});
+  broadcastRoom(p.room,{type:'melee_effect',attackerId:p.id,x:p.x,y:p.y,angle:p.angle,sword:p.weapon,hit,hitX,hitY,isCombo,targets:hitTargets});
   sendStats(p);if(targetPlayer)sendStats(targetPlayer.p);
 }
 
@@ -1818,6 +1862,10 @@ function createPlayer(ws) {
     starterAmmoGranted: false,
     meleeXp: 0,
     meleeLevel: 1,
+    fatigue: MAX_FATIGUE,
+    maxFatigue: MAX_FATIGUE,
+    comboCount: 0,
+    comboExpiresAt: 0,
     powerAttackBonus: 0,
     weapon: 'sword_neo',
     color: '#39e7ff',
@@ -2559,6 +2607,14 @@ setInterval(() => {
         });
       }
     }
+
+    const fatigueBefore=Math.max(0,Number(p.fatigue)||0);
+    p.fatigue=Math.min(MAX_FATIGUE,fatigueBefore+FATIGUE_REGEN_PER_SEC*dt);
+    if(Math.abs(p.fatigue-fatigueBefore)>.01 && now-(p.lastFatigueBroadcastAt||0)>=250){
+      p.lastFatigueBroadcastAt=now;
+      send(p.ws,{type:'fatigue_update',fatigue:p.fatigue,maxFatigue:MAX_FATIGUE,comboCount:Number(p.comboCount)||0});
+    }
+    if(Number(p.comboExpiresAt||0)>0 && now>Number(p.comboExpiresAt||0))p.comboCount=0;
 
     if (p.saveKey && now - p.lastPersistAt >= AUTOSAVE_MS) {
       void persistPlayer(p);
