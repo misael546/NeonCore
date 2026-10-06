@@ -389,7 +389,7 @@ function publicPlayer(p) {
     fatigue: Math.max(0,Math.min(Number(p.maxFatigue)||MAX_FATIGUE,Number(p.fatigue)||0)),
     maxFatigue: Number(p.maxFatigue)||MAX_FATIGUE,
     comboCount: Math.max(0,Number(p.comboCount)||0),
-    equippedSkin: cosmetics.getSkin(p.equippedSkin) ? p.equippedSkin : 'pixel_human',
+    equippedSkin: cosmetics.getArmor(p.equippedArmor)?.id || (cosmetics.getSkin(p.equippedSkin) ? p.equippedSkin : 'core_default'),
     equippedArmor: cosmetics.getArmor(p.equippedArmor) ? p.equippedArmor : '',
     equippedBackpack: p.equippedBackpack || ''
   };
@@ -1610,14 +1610,20 @@ function equipCosmeticArmor(ws,armorId){
   sendCosmeticState(p,p.equippedArmor?'Armadura equipada: '+cosmetics.getArmor(id).name+'.':'Armadura retirada.','','','',p.equippedArmor);sendStats(p);sendPlayerList(p.room);
 }
 function buyCosmeticSkin(ws,skinId){
+  const id=String(skinId||'');
+  if(cosmetics.getArmor(id))return buyCosmeticArmor(ws,id);
   const p=clients.get(ws);if(!p)return;
-  const id=String(skinId||'');if(!p.room||!p.alive)return cosmeticShopError(ws,'No puedes cambiar tu skin ahora.');
+  if(!p.room||!p.alive)return cosmeticShopError(ws,'No puedes cambiar tu skin ahora.');
   if(!merchantNearby(p))return cosmeticShopError(ws,'Acércate al SHOP.');
   if(!cosmetics.getSkin(id)||!cosmetics.STARTER_SKINS.includes(id))return cosmeticShopError(ws,'Skin base no disponible.');
-  p.ownedSkins=cosmetics.normalizeOwnedSkins(p.ownedSkins);p.equippedSkin=id;void persistPlayer(p);
+  p.equippedSkin=id;void persistPlayer(p);
   sendCosmeticState(p,'Skin base equipada: '+cosmetics.getSkin(id).name+'.');sendStats(p);sendPlayerList(p.room);
 }
-function equipCosmeticSkin(ws,skinId){return buyCosmeticSkin(ws,skinId);}
+function equipCosmeticSkin(ws,skinId){
+  const id=String(skinId||'');
+  if(cosmetics.getArmor(id))return equipCosmeticArmor(ws,id);
+  return buyCosmeticSkin(ws,id);
+}
 
 async function redeemCosmeticCode(ws, rawCode) {
   const p = clients.get(ws);
