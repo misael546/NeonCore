@@ -88,7 +88,6 @@ const SHOP_STOCK = new Map([[BACKPACK_ITEM_ID,10]]);
 
 function getItemDefinition(itemId){
   const id=String(itemId||'');
-  if(id==='ammo')return {id:'ammo',name:'MUNICIÓN',rarity:'Común',category:'consumable',equipSlot:'',stackable:true,stackMax:INVENTORY_STACK_MAX,sellPriceGold:1};
   if(id===BACKPACK_ITEM_ID)return BACKPACK_ITEM;
   const weapon=WEAPONS[id];
   if(weapon&&weapon.forSale!==false){
