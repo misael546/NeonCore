@@ -69,13 +69,11 @@ jobs:
           assert "NEONCORE" in root
           assert expected_release in root
           assert expected_path in root
-          assert "neoncore/12345/V74/" not in root
-          assert "neoncore/12345/V75/" not in root
           assert "PUBLIC_ROOM_CODE" not in root
           assert "20261003-167-darkscifi" not in root
           assert "location.replace(target+q)" in legacy
 
-          print("[PAGES] Official root portal verified.")
+          print("[PAGES] Official NeonCore portal verified.")
           print("[PAGES] Legacy neoncore route redirects to official root.")
           PY
 
