@@ -1,4 +1,4 @@
-/* V65 · inventario, items, venta y equipo */
+/* V66 · inventario, items, venta y equipo */
 'use strict';
 
 const http = require('http');
