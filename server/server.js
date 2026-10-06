@@ -1,4 +1,4 @@
-/* V71 · cuentas, cuadrícula, melee y jefes */
+/* V72 · cuentas, cuadrícula, melee y jefes */
 'use strict';
 
 const http = require('http');
@@ -64,7 +64,7 @@ const PISTOLERO_XP_PER_HIT = 10;
 const PISTOLERO_XP_PER_KILL = 40;
 const MELEE_MAX_LEVEL = 1000;
 const MELEE_XP_PER_HIT = 10;
-const MELEE_GRID_SIZE = 48;
+const MELEE_GRID_SIZE = 24;
 const MELEE_COOLDOWN_MS = 650;
 
 const SHOP_NPC = { x: 3250, y: 2200, r: 24 };
@@ -1876,7 +1876,7 @@ const httpServer = http.createServer(async (req, res) => {
 
   if (pathname === '/client') {
     try {
-      const manifestClientPath = String(UNIFIED_RELEASE_MANIFEST.clientPath || '/NeonCore/neoncore/12345/V71/index.html').replace(/^\/NeonCore\//, '').replace(/^\/+/, '');
+      const manifestClientPath = String(UNIFIED_RELEASE_MANIFEST.clientPath || '/NeonCore/neoncore/12345/V72/index.html').replace(/^\/NeonCore\//, '').replace(/^\/+/, '');
       const clientPath = path.join(__dirname, '..', manifestClientPath);
       const html = fs.readFileSync(clientPath, 'utf8');
       res.writeHead(200, {
@@ -2153,7 +2153,7 @@ wss.on('connection', async (ws) => {
           serverStartedAt: SERVER_STARTED_AT,
           message: SERVER_UPDATE_MESSAGE,
           required: true,
-          clientPath: String(UNIFIED_RELEASE_MANIFEST.clientPath || '/NeonCore/neoncore/12345/V71/index.html')
+          clientPath: String(UNIFIED_RELEASE_MANIFEST.clientPath || '/NeonCore/neoncore/12345/V72/index.html')
         });
 
         return;
@@ -2274,7 +2274,7 @@ wss.on('connection', async (ws) => {
 
         p.stateViolations = Math.max(0, p.stateViolations - 1);
         p.lastStateAt = now;
-        // V71: una cuenta Google sin nombre permanece dentro de la zona segura.
+        // V72: una cuenta Google sin nombre permanece dentro de la zona segura.
         if(!p.nameLocked && !String(p.name||'').trim()){
           const dx=finalX-SAFE_ZONE.x,dy=finalY-SAFE_ZONE.y,d=Math.hypot(dx,dy),limit=Math.max(0,SAFE_ZONE.r-18);
           if(d>limit){const k=limit/Math.max(d,0.0001);finalX=SAFE_ZONE.x+dx*k;finalY=SAFE_ZONE.y+dy*k;movementClamped=true;}
@@ -2347,7 +2347,7 @@ wss.on('connection', async (ws) => {
       }
 
       if (msg.type === 'melee_attack') { if (!p.frozen) handleShotV2(ws,msg.cellX,msg.cellY,msg.angle); return; }
-      if (msg.type === 'grid_state') { if(!p.room||p.frozen||!p.alive)return; const cx=Math.round(Number(msg.cellX)||p.x/MELEE_GRID_SIZE),cy=Math.round(Number(msg.cellY)||p.y/MELEE_GRID_SIZE); const nx=clamp(cx*MELEE_GRID_SIZE,MELEE_GRID_SIZE,WORLD.w-MELEE_GRID_SIZE),ny=clamp(cy*MELEE_GRID_SIZE,MELEE_GRID_SIZE,WORLD.h-MELEE_GRID_SIZE); const dist=Math.hypot(nx-p.x,ny-p.y); if(dist<=MELEE_GRID_SIZE*1.5){p.x=nx;p.y=ny;if(Number.isFinite(Number(msg.angle)))p.angle=Number(msg.angle);p.lastStateAt=Date.now();broadcastRoom(p.room,{type:'player_update',player:publicPlayer(p)},ws);} return; }
+      if (msg.type === 'grid_state') { if(!p.room||p.frozen||!p.alive)return; const cx=Math.round(Number(msg.cellX)||p.x/MELEE_GRID_SIZE),cy=Math.round(Number(msg.cellY)||p.y/MELEE_GRID_SIZE); const nx=clamp(cx*MELEE_GRID_SIZE,MELEE_GRID_SIZE,WORLD.w-MELEE_GRID_SIZE),ny=clamp(cy*MELEE_GRID_SIZE,MELEE_GRID_SIZE,WORLD.h-MELEE_GRID_SIZE); const dist=Math.hypot(nx-p.x,ny-p.y); if(dist<=MELEE_GRID_SIZE*1.45){p.x=nx;p.y=ny;if(Number.isFinite(Number(msg.angle)))p.angle=Number(msg.angle);p.lastStateAt=Date.now();broadcastRoom(p.room,{type:'player_update',player:publicPlayer(p)},ws);} return; }
       if (msg.type === 'fire') { return; }
 
       if (msg.type === 'deposit_bank') {
@@ -2509,7 +2509,7 @@ wss.on('connection', async (ws) => {
   });
 });
 
-// V71: servidor autoritativo de cuadrícula. Los enemigos regulares avanzan casilla por casilla y se detienen a una casilla del objetivo.
+// V72: servidor autoritativo de cuadrícula. Los enemigos regulares avanzan casilla por casilla y se detienen a una casilla del objetivo.
 setInterval(()=>{for(const [code,room] of rooms){if(!room||!room.size)continue;const enemies=roomEnemies.get(code)||[];const players=roomPlayers(room).filter(p=>p.alive&&!p.frozen);for(const e of enemies){if(e.kind==='boss'||e.dead)continue;let target=null,best=Infinity;for(const pl of players){if(inSafeZone(pl.x,pl.y,24))continue;const d=Math.hypot(pl.x-e.x,pl.y-e.y);if(d<=e.aggroRadius&&d<best){best=d;target=pl;}}if(target){const tcx=Math.round(target.x/MELEE_GRID_SIZE),tcy=Math.round(target.y/MELEE_GRID_SIZE),ecx=Math.round(e.x/MELEE_GRID_SIZE),ecy=Math.round(e.y/MELEE_GRID_SIZE);if(Math.abs(tcx-ecx)+Math.abs(tcy-ecy)<=1){e.x=ecx*MELEE_GRID_SIZE;e.y=ecy*MELEE_GRID_SIZE;e.vx=0;e.vy=0;} }}}},180);
 
 startServerUpdateHeartbeat();
@@ -3009,7 +3009,7 @@ function announceServerUpdate() {
     serverStartedAt: SERVER_STARTED_AT,
     message: SERVER_UPDATE_MESSAGE,
     required: true,
-    clientPath: String(UNIFIED_RELEASE_MANIFEST.clientPath || 'neoncore/12345/V71/index.html')
+    clientPath: String(UNIFIED_RELEASE_MANIFEST.clientPath || 'neoncore/12345/V72/index.html')
   };
   for (const p of clients.values()) {
     send(p.ws, payload);
