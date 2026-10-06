@@ -2189,39 +2189,38 @@ function drawEnemy(e){
   const r=Math.max(10,Number(e.r)||22),t=performance.now()/1000;
   ctx.save();ctx.translate(sx(e.x),sy(e.y));
   if(boss){
-    const moving=Math.hypot(Number(e.vx)||0,Number(e.vy)||0)>8;
+    const moving=Math.hypot(Number(e.vx)||0,Number(e.vy)||0)>6;
     const phase=Number(e.walkPhase||0);
-    const walk=Math.sin(phase);
     const attack=clamp(Number(e.attackPulse)||0,0,1);
-    const bob=Math.sin(performance.now()/260)*r*.05;
+    const now=performance.now();
+    const rage=.55+.45*Math.sin(now*.012);
+    const bob=Math.sin(now*.018)*r*.045;
     ctx.save();ctx.translate(0,bob);
-    ctx.fillStyle="rgba(0,0,0,.38)";ctx.beginPath();ctx.ellipse(0,r*.72,r*1.05,r*.32,0,0,Math.PI*2);ctx.fill();
-    // Minotauro pixel: cabeza, cuernos, torso pesado y piernas separadas.
-    const fur="#654638",fur2="#8b624b",skin="#b98262",horn="#e7d2a0",armor="#202b42",neon="#39e7ff";
-    const legA=moving?walk*r*.12:0,legB=-legA;
-    ctx.fillStyle=fur;ctx.strokeStyle="#1b1320";ctx.lineWidth=2;
-    ctx.fillRect(-r*.58,r*.15+legA,r*.40,r*.78);ctx.fillRect(r*.18,r*.15+legB,r*.40,r*.78);
-    ctx.fillStyle="#161c2b";ctx.fillRect(-r*.62,r*.78+legA,r*.48,r*.18);ctx.fillRect(r*.14,r*.78+legB,r*.48,r*.18);
-    ctx.fillStyle=armor;ctx.fillRect(-r*.72,-r*.05,r*1.44,r*.70);
-    ctx.fillStyle=fur2;ctx.fillRect(-r*.58,-r*.68,r*1.16,r*.72);
-    ctx.fillStyle=skin;ctx.fillRect(-r*.42,-r*.42,r*.84,r*.38);
-    // Cuernos pixelados.
-    ctx.fillStyle=horn;
-    ctx.fillRect(-r*.78,-r*.80,r*.18,r*.42);ctx.fillRect(-r*.92,-r*.98,r*.20,r*.22);
-    ctx.fillRect(r*.60,-r*.80,r*.18,r*.42);ctx.fillRect(r*.72,-r*.98,r*.20,r*.22);
-    // Cara y ojos.
-    ctx.fillStyle="#17101a";ctx.fillRect(-r*.34,-r*.31,r*.20,r*.10);ctx.fillRect(r*.14,-r*.31,r*.20,r*.10);
-    ctx.fillStyle="#ff4fd8";ctx.fillRect(-r*.29,-r*.29,r*.07,r*.045);ctx.fillRect(r*.19,-r*.29,r*.07,r*.045);
-    ctx.fillStyle="#24161a";ctx.fillRect(-r*.12,-r*.08,r*.24,r*.10);
-    // Brazos y bola de energía; el lanzamiento hace un movimiento claro.
-    const armSwing=moving?walk*r*.16:0,throwLift=attack*r*.28;
-    ctx.fillStyle=fur;ctx.fillRect(-r*.92,r*.00+armSwing,r*.25,r*.62);ctx.fillRect(r*.67,r*.00-armSwing-throwLift,r*.25,r*.62);
-    ctx.fillStyle=neon;ctx.fillRect(r*.76,r*.10-armSwing-throwLift,r*.10,r*.10);
-    if(attack>0){
-      ctx.fillStyle="#ffd76a";ctx.shadowColor="#39e7ff";ctx.shadowBlur=12;
-      ctx.beginPath();ctx.arc(r*.96,r*.02-armSwing-throwLift,r*(.12+.10*attack),0,Math.PI*2);ctx.fill();ctx.shadowBlur=0;
+    ctx.fillStyle="rgba(0,0,0,.45)";ctx.beginPath();ctx.ellipse(0,r*.72,r*1.12,r*.34,0,0,Math.PI*2);ctx.fill();
+    ctx.globalCompositeOperation="lighter";
+    ctx.globalAlpha=.12+.08*rage;ctx.fillStyle="#ff245f";ctx.beginPath();ctx.arc(0,0,r*1.25,0,Math.PI*2);ctx.fill();
+    ctx.globalAlpha=1;ctx.globalCompositeOperation="source-over";
+    const img=window.__neonMinotaurSprite;
+    if(img&&img.complete&&img.naturalWidth){
+      const frame=attack>0?12:(moving?4+(Math.floor(phase/(Math.PI*2)*4)%4):Math.floor(now/260)%4);
+      const row=Math.abs(Math.sin(Number(e.angle)||0))>.5?(Math.cos(Number(e.angle)||0)>=0?1:3):0;
+      const sw=40,sh=40;
+      ctx.save();ctx.imageSmoothingEnabled=false;ctx.filter="saturate(1.65) contrast(1.28) brightness(1.08)";
+      ctx.shadowColor=attack>0?"#ff245f":"#39e7ff";ctx.shadowBlur=attack>0?24:14;
+      ctx.drawImage(img,frame*sw,row*sh,sw,sh,-r*1.28,-r*1.28,r*2.56,r*2.56);
+      ctx.restore();
+    }else{
+      ctx.fillStyle="#7b382f";ctx.fillRect(-r*.65,-r*.25,r*1.3,r*1.1);
+      ctx.fillStyle="#d45d43";ctx.fillRect(-r*.52,-r*.9,r*1.04,r*.65);
+      ctx.fillStyle="#ffe08a";ctx.fillRect(-r*.88,-r*1.03,r*.18,r*.45);ctx.fillRect(r*.70,-r*1.03,r*.18,r*.45);
     }
-    ctx.strokeStyle="#39e7ff";ctx.lineWidth=2;ctx.strokeRect(-r*.70,-r*.02,r*1.40,r*.78);
+    if(attack>0){
+      const bx=r*(1.0+.38*attack),by=-r*.1;
+      ctx.globalCompositeOperation="lighter";ctx.globalAlpha=.25;ctx.fillStyle="#39e7ff";ctx.beginPath();ctx.arc(bx,by,r*.42,0,Math.PI*2);ctx.fill();
+      ctx.globalAlpha=1;ctx.fillStyle="#fff7c7";ctx.beginPath();ctx.arc(bx,by,r*(.13+.12*attack),0,Math.PI*2);ctx.fill();
+      for(let k=0;k<8;k++){const a=now*.02+k*Math.PI/4;ctx.fillStyle=k%2?"#ff3b6b":"#39e7ff";ctx.fillRect(bx+Math.cos(a)*r*.45,by+Math.sin(a)*r*.45,3,3);}
+      ctx.globalCompositeOperation="source-over";
+    }
     ctx.restore();
   }
   else{
@@ -3169,5 +3168,7 @@ requestAnimationFrame(frame);
 </script><script id="neonV69Assets">
 window.__neonHumanSprite=new Image();
 window.__neonHumanSprite.src="https://lpc.opengameart.org/sites/default/files/ch003.png";
+window.__neonMinotaurSprite=new Image();
+window.__neonMinotaurSprite.src="https://opengameart.org/sites/default/files/minotaur_spritesheet_nes.png";
 </script></body>
 </html>
