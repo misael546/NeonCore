@@ -706,7 +706,7 @@ function skinDefenseBonus(){return 0;}
 function defenseLevelFromXp(xp){return masteryLevelFromXp(xp);}
 function defenseXpIntoCurrentLevel(xp){return masteryXpIntoLevel(xp);}
 
-function applyCombatStats(p){const item=WEAPONS[p.weapon]||WEAPONS.sword_neo;p.weapon=String(item?'sword_'+String(p.weapon).replace(/^sword_/,''):'sword_neo');const meleeLevel=masteryLevelFromXp(p.meleeXp||0);p.meleeLevel=meleeLevel;p.power=Math.max(0,Number(item.power)||0);p.powerAttackBonus=Number(item.power)||0;p.damage=Math.max(1,meleeLevel+Number(item.power||0));p.fireRate=Number(item.fireRate)||700;p.defense=Math.max(0,defenseLevelFromXp(p.defenseXp)-1);p.speed=speedForLevel(p.level);p.ammo=0;}
+function applyCombatStats(p){const item=WEAPONS[p.weapon]||WEAPONS.sword_neo;p.weapon=WEAPONS[p.weapon]?p.weapon:'sword_neo';const meleeLevel=masteryLevelFromXp(p.meleeXp||0);p.meleeLevel=meleeLevel;p.power=Math.max(0,Number(item.power)||0);p.powerAttackBonus=Number(item.power)||0;p.damage=Math.max(1,meleeLevel+Number(item.power||0));p.fireRate=Number(item.fireRate)||700;p.defense=Math.max(0,defenseLevelFromXp(p.defenseXp)-1);p.speed=speedForLevel(p.level);p.ammo=0;}
 
 function addDamageXp(p,amount){if(!p)return;const gain=Math.max(0,Math.floor(Number(amount)||0));p.meleeXp=Math.max(0,Number(p.meleeXp)||0)+gain;p.meleeLevel=masteryLevelFromXp(p.meleeXp);applyCombatStats(p);}
 
