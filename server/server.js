@@ -86,7 +86,7 @@ const WEAPONS = {
 };
 const SHOP_FIREARM_IDS = Object.freeze([]);
 const SHOP_SWORD_IDS = Object.freeze(['sword_neo']);
-const SHOP_ARMOR_IDS = Object.freeze([]);
+const SHOP_ARMOR_IDS = Object.freeze(['pixel_cyan','rust_core','toxic_orb','plasma_violet','aurora','nebula_prism','eclipse_gold','celestial','angel_seraph','demon_infernal','eternal_void','gm_core']);
 const BACKPACK_ITEM_ID = 'backpack_basic';
 const BACKPACK_ITEM = Object.freeze({
   id: BACKPACK_ITEM_ID, name:'MOCHILA BÁSICA', rarity:'Común', category:'backpack',
@@ -122,9 +122,7 @@ function getItemDefinition(itemId){
 function publicItemCatalog(){
   return [
     getItemDefinition(BACKPACK_ITEM_ID),
-    ...SHOP_FIREARM_IDS.map(getItemDefinition),
-    ...SHOP_SWORD_IDS.map(getItemDefinition),
-    ...SHOP_ARMOR_IDS.map(getItemDefinition)
+    ...SHOP_SWORD_IDS.map(getItemDefinition)
   ].filter(Boolean).map(item=>({...item}));
 }
 
