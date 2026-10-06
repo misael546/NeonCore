@@ -19,7 +19,7 @@
 
 ## 2. Regla crítica de versiones
 
-- La versión vigente del proyecto es **V81**.
+- La versión vigente del proyecto es **V82**.
 - Cada cambio que modifique el cliente/juego debe crear una **nueva V**.
 - Nunca modificar una V anterior para introducir una nueva modificación del cliente.
 - Después de crear la nueva V, eliminar las V antiguas del cliente para que quede solamente la versión vigente.
@@ -232,8 +232,8 @@ No dejar:
 
 ## 18. Estado conocido al crear este documento
 
-- Cliente actual: **V81**.
-- V81 usa terreno 2D pixel-art por tiles, jugador 2D pixel-art y movimiento por casillas.
+- Cliente actual: **V82**.
+- V82 usa terreno 2D pixel-art por tiles, jugador 2D pixel-art y movimiento por casillas.
 - V72 introduce movimiento por cuadrícula invisible, combate melee y el nuevo bioma desértico.
 - V72 fue reemplazada y eliminada al publicar V80. V80 es la versión vigente.
 - No deben restaurarse esas V.
@@ -279,13 +279,13 @@ Cuando exista una instrucción nueva y explícita del usuario, aplicar la nueva 
 - La espada se dibuja como arma pixel-art cuerpo a cuerpo y acompaña la orientación/animación del personaje.
 
 
-## 21. Estado V81
+## 21. Estado V82
 - El cliente móvil no muestra ni ejecuta joystick derecho de ataque.
 - La configuración móvil solo explica toque de casilla y selección de enemigo.
 - La sección Items Venta no muestra munición.
 
 
-## 22. Combate y Mercader V81
+## 22. Combate y Mercader V82
 - La cuadrícula táctil es visible y sus casillas deben ser claramente legibles; el centro de cada casilla es el punto válido del jugador, nunca una intersección de líneas.
 - La casilla de destino de caminar se marca con un cuadro azul visible.
 - La casilla del enemigo seleccionado se marca con un cuadro dorado que sigue la casilla actual del enemigo.
@@ -295,7 +295,7 @@ Cuando exista una instrucción nueva y explícita del usuario, aplicar la nueva 
 - El Mercader abre la tienda únicamente al tocarlo/clicarlo directamente estando dentro del radio válido.
 
 
-## 23. Movimiento táctil y Mercader V81
+## 23. Movimiento táctil y Mercader V82
 - El toque de movimiento se convierte usando la posición real del canvas, no las coordenadas globales de pantalla.
 - El destino seleccionado corresponde exactamente a una casilla de la cuadrícula de 24 px y el personaje avanza casilla por casilla.
 - Los cuadros de destino y objetivo se muestran ampliados visualmente a 32 px para facilitar el toque, sin alterar la cuadrícula autoritativa de combate.
@@ -303,7 +303,7 @@ Cuando exista una instrucción nueva y explícita del usuario, aplicar la nueva 
 - El Mercader tiene una apertura de tienda protegida contra errores: una excepción de la interfaz no puede detener el bucle del juego.
 
 
-## 24. V81 — skins, cansancio, melee, defensa y cuadrícula
+## 24. V82 — skins, cansancio, melee, defensa y cuadrícula
 - La defensa se entrena como una habilidad: un golpe exitoso a un mob activa el entrenamiento contra ese mob; mientras ese mob siga vivo, sus golpes al jugador generan experiencia de Defensa. Cuando el mob muere/desaparece, hay que volver a golpear a otro mob para activar el entrenamiento.
 - El Melee gana experiencia por golpes que realmente dañan a un mob.
 - El código maestro actual de pruebas es `NEONMASTER`; se puede ejecutar desde el chat del servidor escribiendo `/code NEONMASTER`. El mismo código se conserva y se amplía cuando se agregue contenido nuevo.
@@ -318,20 +318,20 @@ Cuando exista una instrucción nueva y explícita del usuario, aplicar la nueva 
 - El botón de voz por proximidad queda desactivado temporalmente.
 
 
-## 25. Estado actual de V81 — revisión pendiente
-- V81 es la versión de trabajo actual y todavía debe pasar la revisión completa antes de declararse estable.
+## 25. Estado actual de V82 — revisión pendiente
+- V82 es la versión de trabajo actual y todavía debe pasar la revisión completa antes de declararse estable.
 - La revisión debe comprobar cliente, servidor, WebSocket, manifests, launchers, persistencia y workflows de GitHub.
 - Las pruebas automáticas son obligatorias, pero no sustituyen la prueba real dentro del juego en móvil y PC.
 - Flujo obligatorio por actualización: pruebas automáticas → revisión del código → prueba real → corrección de fallos → volver a probar.
 - Si una prueba falla, no se debe avanzar a la siguiente actualización hasta investigar todas las causas plausibles y corregirlas.
 
-### 25.1 Cuadrícula V81
+### 25.1 Cuadrícula V82
 - El jugador debe estar físicamente dentro del cuadro, centrado en la casilla; jamás sobre la intersección de las líneas.
 - La cuadrícula visual debe verse más grande y clara que en versiones anteriores.
 - La cuadrícula lógica sigue siendo de 24 px; aumentar la legibilidad visual no debe cambiar la lógica autoritativa.
 - Apariciones, zona segura, movimiento y posiciones de NPC/enemigos deben respetar el centro de las casillas.
 
-### 25.2 Skins V81
+### 25.2 Skins V82
 - Las apariencias de personaje son skins, no armaduras literales.
 - Debe existir exactamente una skin predeterminada gratuita.
 - Las demás skins son desbloqueables/comprables.
@@ -339,7 +339,7 @@ Cuando exista una instrucción nueva y explícita del usuario, aplicar la nueva 
 - La apariencia no debe otorgar defensa ni buffs salvo que una regla futura lo cambie explícitamente.
 - El lenguaje visible de la tienda debe decir SKINS y no ARMADURAS cuando se refiera a estas apariencias.
 
-### 25.3 Código maestro V81
+### 25.3 Código maestro V82
 - Código maestro de pruebas: `NEONMASTER`.
 - Uso previsto: desde el chat del servidor con `/code NEONMASTER`.
 - Debe poder ejecutarse directamente desde el chat sin exigir estar junto al Mercader.
@@ -348,7 +348,7 @@ Cuando exista una instrucción nueva y explícita del usuario, aplicar la nueva 
 - Cuando se agregue contenido nuevo, se debe ampliar el mismo `NEONMASTER`; no crear otro código maestro paralelo.
 - El código maestro es una herramienta de pruebas y no debe romper la persistencia ni crear duplicados.
 
-### 25.4 Entrenamiento de Melee y Defensa V81
+### 25.4 Entrenamiento de Melee y Defensa V82
 - Melee sube por daño real realizado a mobs; no usar un contador artificial de combos para conceder experiencia.
 - Defensa funciona con activación por objetivo: después de golpear y dañar a un mob, ese mob se convierte en el objetivo de entrenamiento.
 - Mientras ese mismo mob siga vivo y golpee al jugador, cada golpe válido puede generar experiencia de Defensa.
@@ -356,7 +356,7 @@ Cuando exista una instrucción nueva y explícita del usuario, aplicar la nueva 
 - Cuando ese mob muere o desaparece, el entrenamiento se desactiva y se debe golpear a otro mob para activarlo de nuevo.
 - La experiencia de Defensa no debe subir simplemente por recibir daño de cualquier fuente sin objetivo de entrenamiento activo.
 
-### 25.5 Ataque básico, especial y cansancio V81
+### 25.5 Ataque básico, especial y cansancio V82
 - El ataque básico no consume cansancio.
 - El especial se activa únicamente mediante un botón específico.
 - El especial tiene su propio cooldown de 3 segundos y no depende de realizar 3 golpes básicos.
@@ -364,14 +364,14 @@ Cuando exista una instrucción nueva y explícita del usuario, aplicar la nueva 
 - La regeneración de cansancio debe continuar según la mecánica vigente.
 - No restaurar el antiguo sistema de superataque por conteo de 3 golpes.
 
-### 25.6 Vida visible V81
+### 25.6 Vida visible V82
 - Debe existir un contador/barra de vida visible sobre los jugadores.
 - Debe existir un contador/barra de vida visible sobre los mobs.
 - Debe actualizarse con el daño y la curación reales del servidor.
 - No debe depender únicamente del HUD del jugador local.
 - Debe mantenerse legible sin tapar excesivamente sprites, nombres o combate.
 
-### 25.7 Correcciones obligatorias antes de cerrar V81
+### 25.7 Correcciones obligatorias antes de cerrar V82
 - Revisar que las sustituciones de nombres ARMADURA/SKIN no hayan creado incompatibilidades entre cliente y servidor.
 - Revisar que no existan funciones, variables, IDs o listeners duplicados.
 - Revisar que el nuevo manejo de ataque especial no haya eliminado accidentalmente funciones auxiliares del combate.
@@ -382,4 +382,3 @@ Cuando exista una instrucción nueva y explícita del usuario, aplicar la nueva 
 - Revisar que los centros de casilla usados por cliente y servidor sean idénticos.
 - Revisar que la vida sobre jugadores y mobs se actualice en tiempo real.
 - Revisar workflows de GitHub y comprobar que sus pruebas apunten a Belmo y a la V vigente, no al backend Render legado.
-- No eliminar V80 hasta que V81 haya sido validada y promovida correctamente.
