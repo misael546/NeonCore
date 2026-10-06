@@ -34,20 +34,16 @@ jobs:
           const fs = require('fs');
           const release = JSON.parse(fs.readFileSync('release.json','utf8'));
           const currentClient = String(release.clientPath || '').replace(/^\/NeonCore\//,'');
-          const files = [
-            currentClient,
-            'index.html',
-            'sessions/index.html'
-          ];
+          const files = [currentClient, 'index.html', 'sessions/index.html'];
+          let total = 0;
           for (const file of files) {
             const html = fs.readFileSync(file, 'utf8');
             const matches = [...html.matchAll(/<script(?:[^>]*)>([\s\S]*?)<\/script>/gi)];
-            for (const match of matches) {
-              if (match[1].trim()) new Function(match[1]);
-            }
+            for (const match of matches) if (match[1].trim()) { new Function(match[1]); total++; }
             if (!matches.length) console.log(file + ': no inline script tags; skipped syntax check');
             else console.log(file + ': OK');
           }
+          console.log('Checked '+total+' inline script block(s).');
           NODE
 
       - name: Verify current complete release synchronization
@@ -57,49 +53,33 @@ jobs:
           const fs = require('fs');
           const release = JSON.parse(fs.readFileSync('release.json','utf8'));
           const root = fs.readFileSync('index.html','utf8');
+          const roomLauncher = fs.readFileSync('neoncore/12345/index.html','utf8');
           const sessions = fs.readFileSync('sessions/index.html','utf8');
           const clientPath = String(release.clientPath || '').replace(/^\/NeonCore\//,'');
           const client = fs.readFileSync(clientPath,'utf8');
           const server = fs.readFileSync('server/server.js','utf8');
-
           const version = String(release.version || release.clientVersion || release.releaseId || '').toUpperCase();
           const clientMarker = client.match(/\bvar\s+v\s*=\s*["']([^"']+)["']/)?.[1]
-            || client.match(/window\.NEON_CORE_VERSION\s*=\s*["']([^"']+)["']/)?.[1]
-            || '';
+            || client.match(/window\.NEON_CORE_VERSION\s*=\s*["']([^"']+)["']/)?.[1] || '';
 
-          if (!/^V([1-9][0-9]*)$/.test(version)) {
-            throw new Error('Release label must be V1-V9999+: '+version);
-          }
-          if (clientMarker !== version) {
-            throw new Error('Client public version does not match release: '+clientMarker+' vs '+version);
-          }
-          if (!version || release.version !== version || release.releaseId !== version || release.clientVersion !== version || release.serverVersion !== version || Number(release.databaseSchema) !== 3) {
+          if (!/^V([1-9][0-9]*)$/.test(version)) throw new Error('Invalid release version: '+version);
+          if (clientMarker !== version) throw new Error('Client version mismatch: '+clientMarker+' vs '+version);
+          if (release.version !== version || release.releaseId !== version || release.clientVersion !== version || release.serverVersion !== version || Number(release.databaseSchema) !== 3) {
             throw new Error('release.json is not internally synchronized');
           }
-          if (clientMarker !== version || !root.includes('launchLatest') || !root.includes('release.json')) {
-            throw new Error('Main menu/current client are not version-driven');
+          if (!root.includes('NeonCore') || !root.includes('V80') || !roomLauncher.includes('release.json') || !roomLauncher.includes('clientPath')) {
+            throw new Error('Main/room launcher is not synchronized with release.json');
           }
           const clientParts = clientPath.split('/');
           if (clientParts.length !== 4 || clientParts[0] !== 'neoncore' || clientParts[1] !== '12345' || !/^V([1-9][0-9]*)$/.test(clientParts[2]) || clientParts[3] !== 'index.html') {
-            throw new Error('Current client path must use V1-V9999+ folder: '+clientPath);
+            throw new Error('Invalid current client path: '+clientPath);
           }
-          if (!sessions.includes('Neon Core · Sesiones') || !sessions.includes('const WS=')) {
-            throw new Error('Sessions page is not synchronized');
-          }
-          if (!client.includes('FIRST_SHOT_DELAY=180') || !client.includes('fireRate:650') || !client.includes('account_authenticated')) {
-            throw new Error('Client combat tuning is not synchronized');
-          }
-          if (!server.includes('WEAPON_FIRE_RATE = 650') || !server.includes('fireRate: 650') || !server.includes('account_authenticated')) {
-            throw new Error('Server combat tuning is not synchronized');
-          }
+          if (!sessions.includes('Neon Core · Sesiones') || !sessions.includes('const WS=')) throw new Error('Sessions page is not synchronized');
+          if (!client.includes('FIRST_SHOT_DELAY=180') || !client.includes('fireRate:650') || !client.includes('account_authenticated')) throw new Error('Client combat tuning is not synchronized');
+          if (!server.includes('WEAPON_FIRE_RATE = 650') || !server.includes('fireRate: 650') || !server.includes('account_authenticated')) throw new Error('Server combat tuning is not synchronized');
           const roomRoot = 'neoncore/12345';
-          const expectedDir = require('path').dirname(clientPath);
-          const expectedName = require('path').basename(expectedDir);
-          const actualDirs = fs.readdirSync(roomRoot, {withFileTypes:true})
-            .filter(entry => entry.isDirectory())
-            .map(entry => entry.name);
-          if (actualDirs.length !== 1 || actualDirs[0] !== expectedName) {
-            throw new Error('Room client directory must contain only current release folder: '+JSON.stringify(actualDirs)+' expected '+expectedName);
-          }
+          const expectedName = require('path').basename(require('path').dirname(clientPath));
+          const actualDirs = fs.readdirSync(roomRoot,{withFileTypes:true}).filter(e=>e.isDirectory()).map(e=>e.name);
+          if (actualDirs.length !== 1 || actualDirs[0] !== expectedName) throw new Error('Room folders mismatch: '+JSON.stringify(actualDirs)+' expected '+expectedName);
           console.log('Current complete release synchronization: OK -> '+version);
           NODE
