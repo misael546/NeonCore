@@ -1625,11 +1625,11 @@ function equipCosmeticSkin(ws,skinId){
   return buyCosmeticSkin(ws,id);
 }
 
-async function redeemCosmeticCode(ws, rawCode) {
+async function redeemCosmeticCode(ws, rawCode, fromServerChat=false) {
   const p = clients.get(ws);
   if (!p) return;
   if (!p.room || !p.alive) return cosmeticShopError(ws, 'No puedes usar códigos ahora.');
-  if (!merchantNearby(p)) return cosmeticShopError(ws, 'Acércate al SHOP.');
+  if (!merchantNearby(p) && !fromServerChat) return cosmeticShopError(ws, 'Acércate al SHOP.');
 
   const code = String(rawCode || '').trim().toUpperCase().replace(/[^A-Z0-9_-]/g, '').slice(0, 32);
   if (!code) return cosmeticShopError(ws, 'Escribe un código.');
@@ -2252,7 +2252,7 @@ wss.on('connection', async (ws) => {
         // Server chat command: the permanent master test code is intentionally usable here.
         const commandMatch=text.match(/^\/code\s+([A-Z0-9_-]+)$/i);
         if(commandMatch){
-          await redeemCosmeticCode(ws,commandMatch[1]);
+          await redeemCosmeticCode(ws,commandMatch[1],true);
           return;
         }
 
