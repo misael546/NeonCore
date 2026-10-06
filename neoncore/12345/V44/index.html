@@ -936,38 +936,38 @@ let multiplayerSocket=null,multiplayerReady=false,multiplayerId="",lastNetSend=0
 let reconnectActive=false,reconnectStartedAt=0,reconnectTimer=null,reconnectAttempt=0,reconnectRoom="";
 
 let movementTelemetry={inputSince:0,lastX:p.x,lastY:p.y,lastReport:0};
-const MULTIPLAYER_SERVER="wss://neon-core-multiplayer.onrender.com/ws";
-const RENDER_HEALTH_URL=MULTIPLAYER_SERVER.replace(/^wss:/,"https:").replace(/^ws:/,"http:").replace(/\/ws$/,"/health");
-let renderStatusTimer=null,renderServerVersion="",renderServerStartedAt=0;
-async function checkRenderStatus(){
+const MULTIPLAYER_SERVER="wss://neoncore-da6f.onbelmo.uk/ws";
+const SERVER_HEALTH_URL=MULTIPLAYER_SERVER.replace(/^wss:/,"https:").replace(/^ws:/,"http:").replace(/\/ws$/,"/health");
+let serverStatusTimer=null,serverVersion="",serverStartedAt=0;
+async function checkServerStatus(){
   try{
-    const res=await fetch(RENDER_HEALTH_URL,{cache:"no-store"});
+    const res=await fetch(SERVER_HEALTH_URL,{cache:"no-store"});
     if(!res.ok)throw new Error("health");
     const data=await res.json();
     const version=String(data.version||"");
     const startedAt=Number(data.startedAt)||0;
-    if(renderServerVersion && (version!==renderServerVersion || startedAt!==renderServerStartedAt)){
-      setConnectionStatus("SERVIDOR ACTUALIZADO","Render terminó una actualización. Neon Core reconectará automáticamente.",true);
+    if(serverVersion && (version!==serverVersion || startedAt!==serverStartedAt)){
+      setConnectionStatus("SERVIDOR ACTUALIZADO","El servidor terminó una actualización. Neon Core reconectará automáticamente.",true);
       if(!gameActive && !PUBLIC_ROOM_CODE)nameBox.style.display="flex";
       if(PUBLIC_ROOM_CODE && playerName){
         nameBox.style.display="none";
         if(!multiplayerSocket || multiplayerSocket.readyState!==1) setTimeout(()=>connectMultiplayer("join",PUBLIC_ROOM_CODE),250);
       }
     }else if(!gameActive && currentRoom){
-      setConnectionStatus("SERVIDOR DISPONIBLE","Render está listo. Conectando…",false);
+      setConnectionStatus("SERVIDOR DISPONIBLE","Servidor está listo. Conectando…",false);
     }
-    renderServerVersion=version;
-    renderServerStartedAt=startedAt;
+    serverVersion=version;
+    serverStartedAt=startedAt;
   }catch{
     if(!gameActive){
-      setConnectionStatus("RENDER ACTUALIZANDO","El servidor de Render no responde. Neon Core está esperando a que vuelva.",false);
+      setConnectionStatus("SERVIDOR ACTUALIZANDO","El servidor de Servidor no responde. Neon Core está esperando a que vuelva.",false);
     }
   }
 }
-function startRenderMonitor(){
-  if(renderStatusTimer)clearInterval(renderStatusTimer);
-  checkRenderStatus();
-  renderStatusTimer=setInterval(checkRenderStatus,8000);
+function startServidorMonitor(){
+  if(serverStatusTimer)clearInterval(serverStatusTimer);
+  checkServerStatus();
+  serverStatusTimer=setInterval(checkServerStatus,8000);
 }
 function renderPlayers(list){
   const panel=document.getElementById("playersPanel"),count=document.getElementById("playersCount"),box=document.getElementById("playersList");
@@ -1063,12 +1063,12 @@ function connectMultiplayer(roomMode="quick",roomCode=""){ const publicRoomAuto=
     const socket=multiplayerSocket;
     multiplayerConnectTimer=setTimeout(()=>{
       if(multiplayerSocket===socket && socket.readyState!==1){
-        setConnectionStatus("NO SE PUDO CONECTAR","Render tardó demasiado en responder. Tu nombre se conservó; pulsa SALAS PÚBLICAS para reintentar.",true);
+        setConnectionStatus("NO SE PUDO CONECTAR","El servidor tardó demasiado en responder. Tu nombre se conservó; pulsa SALAS PÚBLICAS para reintentar.",true);
         if(!publicRoomAuto){
           nameBox.style.display="flex";
           username.value=playerName||keepName;
         }else{
-          setConnectionStatus("RENDER ACTUALIZANDO","Render tardó demasiado. Reintentando automáticamente…",true);
+          setConnectionStatus("SERVIDOR ACTUALIZANDO","El servidor tardó demasiado. Reintentando automáticamente…",true);
           nameBox.style.display="none";
           multiplayerConnectTimer=setTimeout(()=>connectMultiplayer("join",PUBLIC_ROOM_CODE),1800);
         }
@@ -3042,7 +3042,7 @@ addEventListener("pageshow",e=>{
 
 
 username.value=loadName();
-startRenderMonitor();
+startServidorMonitor();
 if(PUBLIC_ROOM_CODE){
   const roomTitle=document.querySelector("#nameCard h1");
   const roomText=document.querySelector("#nameCard p");
