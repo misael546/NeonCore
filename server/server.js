@@ -379,7 +379,6 @@ function publicPlayer(p) {
     powerAttackBonus: weaponPowerAttackBonus(p.power),
     meleeLevel: masteryLevelFromXp(p.meleeXp||0),
     meleeXp: Math.max(0,Number(p.meleeXp)||0),
-    meleeXp: Math.max(0, Number(p.meleeXp) || 0),
     equippedSkin: cosmetics.getSkin(p.equippedSkin) ? p.equippedSkin : 'pixel_human',
     equippedArmor: cosmetics.getArmor(p.equippedArmor) ? p.equippedArmor : '',
     equippedBackpack: p.equippedBackpack || ''
@@ -707,30 +706,7 @@ function skinDefenseBonus(){return 0;}
 function defenseLevelFromXp(xp){return masteryLevelFromXp(xp);}
 function defenseXpIntoCurrentLevel(xp){return masteryXpIntoLevel(xp);}
 
-function applyCombatStats(p) {
-  const item = WEAPONS[p.weapon] || null;
-  const pistoleroLevel = pistoleroLevelFromXp(p.pistoleroXp);
-  p.pistoleroLevel = pistoleroLevel;
-
-  if (item) {
-    p.power = Math.max(0, Number(item.power) || 0);
-    p.powerAttackBonus = weaponPowerAttackBonus(p.power);
-    // ATAQUE real = PISTOLERO + bono de PODER del arma.
-    p.damage = Math.max(1, pistoleroLevel + p.powerAttackBonus);
-    p.fireRate = WEAPON_FIRE_RATE;
-  } else {
-    p.weapon = null;
-    p.power = 0;
-    p.powerAttackBonus = 0;
-    p.damage = 1;
-    p.fireRate = 999999;
-  }
-
-  p.defense=Math.max(0,defenseLevelFromXp(p.defenseXp)-1);
-  p.speed = speedForLevel(p.level);
-
-  syncAmmoFromInventory(p);
-}
+function applyCombatStats(p){const item=WEAPONS[p.weapon]||WEAPONS.sword_neo;p.weapon=String(item?'sword_'+String(p.weapon).replace(/^sword_/,''):'sword_neo');const meleeLevel=masteryLevelFromXp(p.meleeXp||0);p.meleeLevel=meleeLevel;p.power=Math.max(0,Number(item.power)||0);p.powerAttackBonus=Number(item.power)||0;p.damage=Math.max(1,meleeLevel+Number(item.power||0));p.fireRate=Number(item.fireRate)||700;p.defense=Math.max(0,defenseLevelFromXp(p.defenseXp)-1);p.speed=speedForLevel(p.level);p.ammo=0;}
 
 function addDamageXp(p,amount){if(!p)return;const gain=Math.max(0,Math.floor(Number(amount)||0));p.meleeXp=Math.max(0,Number(p.meleeXp)||0)+gain;p.meleeLevel=masteryLevelFromXp(p.meleeXp);applyCombatStats(p);}
 
@@ -1831,8 +1807,8 @@ function createPlayer(ws) {
     inventory: emptyInventory(),
     ammo: 0,
     starterAmmoGranted: false,
-    pistoleroXp: 0,
-    pistoleroLevel: 1,
+    meleeXp: 0,
+    meleeLevel: 1,
     powerAttackBonus: 0,
     weapon: 'sword_neo',
     color: '#39e7ff',
