@@ -1704,7 +1704,7 @@ function getWeaponMuzzle(angle,radius){
   const handY=r*.12+Math.sin(a)*r*.30-Math.cos(a)*r*.08;
   return {x:p.x+handX+Math.cos(a)*localForward,y:p.y+handY+Math.sin(a)*localForward};
 }
-function fire(){
+function fireV2(){
   if(!p.alive)return;
   const weapon=weaponStats[p.weapon]||weaponStats.blaster;
   const melee=weapon.type==="melee";
@@ -1876,7 +1876,7 @@ function update(dt){
     const aimX=pointer.x-W/2,aimY=pointer.y-H/2;
     if(Math.hypot(aimX,aimY)>2)p.angle=Math.atan2(aimY,aimX);
   }
-  if(pointer.down)fire();
+  if(pointer.down)fireV2();
 
 
   for(const b of bullets){
