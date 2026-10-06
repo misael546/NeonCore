@@ -58,7 +58,7 @@ small{display:block;margin-top:10px;color:#71819a;font-size:10px}
 
     // Si el cliente ya conoce exactamente la misma versión, NO se vuelve a instalar.
     if(installed===target){
-      status("V" + target+" ya está instalada. Entrando…");
+      status(target+" ya está instalada. Entrando…");
       goDirect(clientPath,savedName(),target);
       return;
     }
@@ -69,7 +69,7 @@ small{display:block;margin-top:10px;color:#71819a;font-size:10px}
     if(!m||String(m[1]).trim()!==target)throw new Error("cliente desfasado");
 
     try{localStorage.setItem(versionKey,target);}catch{}
-    status("V" + target+" verificada. Entrando…");
+    status(target+" verificada. Entrando…");
     goDirect(clientPath,savedName(),target);
   }catch(e){
     // No dejamos al jugador atrapado en el cargador.
