@@ -17,7 +17,7 @@
 
 ## 2. Regla crítica de versiones
 
-- La versión vigente del proyecto es **V67**.
+- La versión vigente del proyecto es **V68**.
 - Cada cambio que modifique el cliente/juego debe crear una **nueva V**.
 - Nunca modificar una V anterior para introducir una nueva modificación del cliente.
 - Después de crear la nueva V, eliminar las V antiguas del cliente para que quede solamente la versión vigente.
@@ -235,12 +235,12 @@ No dejar:
 
 ## 18. Estado conocido al crear este documento
 
-- Cliente actual: **V67**.
-- V64, V63 y V44 del cliente ya fueron eliminadas durante la limpieza anterior.
+- Cliente actual: **V68**.
+- V68, V68 y V44 del cliente ya fueron eliminadas durante la limpieza anterior.
 - No deben restaurarse esas V.
 - La limpieza anterior eliminó referencias de BUILD y de los parámetros legacy de actualización en los archivos auditados.
-- Se detectó y eliminó duplicación de `startNeonMusic` y `stopNeonMusic` en V67.
-- V67 pasó comprobaciones de sintaxis JS y servidor en la auditoría anterior.
+- Se detectó y eliminó duplicación de `startNeonMusic` y `stopNeonMusic` en V68.
+- V68 pasó comprobaciones de sintaxis JS y servidor en la auditoría anterior.
 - Este documento no cambia la V del juego.
 
 ## 19. Regla de prioridad
@@ -260,4 +260,4 @@ y se refiera a este documento, usarlo como fuente de continuidad del proyecto y 
 Cuando exista una instrucción nueva y explícita del usuario, aplicar la nueva instrucción sin borrar las reglas permanentes que sigan siendo compatibles.
 
 ---
-Última versión de cliente registrada en este documento: **V67**
+Última versión de cliente registrada en este documento: **V68**
