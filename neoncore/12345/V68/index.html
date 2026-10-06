@@ -9,7 +9,7 @@
 <script>
 (function(){
   try{
-    var v="V68",checking=false,updating=false,timer=null,base=new URL("../../../",location.href),manifestUrl=new URL("/NeonCore/release.json",location.origin);
+    var v="V69",checking=false,updating=false,timer=null,base=new URL("../../../",location.href),manifestUrl=new URL("/NeonCore/release.json",location.origin);
     window.NEON_CORE_VERSION=v;localStorage.setItem("neon_core_version",v);
     function notice(remote){
       if(updating)return;updating=true;
@@ -51,7 +51,7 @@
   }catch(e){}
 })();
 </script>
-<title>Neon Core · V68</title>
+<title>Neon Core · V69</title>
 <style>
 *{box-sizing:border-box}html,body{margin:0;width:100%;height:100%;overflow:hidden;background:#050811;color:#fff;font-family:Arial,sans-serif;touch-action:none}
 #game{display:block;width:100vw;height:100vh}
@@ -302,9 +302,9 @@ html.pc-controls #controlConfigBtn,html.touch-controls #controlConfigBtn{display
 html.pc-controls .aimJoy{display:none!important}html.touch-controls .aimJoy{display:block!important}
 </style><style id="neonItemsV65">
 .equipmentGrid{display:grid;grid-template-columns:repeat(3,1fr);gap:7px;margin:0 0 9px}.equipmentSlot{min-width:0;min-height:82px;border:1px solid #33415d;border-radius:12px;background:linear-gradient(180deg,#0d192b,#09111d);color:#fff;padding:7px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;pointer-events:auto}.equipmentSlot.filled{border-color:#39e7ff88;box-shadow:0 0 16px #39e7ff18,inset 0 0 14px #39e7ff0b}.equipmentLabel{font-size:8px;color:#71819a;font-weight:900;letter-spacing:1px}.equipmentIcon{height:31px;display:grid;place-items:center;font-size:24px}.equipmentIcon img{width:28px;height:28px;object-fit:contain;filter:drop-shadow(0 0 7px #39e7ff88)}.equipmentName{max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:#dffbff;font-size:8px;font-weight:900}.itemVisual{height:60px;display:grid;place-items:center;border:1px solid #26344e;border-radius:11px;background:#08111d;overflow:hidden;box-shadow:inset 0 0 24px #000}.itemVisual img{width:54px;height:54px;object-fit:contain;filter:drop-shadow(0 0 12px #39e7ff88)}.itemShopCard{cursor:pointer}.itemShopCard:disabled{cursor:not-allowed;opacity:.55}.itemEmptyMsg{grid-column:1/-1;padding:18px;text-align:center;border:1px dashed #33415d;border-radius:11px;color:#71819a;font-size:11px}.sellCard{border-color:#4b3b2c}.backpackIconImg{width:42px;height:42px;object-fit:contain}.inventorySlot .slotIcon img{width:27px;height:27px;object-fit:contain}.inventorySlot .slotName{min-height:18px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.inventorySlot .slotQty:empty{display:none}@media(max-width:700px){.equipmentSlot{min-height:74px}.equipmentIcon{font-size:21px}.itemVisual{height:52px}.itemVisual img{width:48px;height:48px}.shopUnifiedGrid{grid-template-columns:repeat(2,minmax(0,1fr))}}@media(max-width:430px){.equipmentSlot{min-height:70px;padding:5px}.equipmentName{font-size:7px}.shopUnifiedGrid{grid-template-columns:1fr}.inventoryGrid{grid-template-columns:repeat(4,minmax(0,1fr))}}
-</style><style id="neonV68TouchFix">#controls,.joy,#aimJoy,#moveJoy{pointer-events:auto;touch-action:none}#chatToggle,#controlConfigBtn,#proximityVoiceBtn,#chatBox button,#controlEditor button{pointer-events:auto;touch-action:manipulation}</style></head>
+</style><style id="neonV69TouchFix">#controls,.joy,#aimJoy,#moveJoy{pointer-events:auto;touch-action:none}#chatToggle,#controlConfigBtn,#proximityVoiceBtn,#chatBox button,#controlEditor button{pointer-events:auto;touch-action:manipulation}</style></head>
 <body>
-<canvas id="game"></canvas><div id="versionDisplay">V68</div><button id="audioToggle" type="button" aria-label="Activar o silenciar audio">🔊</button>
+<canvas id="game"></canvas><div id="versionDisplay">V69</div><button id="audioToggle" type="button" aria-label="Activar o silenciar audio">🔊</button>
 
 <div id="hud">
   <div class="panel" id="bars">
@@ -826,7 +826,7 @@ function drawNeonProjectiles(){
   }
 }
 const world={w:6000,h:4400};
-const p={x:3000,y:2200,r:16,angle:0,hp:150,maxHp:150,xp:0,level:1,score:0,kills:0,pvpKills:0,power:100,damage:35,defense:0,speed:205,fireRate:650,lastShot:0,alive:true,gold:0,diamonds:0,ammo:0,maxAmmo:8000,weapon:"blaster",equippedSkin:"core_default",equippedBackpack:""};
+const p={x:3000,y:2200,r:16,angle:0,hp:150,maxHp:150,xp:0,level:1,score:0,kills:0,pvpKills:0,power:100,damage:35,defense:0,speed:205,fireRate:650,lastShot:0,alive:true,gold:0,diamonds:0,ammo:120,maxAmmo:8000,weapon:"blaster",equippedSkin:"pixel_human",equippedBackpack:""};
 const shopNpc={x:3250,y:2200,r:24};
 const weaponNames={
   blaster:"BLASTER · NEONSTORM",pulse:"PULSE · PRISMA",cannon:"CANNON · SOLARIS",railgun:"RAILGUN · ECLIPSE",nova:"NOVA · SUPERNOVA",
@@ -850,7 +850,7 @@ const weaponStats={
   sword_solar:{name:"ESPADA SOLAR",power:850,fireRate:820,maxAmmo:0,cost:15000,range:180,type:"melee",arc:1.20},
   sword_omega:{name:"ESPADA OMEGA",power:1400,fireRate:900,maxAmmo:0,cost:50000,range:195,type:"melee",arc:1.25}
 };let shopOpen=false,shopSection="items";
-const SHOP_INTERACTION_RADIUS_CLIENT=48;
+const SHOP_INTERACTION_RADIUS_CLIENT=140;
 const BASE_SKINS=[
 {id:"core_default",name:"NÚCLEO ORIGINAL",rarity:"Común",currency:"free",price:0,desc:"Skin base del jugador."},
 {id:"neon_runner",name:"CORREDOR NEÓN",rarity:"Común",currency:"free",price:0,desc:"Skin base sencilla de energía verde."},
@@ -949,7 +949,7 @@ async function checkServerStatus(){
     const startedAt=Number(data.startedAt)||0;
     if(serverVersion && (version!==serverVersion || startedAt!==serverStartedAt)){
       setConnectionStatus("SERVIDOR ACTUALIZADO","El servidor terminó una actualización. Neon Core reconectará automáticamente.",true);
-      if(!gameActive && !PUBLIC_ROOM_CODE)nameBox.style.display="flex";
+      if(!gameActive && !PUBLIC_ROOM_CODE)nameBox.style.display="none";
       if(PUBLIC_ROOM_CODE && playerName){
         nameBox.style.display="none";
         if(!multiplayerSocket || multiplayerSocket.readyState!==1) setTimeout(()=>connectMultiplayer("join",PUBLIC_ROOM_CODE),250);
@@ -976,7 +976,7 @@ function renderPlayers(list){
   if(!players.length && multiplayerId){
     players=[{
       id:multiplayerId,
-      name:p.name||playerName||"Jugador",
+      name:p.name||playerName||"SIN NOMBRE",
       level:Number(p.level)||1,
       alive:p.alive!==false,
       kills:Number(p.kills)||0,
@@ -1051,7 +1051,7 @@ function connectMultiplayer(roomMode="quick",roomCode=""){ const publicRoomAuto=
   multiplayerReady=false;
   applyGameNameLock();
   const keepName=playerName||String(username.value||"").trim();
-  if(keepName){playerName=keepName;username.value=keepName;saveName(keepName);}
+  if(keepName){playerName=keepName;username.value=keepName;saveName(keepName);}else{playerName="";username.value="";}
 
   document.getElementById("nameBox").style.display="none";
   setConnectionStatus("CONECTANDO AL SERVIDOR","Despertando el servidor multiplayer…");
@@ -1081,7 +1081,7 @@ function connectMultiplayer(roomMode="quick",roomCode=""){ const publicRoomAuto=
       if(multiplayerConnectTimer){clearTimeout(multiplayerConnectTimer);multiplayerConnectTimer=null;}
 
       setConnectionStatus("CONECTADO","Entrando a la sala…");
-      socket.send(JSON.stringify({type:"join",name:playerName||"Jugador",accountToken:accountToken,googleIdToken:googleIdToken,saveKey:"",color:"#39e7ff",room:roomMode==="join"?roomCode:"",createRoom:roomMode==="create",clientVersion:window.NEON_CORE_VERSION||"V68"}));
+      socket.send(JSON.stringify({type:"join",name:playerName||"",accountToken:accountToken,googleIdToken:googleIdToken,saveKey:"",color:"#39e7ff",room:roomMode==="join"?roomCode:"",createRoom:roomMode==="create",clientVersion:window.NEON_CORE_VERSION||"V69"}));
     });
     socket.addEventListener("error",()=>{
       if(multiplayerSocket!==socket)return;
@@ -1118,19 +1118,12 @@ function connectMultiplayer(roomMode="quick",roomCode=""){ const publicRoomAuto=
         if(m.type==="item_shop_state"||m.type==="item_shop_result"){handleItemShopMessage(m);return;}
         if(m.type==="account_needs_name"){
           pendingNameSetup=true;playerName="";username.value="";
-          const editor=document.getElementById("controlEditor"),accountView=document.getElementById("accountView"),close=document.getElementById("controlClose");
-          if(editor)editor.style.display="flex";
-          document.querySelectorAll(".utilityTab").forEach(x=>x.classList.toggle("active",x.dataset.utilityTab==="account"));
-          document.querySelectorAll(".utilityView").forEach(x=>x.classList.toggle("active",x.id==="accountView"));
-          if(close)close.style.display="none";
-          const input=document.getElementById("newNameInput"),btn=document.getElementById("changeNameBtn"),msg=document.getElementById("renameMsg");
-          if(input){input.value="";input.readOnly=false;input.focus();}
-          if(btn)btn.textContent="GUARDAR NOMBRE · GRATIS";
-          if(msg)msg.textContent="Primer nombre de esta cuenta Google: GRATIS. Los siguientes cambios costarán 1,000 💎.";
-          document.getElementById("nameBox").style.display="none";document.getElementById("googleGate").style.display="none";
+          document.getElementById("nameBox").style.display="none";
+          document.getElementById("googleGate").style.display="none";
+          showToast("Cuenta lista. Ve a AJUSTES → GENERAL → CUENTA para elegir tu nombre.");
           return;}
-        if(m.type==="name_result"){if(m.ok){pendingNameSetup=false;playerName=String(m.name||"Jugador").slice(0,20);username.value=playerName;saveName(playerName);document.getElementById("controlEditor").style.display="none";document.getElementById("controlClose").style.display="grid";document.getElementById("changeNameBtn").textContent="CAMBIAR POR 1,000 💎";showToast("Nombre creado gratis: "+playerName);}else{const msg=document.getElementById("renameMsg");if(msg)msg.textContent=m.message||"No se pudo guardar el nombre.";};return;}
-        if(m.type==="rename_result"){const msg=String(m.message||"");if(m.ok){playerName=String(m.name||"Jugador").slice(0,20);username.value=playerName;saveName(playerName);showToast("Nombre cambiado por 1,000 💎");}else showToast(msg||"No se pudo cambiar el nombre.");return;}
+        if(m.type==="name_result"){if(m.ok){pendingNameSetup=false;playerName=String(m.name||"").slice(0,20);username.value=playerName;saveName(playerName);document.getElementById("controlEditor").style.display="none";document.getElementById("controlClose").style.display="grid";document.getElementById("changeNameBtn").textContent="CAMBIAR POR 1,000 💎";showToast("Nombre creado gratis: "+playerName);}else{const msg=document.getElementById("renameMsg");if(msg)msg.textContent=m.message||"No se pudo guardar el nombre.";};return;}
+        if(m.type==="rename_result"){const msg=String(m.message||"");if(m.ok){pendingNameSetup=false;playerName=String(m.name||"").slice(0,20);username.value=playerName;saveName(playerName);showToast(m.free?"Nombre creado gratis: "+playerName:"Nombre cambiado por 1,000 💎");}else showToast(msg||"No se pudo cambiar el nombre.");return;}
         if(m.type==="account_authenticated"){
           if(m.accountId){accountId=String(m.accountId).slice(0,96);try{localStorage.setItem("neon_core_account_id",accountId);}catch{}}
           if(m.accountToken){accountToken=String(m.accountToken).slice(0,128);try{localStorage.setItem("neon_core_account_token",accountToken);}catch{}}
@@ -1563,7 +1556,7 @@ function connectMultiplayer(roomMode="quick",roomCode=""){ const publicRoomAuto=
       multiplayerReady=false;
       if(reconnectActive){setConnectionStatus("RECONEXIÓN","El servidor aún no responde. Buscando tu partida…",true);return;}
       setConnectionStatus("ESPERANDO AL SERVIDOR","El servidor gratuito puede estar despertando. Reintentando…");
-      if(!publicRoomAuto){nameBox.style.display="flex";username.value=playerName||username.value;}
+      if(!publicRoomAuto){nameBox.style.display="none";username.value=playerName||username.value;}
     });
     socket.addEventListener("close",()=>{
       if(multiplayerSocket!==socket)return;
@@ -1720,12 +1713,10 @@ function fire(){
   if(fireTriggerActive&&now-fireHoldStartedAt<FIRST_SHOT_DELAY)return;
   if(now-p.lastShot<p.fireRate)return;
   if(!multiplayerSocket||multiplayerSocket.readyState!==1)return;
-  if(Math.hypot(p.x-safeZone.x,p.y-safeZone.y)<=safeZone.r+24)return;
   p.lastShot=now;localVisual.shoot=1;
   const angle=Number(p.angle)||0;
   const localWeaponVisual=weaponVisuals[String(p.weapon)]||weaponVisuals.blaster;
-  const launchDist=Math.max(p.r*.78,12),launchX=p.x+Math.cos(angle)*launchDist,launchY=p.y+Math.sin(angle)*launchDist;
-  burst(launchX,launchY,localWeaponVisual.glow,melee?8:5);
+  const muzzle=getWeaponMuzzle(angle,p.r);\n  const launchX=muzzle.x,launchY=muzzle.y;\n  burst(launchX,launchY,localWeaponVisual.glow,melee?10:8);\n  if(!melee){for(let i=0;i<3;i++){const a=angle+(Math.random()-.5)*.25;burst(launchX+Math.cos(a)*(8+i*4),launchY+Math.sin(a)*(8+i*4),i%2?localWeaponVisual.accent:localWeaponVisual.glow,3);}}
   if(melee){
     meleeSlashes.push({x:p.x,y:p.y,angle,startAt:performance.now(),duration:210,color:localWeaponVisual.glow,arc:Number(weapon.arc)||1.1,radius:Number(weapon.range)||150});
   }else{
@@ -2145,60 +2136,23 @@ function drawWeaponModel(id,r,v,shoot,angle,handSide=1,walkPhase=0,walkBlend=0){
   else if(skin==="signal_amber"){bodyFill="#d88935";visorFill="#fff1cc";ring="#ffd76a";}
   else if(skin==="pulse_guard"){bodyFill="#8d68e8";visorFill="#f4edff";ring="#c58cff";}
   else if(skin==="shadow_scout"){bodyFill="#52637f";visorFill="#e5efff";ring="#8da2c1";}
-  else if(skin==="pixel_human"){bodyFill="#3a6b42";visorFill="#f2c7a5";ring="#7df0a0";}
-  else if(skin==="rust_core") bodyFill="#c96e32";
-  else if(skin==="toxic_orb") bodyFill="#69e85d";
-  else if(skin==="plasma_violet"){
-    const g=ctx.createRadialGradient(-r*.35,-r*.4,r*.1,r*.25,r*.2,r*1.2);
-    g.addColorStop(0,"#fff");g.addColorStop(.24,"#e1a9ff");g.addColorStop(.58,"#a855f7");g.addColorStop(1,"#3a155f");bodyFill=g;visorFill="#f8eaff";ring="#b67cff";
-  }else if(skin==="aurora"){
-    const g=ctx.createLinearGradient(-r,-r,r,r);g.addColorStop(0,"#39e7ff");g.addColorStop(.45,"#7fffd6");g.addColorStop(.78,"#a855f7");g.addColorStop(1,"#24103d");bodyFill=g;visorFill="#ffffff";ring="#82ffd7";
-  }else if(skin==="eclipse_gold"){bodyFill="#16171e";visorFill="#fff3bc";ring="#ffd76a";}
-  else if(skin==="celestial"){
-    const g=ctx.createRadialGradient(-r*.35,-r*.4,r*.1,r*.2,r*.2,r*1.2);g.addColorStop(0,"#d7efff");g.addColorStop(.3,"#4e92ff");g.addColorStop(.7,"#222c8f");g.addColorStop(1,"#090a29");bodyFill=g;visorFill="#e9f7ff";ring="#9bd4ff";
-  }else if(skin==="eternal_void"){
-    const g=ctx.createRadialGradient(0,0,r*.05,0,0,r*1.15);g.addColorStop(0,"#4c1d57");g.addColorStop(.46,"#17101d");g.addColorStop(1,"#030207");bodyFill=g;visorFill="#f0c6ff";ring="#e879ff";
-  }else if(skin==="nebula_prism"){
-    const g=ctx.createConicGradient(0,0,0);g.addColorStop(0,"#ff4fd8");g.addColorStop(.2,"#6f7bff");g.addColorStop(.4,"#39e7ff");g.addColorStop(.62,"#7dff9b");g.addColorStop(.82,"#ffdb5d");g.addColorStop(1,"#ff4fd8");bodyFill=g;visorFill="#ffffff";ring="#ffffff";
-  }else if(skin==="angel_seraph"){bodyFill="#fff1b8";visorFill="#fff8dd";ring="#fff3c4";}
-  else if(skin==="demon_infernal"){bodyFill="#7e1720";visorFill="#ffd7bd";ring="#ff684c";}
-
-  const sway=Math.sin(walkPhase)*r*.10*walkBlend;
-  ctx.fillStyle="#0a1322";ctx.strokeStyle="#243955";ctx.lineWidth=2;
-  ctx.beginPath();ctx.roundRect(-r*.67,r*.53+sway,r*.43,r*.23,r*.09);ctx.fill();ctx.stroke();
-  ctx.beginPath();ctx.roundRect(r*.24,r*.53-sway,r*.43,r*.23,r*.09);ctx.fill();ctx.stroke();
-
-  ctx.fillStyle=bodyFill;ctx.strokeStyle=ring;ctx.lineWidth=2.5;ctx.shadowBlur=12;ctx.shadowColor=ring;
-  ctx.beginPath();ctx.arc(0,0,r,0,Math.PI*2);ctx.fill();ctx.stroke();ctx.shadowBlur=0;
-
-  const armSway=Math.sin(walkPhase)*r*.12*walkBlend;
-  ctx.fillStyle="#111b2b";ctx.strokeStyle="#314962";ctx.lineWidth=1.5;
-  ctx.beginPath();ctx.roundRect(-r*.95,r*.02+armSway,r*.28,r*.5,r*.12);ctx.fill();ctx.stroke();
-  ctx.beginPath();ctx.roundRect(r*.67,r*.02-armSway,r*.28,r*.5,r*.12);ctx.fill();ctx.stroke();
-
-  ctx.fillStyle=visorFill;ctx.globalAlpha=.28;
-  ctx.beginPath();ctx.ellipse(r*.26,-r*.22,r*.5,r*.22,-.08,0,Math.PI*2);ctx.fill();
-  ctx.globalAlpha=1;ctx.fillStyle="#09111f";
-  ctx.beginPath();ctx.ellipse(r*.29,-r*.18,r*.42,r*.16,-.08,0,Math.PI*2);ctx.fill();
-  ctx.fillStyle=visorFill;ctx.globalAlpha=.92;
-  ctx.beginPath();ctx.ellipse(r*.40,-r*.19,r*.17,r*.07,-.08,0,Math.PI*2);ctx.fill();
-  ctx.globalAlpha=1;
-
-  ctx.strokeStyle="#ffffff99";ctx.lineWidth=1.2;ctx.beginPath();ctx.arc(0,0,r*.72,0,Math.PI*2);ctx.stroke();
-
-  if(skin==="neon_runner"){ctx.strokeStyle="#dffff2";ctx.lineWidth=2;ctx.beginPath();ctx.arc(0,0,r*.55,-2.65,.15);ctx.stroke();ctx.fillStyle="#c8ffe3";ctx.fillRect(-r*.4,r*.35,4,4);ctx.fillRect(-r*.1,r*.48,4,3);}
-  else if(skin==="signal_amber"){ctx.strokeStyle="#fff0b0";ctx.lineWidth=2;ctx.beginPath();ctx.arc(0,0,r*.58,.35,2.55);ctx.stroke();ctx.fillStyle="#fff0b0";ctx.beginPath();ctx.arc(-r*.38,-r*.44,3,0,Math.PI*2);ctx.fill();}
-  else if(skin==="pulse_guard"){ctx.strokeStyle="#e5d8ff";ctx.lineWidth=2;ctx.beginPath();ctx.arc(0,0,r*.6,-.6,2.5);ctx.stroke();ctx.fillStyle="#f6edff";ctx.fillRect(-r*.56,-2,4,4);ctx.fillRect(-r*.4,0,4,4);}
-  else if(skin==="shadow_scout"){ctx.strokeStyle="#b7cdf3";ctx.lineWidth=2;ctx.setLineDash([4,3]);ctx.beginPath();ctx.arc(0,0,r*.58,-2.4,.4);ctx.stroke();ctx.setLineDash([]);}
   else if(skin==="pixel_human"){
     const step=Math.sin(walkPhase)*r*.13*walkBlend, arm=Math.sin(walkPhase)*r*.18*walkBlend;
-    ctx.fillStyle="#222";ctx.fillRect(-r*.48,r*.34+step,r*.32,r*.28);ctx.fillRect(r*.16,r*.34-step,r*.32,r*.28);
-    ctx.fillStyle="#e0a77f";ctx.fillRect(-r*.78,r*.02+arm,r*.22,r*.42);ctx.fillRect(r*.56,r*.02-arm,r*.22,r*.42);
-    ctx.fillStyle="#2f69c9";ctx.fillRect(-r*.48,-r*.28,r*.96,r*.62);
-    ctx.fillStyle="#e0a77f";ctx.fillRect(-r*.34,-r*.82,r*.68,r*.48);
-    ctx.fillStyle="#3b2419";ctx.fillRect(-r*.36,-r*.90,r*.72,r*.16);ctx.fillRect(-r*.48,-r*.78,r*.16,r*.24);ctx.fillRect(r*.32,-r*.78,r*.16,r*.24);
-    ctx.fillStyle="#172033";ctx.fillRect(-r*.24,-r*.62,r*.48,r*.08);
-    ctx.fillStyle="#dffbff";ctx.fillRect(-r*.18,-r*.60,r*.07,r*.04);ctx.fillRect(r*.11,-r*.60,r*.07,r*.04);
+    ctx.save();
+    ctx.imageSmoothingEnabled=false;
+    const img=window.__neonHumanSprite;
+    if(img&&img.complete&&img.naturalWidth){
+      const frame=((Math.floor(performance.now()/140)%4));
+      const dir=Math.abs(Math.sin(angle||0))>.5?(Math.cos(angle||0)>=0?2:1):0;
+      const sw=32,sh=32;
+      ctx.drawImage(img,frame*sw,dir*sh,sw,sh,-r*1.05,-r*1.05,r*2.1,r*2.1);
+    }else{
+      ctx.fillStyle="#2f69c9";ctx.fillRect(-r*.48,-r*.15,r*.96,r*.58);
+      ctx.fillStyle="#e0a77f";ctx.fillRect(-r*.34,-r*.72,r*.68,r*.48);
+      ctx.fillStyle="#3b2419";ctx.fillRect(-r*.42,-r*.78,r*.84,r*.16);
+      ctx.fillStyle="#222";ctx.fillRect(-r*.46,r*.35,r*.32,r*.28);ctx.fillRect(r*.14,r*.35,r*.32,r*.28);
+    }
+    ctx.restore();
   }
   else if(skin==="pixel_cyan"){ctx.fillStyle="#a8fbff";ctx.fillRect(-r*.45,-r*.45,5,5);ctx.fillRect(r*.18,-r*.58,6,6);ctx.fillRect(-r*.6,r*.08,4,4);}
   else if(skin==="rust_core"){ctx.strokeStyle="#ffad63";ctx.lineWidth=2;ctx.beginPath();ctx.arc(0,0,r*.72,-.9,.2);ctx.stroke();ctx.beginPath();ctx.arc(0,0,r*.72,1.8,2.65);ctx.stroke();}
@@ -2818,9 +2772,9 @@ function setupJoystick(id){
 
 const resetMoveJoystick=setupJoystick("moveJoy");
 
-// V68: restauración completa de controles táctiles y botones de interfaz.
+// V69: restauración completa de controles táctiles y botones de interfaz.
 // El joystick izquierdo mueve; el derecho apunta y dispara sin bloquear el izquierdo.
-(function installV68InputSystem(){
+(function installV69InputSystem(){
   const aim=document.getElementById("aimJoy");
   if(aim){
     const applyAim=(x,y)=>{
@@ -2973,7 +2927,7 @@ document.querySelectorAll("[data-utility-tab]").forEach(tab=>tab.addEventListene
 })();
 
 
-// V68: un solo puente táctil global para el joystick izquierdo.
+// V69: un solo puente táctil global para el joystick izquierdo.
 // No depende de Pointer Capture ni de que otro control reciba primero el evento.
 // Conserva el identifier del dedo para permitir mover mientras otro dedo apunta/dispara.
 (function installV64TouchMovement(){
@@ -3016,7 +2970,7 @@ document.querySelectorAll("[data-utility-tab]").forEach(tab=>tab.addEventListene
   window.__neonV64TouchMovement=true;
 })();
 
-// V68: acceso protegido por Google en cada entrada a la prueba.
+// V69: acceso protegido por Google en cada entrada a la prueba.
 (function bootGoogleProtectedEntry(){
   try{
     googleIdToken="";
@@ -3053,7 +3007,7 @@ requestAnimationFrame(frame);
 </script>
 <script>(function(){var ua=String(navigator.userAgent||"");var touch=Number(navigator.maxTouchPoints||0)>0||"ontouchstart"in window;var android=/Android/i.test(ua);if(!touch||!android)return;document.documentElement.classList.add("neon-touch");var btn=document.createElement("button");btn.id="neonFullscreenButton";btn.type="button";btn.setAttribute("aria-label","Activar pantalla completa");btn.innerHTML="<span>⛶</span><b>PANTALLA COMPLETA</b>";document.body.appendChild(btn);function active(){return !!document.fullscreenElement||!!document.webkitFullscreenElement;}function refresh(){btn.style.display=active()?"none":"flex";}function enter(){if(active())return;try{var root=document.documentElement;if(root.requestFullscreen){var p=root.requestFullscreen();if(p&&typeof p.then==="function"){p.then(refresh).catch(function(){var b=btn.querySelector("b");if(b)b.textContent="TOCA DE NUEVO";setTimeout(function(){var x=btn.querySelector("b");if(x)x.textContent="PANTALLA COMPLETA";},1800);});}else refresh();return;}if(root.webkitRequestFullscreen){root.webkitRequestFullscreen();refresh();return;}var b2=btn.querySelector("b");if(b2)b2.textContent="NO COMPATIBLE";}catch(e){var b3=btn.querySelector("b");if(b3)b3.textContent="NO DISPONIBLE";}}btn.addEventListener("click",function(e){e.preventDefault();e.stopPropagation();enter();});document.addEventListener("fullscreenchange",refresh);document.addEventListener("webkitfullscreenchange",refresh);refresh();})();</script><div id="neonMusicCredit" style="position:fixed;right:6px;bottom:4px;z-index:2;color:#ffffff;font:7px Arial,sans-serif;opacity:.22;pointer-events:none">MUSIC · tricksntraps · OpenGameArt · CC0</div>
 <script>
-/* NEON CORE V68 · COMBAT POLISH
+/* NEON CORE V69 · COMBAT POLISH
    Capa visual única: no reemplaza la lógica de servidor ni crea sistemas duplicados.
    Solo añade feedback local sobre el combate ya existente. */
 (function(){
@@ -3207,7 +3161,10 @@ requestAnimationFrame(frame);
     }catch{}
   },80);
 
-  console.info("[NEON CORE] Combat Polish V68 activo: rango visual, muzzle flash, alerta de boss y aviso de munición.");
+  console.info("[NEON CORE] Combat Polish V69 activo: rango visual, muzzle flash, alerta de boss y aviso de munición.");
 })();
+</script><script id="neonV69Assets">
+window.__neonHumanSprite=new Image();
+window.__neonHumanSprite.src="https://lpc.opengameart.org/sites/default/files/ch003.png";
 </script></body>
 </html>
