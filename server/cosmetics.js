@@ -6,6 +6,7 @@ const SKINS = Object.freeze({
   signal_amber: { id:'signal_amber', name:'SEÑAL ÁMBAR', rarity:'Común', type:'armor', priceGold:0, priceDiamonds:0, priceUsd:0, style:'amber', defenseBonus:0 },
   pulse_guard: { id:'pulse_guard', name:'GUARDIÁN PULSO', rarity:'Común', type:'armor', priceGold:0, priceDiamonds:0, priceUsd:0, style:'pulse', defenseBonus:0 },
   shadow_scout: { id:'shadow_scout', name:'EXPLORADOR SOMBRA', rarity:'Común', type:'armor', priceGold:0, priceDiamonds:0, priceUsd:0, style:'shadow', defenseBonus:0 },
+  pixel_human: { id:'pixel_human', name:'HUMANO PIXEL', rarity:'Común', type:'armor', priceGold:0, priceDiamonds:0, priceUsd:0, style:'human', defenseBonus:0 },
   pixel_cyan: { id:'pixel_cyan', name:'PIXEL CYAN', rarity:'Raro', type:'armor', priceGold:5000, priceDiamonds:0, priceUsd:0, style:'pixel', defenseBonus:10 },
   rust_core: { id:'rust_core', name:'NÚCLEO OXIDADO', rarity:'Raro', type:'armor', priceGold:1500, priceDiamonds:0, priceUsd:0, style:'rust', defenseBonus:20 },
   toxic_orb: { id:'toxic_orb', name:'ORBE TÓXICO', rarity:'Épico', type:'armor', priceGold:12000, priceDiamonds:0, priceUsd:0, style:'toxic', defenseBonus:35 },
@@ -88,7 +89,7 @@ const REDEEM_CODES = Object.freeze({
 function getSkin(id) { return SKINS[String(id || '')]; }
 function getWeaponSkin(id) { return WEAPON_SKINS[String(id || '')]; }
 
-const STARTER_SKINS=Object.freeze(['core_default','neon_runner','signal_amber','pulse_guard','shadow_scout']);
+const STARTER_SKINS=Object.freeze(['core_default','neon_runner','signal_amber','pulse_guard','shadow_scout','pixel_human']);
 
 function normalizeOwnedSkins(value){
   const input=Array.isArray(value)?value:[],out=[],seen=new Set();
