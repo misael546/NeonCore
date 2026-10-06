@@ -1,4 +1,4 @@
-/* V44 · inventario, items, venta y equipo */
+/* V65 · inventario, items, venta y equipo */
 'use strict';
 
 const http = require('http');
@@ -43,7 +43,7 @@ try {
 const RELEASE_ID = String(UNIFIED_RELEASE_MANIFEST.version || UNIFIED_RELEASE_MANIFEST.releaseId || 'unknown');
 const DATABASE_SCHEMA_VERSION = Math.max(3, Number(UNIFIED_RELEASE_MANIFEST.databaseSchema) || 3);
 const SERVER_VERSION = RELEASE_ID;
-const SERVER_UPDATE_MESSAGE = 'NUEVA ACTUALIZACIÓN DISPONIBLE. Neon Core se actualizará automáticamente en unos segundos. No cierres la pestaña.';
+const SERVER_UPDATE_MESSAGE = 'NUEVA ACTUALIZACIÓN DISPONIBLE. Neon Core volverá al menú para cargar la nueva versión.';
 
 const AMMO_PACK_SIZE = 100;
 const AMMO_PACK_COST = 75;
