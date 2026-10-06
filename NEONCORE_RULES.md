@@ -236,7 +236,7 @@ No dejar:
 ## 18. Estado conocido al crear este documento
 
 - Cliente actual: **V69**.
-- V69, V69 y V44 del cliente ya fueron eliminadas durante la limpieza anterior.
+- V68 y V44 del cliente fueron eliminadas durante la limpieza anterior; V69 es la versión vigente.
 - No deben restaurarse esas V.
 - La limpieza anterior eliminó referencias de BUILD y de los parámetros legacy de actualización en los archivos auditados.
 - Se detectó y eliminó duplicación de `startNeonMusic` y `stopNeonMusic` en V69.
