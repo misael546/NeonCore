@@ -2002,19 +2002,8 @@ function drawTank(x,y,angle,color="#39e7ff",r=24,weapon="",skinId="",armorId="",
   ctx.scale(facing,1);
 
   const skin=String(skinId||"core_default");
+  const skin=String(skinId||"core_default");
   let bodyFill=color,visorFill="#dfffff",ring="#39e7ff";
-  else if(skin==="pixel_cyan"){ctx.fillStyle="#a8fbff";ctx.fillRect(-r*.45,-r*.45,5,5);ctx.fillRect(r*.18,-r*.58,6,6);ctx.fillRect(-r*.6,r*.08,4,4);}
-  else if(skin==="rust_core"){ctx.strokeStyle="#ffad63";ctx.lineWidth=2;ctx.beginPath();ctx.arc(0,0,r*.72,-.9,.2);ctx.stroke();ctx.beginPath();ctx.arc(0,0,r*.72,1.8,2.65);ctx.stroke();}
-  else if(skin==="toxic_orb"){ctx.strokeStyle="#d7ffc8";ctx.lineWidth=2;ctx.beginPath();ctx.arc(0,0,r*.72,.4,2.7);ctx.stroke();}
-  else if(skin==="plasma_violet"){ctx.strokeStyle="#e8c7ff";ctx.lineWidth=2;ctx.beginPath();ctx.arc(0,0,r*.78,-2.6,.6);ctx.stroke();}
-  else if(skin==="aurora"){ctx.strokeStyle="#d7ffff";ctx.lineWidth=2;ctx.beginPath();ctx.arc(0,0,r*.78,-2.8,.6);ctx.stroke();ctx.strokeStyle="#caa2ff";ctx.beginPath();ctx.arc(0,0,r*.68,.7,2.9);ctx.stroke();}
-  else if(skin==="eclipse_gold"){ctx.strokeStyle="#ffd76a";ctx.lineWidth=3;ctx.beginPath();ctx.arc(0,0,r*.78,0,Math.PI*2);ctx.stroke();}
-  else if(skin==="celestial"){ctx.fillStyle="#fff";for(let i=0;i<5;i++){const a=i*1.25+.4;ctx.beginPath();ctx.arc(Math.cos(a)*r*.48,Math.sin(a)*r*.48,1.4,0,Math.PI*2);ctx.fill();}}
-  else if(skin==="eternal_void"){ctx.strokeStyle="#e879ff";ctx.lineWidth=2;ctx.beginPath();ctx.arc(0,0,r*.8,-2.7,.2);ctx.stroke();ctx.strokeStyle="#39e7ff";ctx.beginPath();ctx.arc(0,0,r*.72,.55,2.9);ctx.stroke();}
-  else if(skin==="nebula_prism"){ctx.strokeStyle="#ffffffaa";ctx.lineWidth=1.5;ctx.beginPath();ctx.arc(0,0,r*.82,0,Math.PI*2);ctx.stroke();}
-  else if(skin==="angel_seraph"){ctx.strokeStyle="#fff3c4";ctx.lineWidth=2;ctx.beginPath();ctx.arc(0,0,r*.78,0,Math.PI*2);ctx.stroke();}
-  else if(skin==="demon_infernal"){ctx.strokeStyle="#ff6b4e";ctx.lineWidth=2.5;ctx.beginPath();ctx.arc(0,0,r*.8,0,Math.PI*2);ctx.stroke();}
-
   drawSkinEffects(skin,r);
   // Silueta base melee: casco, torso, piernas y guantes simples.
   ctx.fillStyle="#56646b";ctx.fillRect(-r*.42,-r*.45,r*.84,r*.75);
