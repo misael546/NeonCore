@@ -2083,7 +2083,7 @@ wss.on('connection', async (ws) => {
           p.equippedArmor=cosmetics.getArmor(saved.equippedArmor)?.id||(cosmetics.getArmor(saved.equippedSkin)?.id||'');
           p.redeemedCodes = cosmetics.normalizeRedeemedCodes(saved.redeemedCodes);
           p.ownedWeapons = normalizeOwnedWeapons(saved.ownedWeapons, saved.weapon || '');
-          p.weapon = WEAPONS[saved.weapon] ? saved.weapon : 'blaster';
+          p.weapon = WEAPONS[saved.weapon] ? saved.weapon : 'sword_neo';
           p.ownedWeaponSkins = cosmetics.normalizeOwnedWeaponSkins(saved.ownedWeaponSkins);
           p.equippedWeaponSkin = cosmetics.getWeaponSkin(saved.equippedWeaponSkin) && p.ownedWeaponSkins.includes(saved.equippedWeaponSkin) ? saved.equippedWeaponSkin : '';
           p.inventory=normalizeInventory(p.inventory,inventoryCapacity(p));
@@ -2447,7 +2447,7 @@ wss.on('connection', async (ws) => {
           p.gold = Math.max(0, Number(checkpoint.gold) || 0);
           p.diamonds = Math.max(0, Number(checkpoint.diamonds) || 0);
           syncAmmoFromInventory(p);
-          p.weapon = WEAPONS[checkpoint.weapon] ? checkpoint.weapon : 'blaster';
+          p.weapon = WEAPONS[checkpoint.weapon] ? checkpoint.weapon : 'sword_neo';
         } else {
           p.hp = maxHpForLevel(p.level);
           p.ammo = clamp(Number(p.ammo) || 0, 0, maxAmmoForPlayer(p));
