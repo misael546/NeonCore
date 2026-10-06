@@ -895,7 +895,7 @@ let cosmeticShopWasNear=false,cosmeticShopDismissedUntil=0;
 let equippedBackpack="",inventoryCapacityClient=16,itemShopCatalog=[],itemShopStock={};
 let bullets=[],enemies=[],drops=[],particles=[],walls=[],hitTexts=[],bossProjectiles=[],bossWarnings=[];
 let inventorySlots=Array.from({length:INVENTORY_SLOTS},()=>null);
-let serverXpNeed=100,serverKillsToLevel=5,serverPower=100,serverDefense=0,serverDefenseLevel=1,serverDefenseXp=0,serverDefenseXpIntoLevel=0,serverDefenseXpNeed=100,serverMeleeLevel=1,serverMeleeXp=0,serverMeleeXpIntoLevel=0,serverMeleeXpNeed=100,serverPowerAttackBonus=0,serverMeleeLevel=1,serverMeleeXp=0,serverMeleeXpIntoLevel=0,serverMeleeXpNeed=100;
+let serverXpNeed=100,serverKillsToLevel=5,serverPower=100,serverDefense=0,serverDefenseLevel=1,serverDefenseXp=0,serverDefenseXpIntoLevel=0,serverDefenseXpNeed=100,serverMeleeLevel=1,serverMeleeXp=0,serverMeleeXpIntoLevel=0,serverMeleeXpNeed=100,serverPowerAttackBonus=0;
 let gameActive=false;
 let camera={x:p.x,y:p.y},last=performance.now(),playerName="";
 let safeZone={x:3000,y:2200,r:300};
@@ -1988,144 +1988,7 @@ function drawSwordModel(id,r,v,shoot,angle,handSide=1,walkPhase=0,walkBlend=0){
   if(shoot){ctx.globalAlpha=.65;ctx.strokeStyle=hi;ctx.lineWidth=5;ctx.beginPath();ctx.moveTo(r*.20,0);ctx.lineTo(len*.96,0);ctx.stroke();ctx.globalAlpha=1;}
   ctx.shadowBlur=0;ctx.restore();
 }
-function drawWeaponModel(id,r,v,shoot,angle,handSide=1,walkPhase=0,walkBlend=0){
-  if(String(id||"").startsWith("sword_"))return drawSwordModel(id,r,v,shoot,angle,handSide,walkPhase,walkBlend);
-  const a=Number(angle)||0;
-  const side=handSide<0?-1:1;
-  const walk=Math.sin(Number(walkPhase)||0)*r*.055*clamp(Number(walkBlend)||0,0,1);
-  const aimSway=Math.sin(performance.now()/120+a*1.7)*r*.025;
-  const bob=Math.sin(performance.now()/165+a*.8)*r*.035;
-  const recoil=Number(shoot||0)*2.8;
-
-  // Dos poses reales:
-  //  1 = mano derecha cuando la mira está a la derecha.
-  // -1 = mano izquierda cuando la mira está a la izquierda.
-  // La simetría del espada se hace sobre su propio eje, nunca sobre el cuerpo.
-  const handForward=Math.max(r*.10,Math.abs(Math.cos(a))*r*.18);
-  const handX=Math.cos(a)*handForward+side*r*.78;
-  const handY=r*.12+Math.sin(a)*r*.30-Math.cos(a)*r*.08+walk*side+aimSway+bob;
-
-  ctx.save();
-  ctx.translate(handX,handY);
-  ctx.rotate(a);
-
-  // Al pasar al lado izquierdo, espejamos SOLO la pose local del espada.
-  // El cañón sigue apuntando a +X y la empuñadura sigue abajo respecto al espada.
-  if(side<0)ctx.scale(1,-1);
-
-  ctx.translate(-recoil,0);
-
-  const dark="#071019";
-  const mid="#102235";
-  const edge=v.glow||v.base||"#39e7ff";
-  const hi=v.accent||"#ffffff";
-  const short=id==="omega"?30:id==="singularity"?28:id==="cannon"?25:id==="railgun"?29:id==="quasar"?29:22;
-
-  ctx.lineJoin="round";
-  ctx.lineCap="round";
-  ctx.fillStyle=dark;
-  ctx.strokeStyle=edge;
-  ctx.lineWidth=Math.max(1.6,r*.07);
-  ctx.shadowColor=edge;
-  ctx.shadowBlur=11;
-
-  // Receptor claramente orientado: culata atrás (-X), cañón adelante (+X).
-  ctx.beginPath();
-  ctx.roundRect(-r*.18,-r*.25,r*.82,r*.50,r*.12);
-  ctx.fill();ctx.stroke();
-
-  // Cubierta superior asimétrica para dejar claro cuál es la parte de arriba.
-  ctx.fillStyle=mid;
-  ctx.beginPath();
-  ctx.roundRect(r*.05,-r*.29,r*.50,r*.13,r*.05);
-  ctx.fill();ctx.stroke();
-
-  // Núcleo luminoso del espada.
-  ctx.fillStyle=edge;
-  ctx.globalAlpha=.94;
-  ctx.beginPath();
-  ctx.arc(r*.27,0,r*.125,0,Math.PI*2);
-  ctx.fill();
-  ctx.globalAlpha=1;
-
-  // Cañón corto.
-  ctx.fillStyle=dark;
-  ctx.strokeStyle=edge;
-  ctx.beginPath();
-  ctx.roundRect(r*.58,-r*.105,short,r*.21,r*.075);
-  ctx.fill();ctx.stroke();
-
-  // Boca circular.
-  ctx.fillStyle=hi;
-  ctx.globalAlpha=.95;
-  ctx.beginPath();
-  ctx.arc(r*.58+short,0,Math.max(2.4,r*.075),0,Math.PI*2);
-  ctx.fill();
-  ctx.globalAlpha=1;
-
-  // Empuñadura: siempre abajo del espada, independientemente del lado.
-  ctx.fillStyle=dark;
-  ctx.strokeStyle=edge;
-  ctx.beginPath();
-  ctx.roundRect(r*.02,r*.18,r*.22,r*.42,r*.07);
-  ctx.fill();ctx.stroke();
-
-  // Guarda de la mano.
-  ctx.strokeStyle=hi;
-  ctx.lineWidth=Math.max(1.4,r*.05);
-  ctx.beginPath();
-  ctx.arc(r*.11,r*.19,r*.18,0,.95);
-  ctx.stroke();
-
-  // Contrapeso trasero.
-  ctx.fillStyle=mid;
-  ctx.strokeStyle=hi;
-  ctx.lineWidth=1.4;
-  ctx.beginPath();
-  ctx.roundRect(-r*.13,-r*.15,r*.19,r*.30,r*.06);
-  ctx.fill();ctx.stroke();
-
-  if(id==="pulse"||id==="plasma"||id==="vortex"){
-    ctx.fillStyle=hi;ctx.globalAlpha=.8;
-    ctx.beginPath();ctx.arc(r*.47,0,r*.07,0,Math.PI*2);ctx.fill();
-    ctx.globalAlpha=1;
-  }
-  if(id==="railgun"||id==="quasar"){
-    ctx.strokeStyle=hi;ctx.lineWidth=Math.max(1.5,r*.055);
-    ctx.beginPath();ctx.moveTo(r*.12,-r*.34);ctx.lineTo(r*.58,-r*.34);ctx.stroke();
-  }
-  if(id==="cannon"||id==="nova"||id==="omega"){
-    ctx.strokeStyle=hi;ctx.lineWidth=Math.max(1.4,r*.05);
-    ctx.beginPath();ctx.arc(r*.57,0,r*.19,-1.05,1.05);ctx.stroke();
-  }
-  if(id==="singularity"){
-    ctx.strokeStyle=hi;ctx.lineWidth=Math.max(1.7,r*.06);
-    ctx.beginPath();ctx.arc(r*.48,0,r*.15,0,Math.PI*2);ctx.stroke();
-  }
-
-  if(shoot){
-    ctx.fillStyle="#fff";
-    ctx.shadowColor=hi;
-    ctx.shadowBlur=24;
-    ctx.globalAlpha=.98;
-    ctx.beginPath();
-    ctx.arc(r*.58+short+1,0,4+Number(shoot)*5,0,Math.PI*2);
-    ctx.fill();
-
-    // Pequeño pulso de salida en la boca, sin convertirlo en un tubo.
-    ctx.globalAlpha=.45;
-    ctx.beginPath();
-    ctx.arc(r*.58+short+1,0,8+Number(shoot)*6,0,Math.PI*2);
-    ctx.strokeStyle=hi;
-    ctx.lineWidth=2;
-    ctx.stroke();
-  }
-
-  ctx.globalAlpha=1;
-  ctx.shadowBlur=0;
-  ctx.lineJoin="miter";
-  ctx.restore();
-}function drawTank(x,y,angle,color="#39e7ff",r=24,weapon="",skinId="",armorId="",anim={}){
+function drawWeaponModel(id,r,v,shoot,angle,handSide=1,walkPhase=0,walkBlend=0){const swordId=String(id||"sword_neo"),im=swordImgsV71[swordId]||swordImgsV71.sword_neo,a=Number(angle)||0,side=handSide<0?-1:1,now=performance.now();ctx.save();ctx.translate(Math.cos(a)*r*.58+side*r*.62,Math.sin(a)*r*.58+Math.sin(now/170)*r*.035);ctx.rotate(a);if(side<0)ctx.scale(1,-1);ctx.imageSmoothingEnabled=false;if(im&&im.complete&&im.naturalWidth){const scale=Math.max(1.8,r/18);ctx.globalAlpha=.98;ctx.shadowColor="#fff0a8";ctx.shadowBlur=shoot?18:7;ctx.drawImage(im,-4*scale,-9*scale,38*scale,18*scale);}else{ctx.strokeStyle="#f5d76e";ctx.lineWidth=4;ctx.beginPath();ctx.moveTo(0,0);ctx.lineTo(34,0);ctx.stroke();}ctx.restore();}function drawTank(x,y,angle,color="#39e7ff",r=24,weapon="",skinId="",armorId="",anim={}){
   const t=performance.now()/1000;
   const walkBlend=clamp(Number(anim?.walkBlend)||0,0,1);
   const walkPhase=Number(anim?.walkPhase)||0;
@@ -3194,5 +3057,13 @@ window.__neonMinotaurSprite=new Image();
 window.__neonMinotaurSprite.src="https://opengameart.org/sites/default/files/minotaur_spritesheet_nes.png";
 window.__neonDesertSky=new Image();window.__neonDesertSky.src="https://opengameart.org/sites/default/files/sky_duneBG.png";
 window.__neonDesertRocks=new Image();window.__neonDesertRocks.src="https://opengameart.org/sites/default/files/rock_veget.png";
+
+/* V71 FINAL INPUT: tap-to-cell movement and melee */
+function v71Cell(x){return Math.round(Number(x)/GRID_SIZE)}function v71CellCenter(c){return Number(c)*GRID_SIZE}
+function v71Tap(clientX,clientY){if(!gameActive||shopOpen)return;const wx=camera.x-W/2+clientX,wy=camera.y-H/2+clientY,cx=clamp(v71Cell(wx),1,Math.floor(world.w/GRID_SIZE)-1),cy=clamp(v71Cell(wy),1,Math.floor(world.h/GRID_SIZE)-1);if(Math.abs(cx-v71Cell(shopNpc.x))<=1&&Math.abs(cy-v71Cell(shopNpc.y))<=1){openCosmeticShop(true);return;}let hit=null,bd=99;for(const e of enemies||[]){if(e?.dead)continue;const d=Math.abs(v71Cell(e.x)-cx)+Math.abs(v71Cell(e.y)-cy);if(d<bd){bd=d;hit=e;}}if(hit&&bd<=1){gridAttackTarget={x:v71Cell(hit.x),y:v71Cell(hit.y),id:hit.id||""};gridTarget={x:cx,y:cy};}else{gridAttackTarget=null;gridTarget={x:cx,y:cy};}}
+canvas.addEventListener("pointerdown",e=>{if(controlMode==="touch"&&e.pointerType==="touch"&&e.target===canvas){e.preventDefault();v71Tap(e.clientX,e.clientY)}},{capture:true,passive:false});
+function v71Move(dt){if(!gridTarget)return;const tx=v71CellCenter(gridTarget.x),ty=v71CellCenter(gridTarget.y),dx=tx-p.x,dy=ty-p.y,d=Math.hypot(dx,dy),step=Math.min(d,260*dt);if(d<=2){p.x=tx;p.y=ty;if(gridAttackTarget){fireV2()}else gridTarget=null;return}p.x+=dx/d*step;p.y+=dy/d*step;p.angle=Math.atan2(dy,dx)}
+const v71OriginalUpdate=update;update=function(dt){if(!gameActive)return;if(multiplayerReady&&multiplayerSocket&&multiplayerSocket.readyState===1){multiplayerReady=false;setConnectionStatus("","",false);document.getElementById("nameBox").style.display="none"}if(!p.alive){sendMultiplayerState(dt);return}v71Move(dt);p.x=clamp(p.x,GRID_SIZE,world.w-GRID_SIZE);p.y=clamp(p.y,GRID_SIZE,world.h-GRID_SIZE);localVisual.walkBlend+=(gridTarget?1:0-localVisual.walkBlend)*Math.min(1,dt*12);localVisual.shoot=Math.max(0,localVisual.shoot-dt*8);camera.x+=(p.x-camera.x)*Math.min(1,dt*9);camera.y+=(p.y-camera.y)*Math.min(1,dt*9);sendMultiplayerState(dt);updateCosmeticShop();updateResourceHud();updateHud()};
+const v71OriginalSendState=sendMultiplayerState;sendMultiplayerState=function(dt){if(!multiplayerSocket||multiplayerSocket.readyState!==1)return;lastNetSend+=dt;if(lastNetSend<.08)return;lastNetSend=0;multiplayerSocket.send(JSON.stringify({type:"grid_state",cellX:v71Cell(p.x),cellY:v71Cell(p.y),x:v71CellCenter(v71Cell(p.x)),y:v71CellCenter(v71Cell(p.y)),angle:p.angle}))};
 </script></body>
 </html>
