@@ -101,9 +101,9 @@ jobs:
           for i in $(seq 1 12); do
             html="$(curl -fsSL --retry 2 --retry-delay 2 "$url" || true)"
             client="$(curl -fsSL --retry 2 --retry-delay 2 "https://misael546.github.io/NeonCore/${expected_path}?livecheck=$(date +%s%N)" || true)"
-            if grep -Fq 'id="name"' <<<"$html" \
-               && grep -Fq 'id="play"' <<<"$html" \
-               && grep -Fq 'launchLatest' <<<"$html" \
+            if grep -Fq 'NEONCORE' <<<"$html" \
+               && grep -Fq "$expected_release" <<<"$html" \
+               && grep -Fq "$expected_path" <<<"$html" \
                && grep -Fq "var v=\"$expected_release\"" <<<"$client" \
                && ! grep -Fq 'PUBLIC_ROOM_CODE' <<<"$html" \
                && ! grep -Fq '20261003-167-darkscifi' <<<"$html"; then
