@@ -800,22 +800,22 @@ const BASE_SKINS=[
 {id:"core_default",name:"SKIN MELEE BÁSICA",rarity:"Común",currency:"free",price:0,desc:"Base melee simple; las demás skins son comprables."}
 ];
 const ARMOR_CATALOG=[
-{id:"pixel_cyan",name:"ARMADURA DE CUERO",rarity:"Común",currency:"gold",price:500,skinRating:10,desc:"Skin melee sencilla, inspirada en la lectura limpia de los RPG pixel-art."},
-{id:"rust_core",name:"ARMADURA DE HIERRO",rarity:"Raro",currency:"gold",price:1500,skinRating:20,desc:"Placas simples de hierro con protección frontal."},
-{id:"toxic_orb",name:"ARMADURA DEL GUARDIÁN",rarity:"Épico",currency:"gold",price:12000,skinRating:35,desc:"Coraza reforzada para aguantar combates largos."},
-{id:"plasma_violet",name:"ARMADURA CARMESÍ",rarity:"Mítico",currency:"gold",price:60000,skinRating:60,desc:"Skin melee pesada con detalles marcados."},
-{id:"aurora",name:"ARMADURA CELESTIAL",rarity:"Épico",currency:"diamonds",price:250,skinRating:90,desc:"Set avanzado con brillo controlado."},
-{id:"nebula_prism",name:"ARMADURA PRISMA",rarity:"Mítico",currency:"diamonds",price:4500,skinRating:140,desc:"Set avanzado con placas prismáticas."},
-{id:"eclipse_gold",name:"ARMADURA DORADA",rarity:"Legendario",currency:"diamonds",price:2000,skinRating:220,desc:"Set pesado de alto nivel."},
-{id:"celestial",name:"ARMADURA DEL CIELO",rarity:"Legendario",currency:"diamonds",price:7500,skinRating:320,desc:"Set de élite con silueta de caballero."},
-{id:"angel_seraph",name:"ARMADURA SERAFÍN",rarity:"Legendario",currency:"diamonds",price:12000,skinRating:500,desc:"Set de alto nivel con detalles luminosos."},
-{id:"demon_infernal",name:"ARMADURA INFERNAL",rarity:"Supremo",currency:"diamonds",price:25000,skinRating:700,desc:"Set oscuro y pesado de final de progresión."},
-{id:"eternal_void",name:"ARMADURA DEL VACÍO",rarity:"Supremo",currency:"diamonds",price:30000,skinRating:950,desc:"Set extremo de final de progresión."},
-{id:"gm_core",name:"ARMADURA SOBERANA",rarity:"Supremo",currency:"diamonds",price:50000,skinRating:1250,desc:"Set exclusivo de administración."}
+{id:"pixel_cyan",name:"SKIN DE CUERO",rarity:"Común",currency:"gold",price:500,skinStyleLevel:10,desc:"Skin melee sencilla, inspirada en la lectura limpia de los RPG pixel-art."},
+{id:"rust_core",name:"SKIN DE HIERRO",rarity:"Raro",currency:"gold",price:1500,skinStyleLevel:20,desc:"Skin melee de hierro con diseño pixel-art."},
+{id:"toxic_orb",name:"SKIN DEL GUARDIÁN",rarity:"Épico",currency:"gold",price:12000,skinStyleLevel:35,desc:"Skin melee de guardián con diseño reforzado."},
+{id:"plasma_violet",name:"SKIN CARMESÍ",rarity:"Mítico",currency:"gold",price:60000,skinStyleLevel:60,desc:"Skin melee pesada con detalles marcados."},
+{id:"aurora",name:"SKIN CELESTIAL",rarity:"Épico",currency:"diamonds",price:250,skinStyleLevel:90,desc:"Set avanzado con brillo controlado."},
+{id:"nebula_prism",name:"SKIN PRISMA",rarity:"Mítico",currency:"diamonds",price:4500,skinStyleLevel:140,desc:"Skin melee prismática de aspecto exclusivo."},
+{id:"eclipse_gold",name:"SKIN DORADA",rarity:"Legendario",currency:"diamonds",price:2000,skinStyleLevel:220,desc:"Skin melee de apariencia pesada."},
+{id:"celestial",name:"SKIN DEL CIELO",rarity:"Legendario",currency:"diamonds",price:7500,skinStyleLevel:320,desc:"Skin melee de élite con silueta de guerrero."},
+{id:"angel_seraph",name:"SKIN SERAFÍN",rarity:"Legendario",currency:"diamonds",price:12000,skinStyleLevel:500,desc:"Skin melee de alto nivel con detalles luminosos."},
+{id:"demon_infernal",name:"SKIN INFERNAL",rarity:"Supremo",currency:"diamonds",price:25000,skinStyleLevel:700,desc:"Skin melee oscura de final de progresión."},
+{id:"eternal_void",name:"SKIN DEL VACÍO",rarity:"Supremo",currency:"diamonds",price:30000,skinStyleLevel:950,desc:"Skin melee extrema de final de progresión."},
+{id:"gm_core",name:"SKIN SOBERANA",rarity:"Supremo",currency:"diamonds",price:50000,skinStyleLevel:1250,desc:"Skin melee exclusiva de administración."}
 ];
 let cosmeticMerchantNpc={...merchantNpc};
 let ownedSkins=["core_default"],equippedSkin="core_default";
-let ownedSkins=[],equippedSkin="";
+
 let ownedWeapons=["sword_neo"],equippedWeaponSkin="",ownedWeaponSkins=[];
 let weaponSkinCatalog=[],skinCatalog=[...ARMOR_CATALOG];
 let cosmeticShopWasNear=false,cosmeticShopDismissedUntil=0;
@@ -1330,7 +1330,6 @@ function connectMultiplayer(roomMode="quick",roomCode=""){ const publicRoomAuto=
           if(Number.isFinite(m.maxHp))p.maxHp=m.maxHp;
           if(Number.isFinite(m.fatigue))serverFatigue=Math.max(0,Number(m.fatigue));
           if(Number.isFinite(m.maxFatigue))serverMaxFatigue=Math.max(1,Number(m.maxFatigue));
-          if(Number.isFinite(m.comboCount))serverComboCount=Math.max(0,Number(m.comboCount));
           if(Number.isFinite(m.defense))serverDefense=m.defense;
           audioTone(m.boss?95:160,.16,"square",.05,-45);
           localVisual.hit=1;
@@ -1386,7 +1385,6 @@ function connectMultiplayer(roomMode="quick",roomCode=""){ const publicRoomAuto=
           if(Number.isFinite(m.level))p.level=m.level;
           if(Number.isFinite(m.fatigue))serverFatigue=Math.max(0,Number(m.fatigue));
           if(Number.isFinite(m.maxFatigue))serverMaxFatigue=Math.max(1,Number(m.maxFatigue));
-          if(Number.isFinite(m.comboCount))localComboCount=serverComboCount=Math.max(0,Number(m.comboCount));
           if(m.isCombo){burst(p.x,p.y,"#ffe08a",18);meleeSlashes.push({x:p.x,y:p.y,angle:p.angle,startAt:performance.now(),duration:420,color:"#fff0a6",arc:Math.PI*1.7,radius:GRID_SIZE*1.8,sword:p.weapon,isCombo:true});}
           if(Number.isFinite(m.damage))p.damage=m.damage;
           if(Number.isFinite(m.meleeLevel))serverMeleeLevel=Math.max(1,Math.round(Number(m.meleeLevel)));
@@ -1454,7 +1452,6 @@ function connectMultiplayer(roomMode="quick",roomCode=""){ const publicRoomAuto=
           if(Number.isFinite(Number(m.meleeLevel)))serverMeleeLevel=Number(m.meleeLevel);
           if(Number.isFinite(Number(m.fatigue)))serverFatigue=Math.max(0,Number(m.fatigue));
           if(Number.isFinite(Number(m.maxFatigue)))serverMaxFatigue=Math.max(1,Number(m.maxFatigue));
-          if(Number.isFinite(Number(m.comboCount)))localComboCount=serverComboCount=Math.max(0,Number(m.comboCount));
           if(m.hit){
             burst(Number(m.x)||p.x,Number(m.y)||p.y,m.isCombo?"#fff0a6":"#f5d76e",m.isCombo?28:16);
             hitTexts.push({x:Number(m.x)||p.x,y:Number(m.y)||p.y,text:"-"+Number(m.damage||0),life:1.0,color:m.isCombo?"#fff0a6":"#ffe08a"});
@@ -2320,7 +2317,7 @@ function renderItemShop(){
     const owned=clientInventoryTotal(item.id)>0||p.weapon===item.id||equippedSkin===item.id||equippedBackpack===item.id;
     const isSword=String(item.id)==="sword_neo";
     const visual=isSword?'<img src="'+(swordSkinsV81[item.id]||"")+'" style="max-width:86px;max-height:52px;image-rendering:pixelated" alt="">':item.category==="backpack"?"🎒":"🛡️";
-    const extra=isSword?"⚔ MELEE + "+Number(item.power||0):(item.category==="backpack"?"+"+Number(item.slotsBonus||16)+" ESPACIOS":"🛡 DEFENSA "+Number(item.skinRating||0));
+    const extra=isSword?"⚔ MELEE + "+Number(item.power||0):(item.category==="backpack"?"+"+Number(item.slotsBonus||16)+" ESPACIOS":"🛡 DEFENSA "+Number(item.skinStyleLevel||0));
     return '<button type="button" class="shopWeaponCard itemShopCard '+(owned?"equipped":"")+'" data-item-buy="'+item.id+'" '+((soldOut||owned)?"disabled":"")+'><div class="itemVisual">'+visual+'</div><div class="weaponCardHead"><strong>'+item.name+'</strong><span>'+(isSword?"ESPADA":item.category==="backpack"?"MOCHILA":"ESPADA")+'</span></div><div class="weaponStats">'+extra+'</div><small>'+item.rarity+' · '+(isSword?"Daño base de espada + Melee":item.category==="backpack"?"INVENTARIO AMPLIADO":"Equipo permanente")+'</small><small>'+(soldOut?"AGOTADO":owned?"YA LO TIENES":itemCostText(item)+(stock!==undefined?" · x"+stock:""))+'</small><div class="cosmeticAction">'+(soldOut?"AGOTADO":owned?"YA EQUIPADO/EN INVENTARIO":"COMPRAR")+'</div></button>';
   }).join("");
   grid.querySelectorAll("[data-item-buy]").forEach(card=>card.addEventListener("click",e=>{e.preventDefault();e.stopPropagation();sendItemShopCommand("buy_item",card.dataset.itemBuy);}));
