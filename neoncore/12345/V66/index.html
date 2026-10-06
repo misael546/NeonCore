@@ -302,7 +302,7 @@ html.pc-controls #controlConfigBtn,html.touch-controls #controlConfigBtn{display
 html.pc-controls .aimJoy{display:none!important}html.touch-controls .aimJoy{display:block!important}
 </style><style id="neonItemsV65">
 .equipmentGrid{display:grid;grid-template-columns:repeat(3,1fr);gap:7px;margin:0 0 9px}.equipmentSlot{min-width:0;min-height:82px;border:1px solid #33415d;border-radius:12px;background:linear-gradient(180deg,#0d192b,#09111d);color:#fff;padding:7px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;pointer-events:auto}.equipmentSlot.filled{border-color:#39e7ff88;box-shadow:0 0 16px #39e7ff18,inset 0 0 14px #39e7ff0b}.equipmentLabel{font-size:8px;color:#71819a;font-weight:900;letter-spacing:1px}.equipmentIcon{height:31px;display:grid;place-items:center;font-size:24px}.equipmentIcon img{width:28px;height:28px;object-fit:contain;filter:drop-shadow(0 0 7px #39e7ff88)}.equipmentName{max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:#dffbff;font-size:8px;font-weight:900}.itemVisual{height:60px;display:grid;place-items:center;border:1px solid #26344e;border-radius:11px;background:#08111d;overflow:hidden;box-shadow:inset 0 0 24px #000}.itemVisual img{width:54px;height:54px;object-fit:contain;filter:drop-shadow(0 0 12px #39e7ff88)}.itemShopCard{cursor:pointer}.itemShopCard:disabled{cursor:not-allowed;opacity:.55}.itemEmptyMsg{grid-column:1/-1;padding:18px;text-align:center;border:1px dashed #33415d;border-radius:11px;color:#71819a;font-size:11px}.sellCard{border-color:#4b3b2c}.backpackIconImg{width:42px;height:42px;object-fit:contain}.inventorySlot .slotIcon img{width:27px;height:27px;object-fit:contain}.inventorySlot .slotName{min-height:18px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.inventorySlot .slotQty:empty{display:none}@media(max-width:700px){.equipmentSlot{min-height:74px}.equipmentIcon{font-size:21px}.itemVisual{height:52px}.itemVisual img{width:48px;height:48px}.shopUnifiedGrid{grid-template-columns:repeat(2,minmax(0,1fr))}}@media(max-width:430px){.equipmentSlot{min-height:70px;padding:5px}.equipmentName{font-size:7px}.shopUnifiedGrid{grid-template-columns:1fr}.inventoryGrid{grid-template-columns:repeat(4,minmax(0,1fr))}}
-</style></head>
+</style><style id="neonV66TouchFix">#controls,.joy,#aimJoy,#moveJoy{pointer-events:auto;touch-action:none}#chatToggle,#controlConfigBtn,#proximityVoiceBtn,#chatBox button,#controlEditor button{pointer-events:auto;touch-action:manipulation}</style></head>
 <body>
 <canvas id="game"></canvas><div id="versionDisplay">V66</div><button id="audioToggle" type="button" aria-label="Activar o silenciar audio">🔊</button>
 
@@ -2869,7 +2869,6 @@ const resetMoveJoystick=setupJoystick("moveJoy");
       if(len>max){dx=dx/len*max;dy=dy/len*max;}
       const n=Math.hypot(dx,dy);
       if(n>.08){
-        aimX=dx/max;aimY=dy/max;
         p.angle=Math.atan2(dy,dx);
         const s=aim.querySelector(".stick");
         if(s)s.style.transform="translate("+dx+"px,"+dy+"px)";
