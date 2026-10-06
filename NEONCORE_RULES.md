@@ -19,7 +19,7 @@
 
 ## 2. Regla crítica de versiones
 
-- La versión vigente del proyecto es **V76**.
+- La versión vigente del proyecto es **V77**.
 - Cada cambio que modifique el cliente/juego debe crear una **nueva V**.
 - Nunca modificar una V anterior para introducir una nueva modificación del cliente.
 - Después de crear la nueva V, eliminar las V antiguas del cliente para que quede solamente la versión vigente.
@@ -232,10 +232,10 @@ No dejar:
 
 ## 18. Estado conocido al crear este documento
 
-- Cliente actual: **V76**.
-- V76 usa terreno 2D pixel-art por tiles, jugador 2D pixel-art y movimiento por casillas.
+- Cliente actual: **V77**.
+- V77 usa terreno 2D pixel-art por tiles, jugador 2D pixel-art y movimiento por casillas.
 - V72 introduce movimiento por cuadrícula invisible, combate melee y el nuevo bioma desértico.
-- V72 fue reemplazada y eliminada al publicar V76. V76 es la versión vigente.
+- V72 fue reemplazada y eliminada al publicar V77. V77 es la versión vigente.
 - No deben restaurarse esas V.
 - La limpieza anterior eliminó referencias de BUILD y de los parámetros legacy de actualización en los archivos auditados.
 - Se detectó y eliminó duplicación de `startNeonMusic` y `stopNeonMusic` en V70.
@@ -259,7 +259,7 @@ y se refiera a este documento, usarlo como fuente de continuidad del proyecto y 
 Cuando exista una instrucción nueva y explícita del usuario, aplicar la nueva instrucción sin borrar las reglas permanentes que sigan siendo compatibles.
 
 ---
-Última versión de cliente registrada en este documento: **V76**
+Última versión de cliente registrada en este documento: **V77**
 
 
 ## 16. Dirección visual actual
@@ -271,7 +271,7 @@ Cuando exista una instrucción nueva y explícita del usuario, aplicar la nueva 
 - El NPC de la tienda NO abre automáticamente por proximidad. Solo se abre al tocar/hacer clic directamente sobre el NPC estando suficientemente cerca.
 
 
-## 20. Combate táctil V76
+## 20. Combate táctil V77
 - En móvil no existe joystick derecho de ataque.
 - Tocar un mob lo selecciona y muestra un cuadrito de objetivo.
 - El jugador sigue al mob por cuadrícula si este cambia de casilla y ataca cuando queda adyacente.
@@ -279,7 +279,17 @@ Cuando exista una instrucción nueva y explícita del usuario, aplicar la nueva 
 - La espada se dibuja como arma pixel-art cuerpo a cuerpo y acompaña la orientación/animación del personaje.
 
 
-## 21. Estado V76
+## 21. Estado V77
 - El cliente móvil no muestra ni ejecuta joystick derecho de ataque.
 - La configuración móvil solo explica toque de casilla y selección de enemigo.
 - La sección Items Venta no muestra munición.
+
+
+## 22. Combate y Mercader V77
+- La cuadrícula táctil es ligeramente visible en móvil para facilitar la lectura de casillas.
+- La casilla de destino de caminar se marca con un cuadro azul visible.
+- La casilla del enemigo seleccionado se marca con un cuadro dorado que sigue la casilla actual del enemigo.
+- Tocar directamente cualquier mob lo selecciona aunque esté a varias casillas; el jugador lo sigue por cuadrícula y conserva el objetivo si cambia de casilla.
+- El servidor recibe el ID del objetivo seleccionado y prioriza ese mob al resolver el golpe cuerpo a cuerpo.
+- El antiguo NPC SHOP fue eliminado y sustituido por un NPC original llamado **MERCADER**.
+- El Mercader abre la tienda únicamente al tocarlo/clicarlo directamente estando dentro del radio válido.
