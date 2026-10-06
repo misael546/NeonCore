@@ -57,10 +57,6 @@ const REDEEM_CODES = Object.freeze({
   SKIN_ETERNAL_VOID: { enabled:true, skinId:'eternal_void', message:'Código válido: desbloqueaste VACÍO ETERNO.' },
   SKIN_GM_CORE: { enabled:true, skinId:'gm_core', message:'Código válido: desbloqueaste SOBERANO DEL NÚCLEO.' },
 
-  // Códigos antiguos conservados como alias.
-  NEONSTART: { enabled:true, skinId:'pixel_cyan', message:'Código válido: desbloqueaste PIXEL CYAN.' },
-  STARFORGE: { enabled:true, weaponId:'pulse', message:'Código válido: desbloqueaste PULSE · PRISMA.' },
-  NEONARMORY: { enabled:true, weaponId:'plasma', message:'Código válido: desbloqueaste PLASMA · INFERNO.' },
   SOBERANO2026: { enabled:true, skinId:'gm_core', message:'Código válido: desbloqueaste SOBERANO DEL NÚCLEO.' }
 });
 
