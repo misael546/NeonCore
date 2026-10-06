@@ -1505,8 +1505,8 @@ function connectMultiplayer(roomMode="quick",roomCode=""){ const publicRoomAuto=
             const ix=Number.isFinite(Number(m.impactX))?Number(m.impactX):sx0+Math.cos(angle)*travelDistance;
             const iy=Number.isFinite(Number(m.impactY))?Number(m.impactY):sy0+Math.sin(angle)*travelDistance;
             if(pendingLocal){
-              pendingLocal.x=sx0+Math.cos(angle)*Math.max(p.r*.78,12);
-              pendingLocal.y=sy0+Math.sin(angle)*Math.max(p.r*.78,12);
+              pendingLocal.x=sx0;
+              pendingLocal.y=sy0;
               pendingLocal.tx=ix;pendingLocal.ty=iy;
               pendingLocal.angle=angle;pendingLocal.duration=Math.max(180,Math.min(650,Number(m.travelMs)||760));
               pendingLocal.startAt=performance.now();pendingLocal.pending=false;
@@ -2266,6 +2266,7 @@ function drawEnemy(e){
     }
     ctx.strokeStyle="#39e7ff";ctx.lineWidth=2;ctx.strokeRect(-r*.70,-r*.02,r*1.40,r*.78);
     ctx.restore();
+  }
   else{
     ctx.fillStyle="rgba(0,0,0,.35)";ctx.beginPath();ctx.arc(3,5,r+3,0,Math.PI*2);ctx.fill();
     ctx.fillStyle=color;ctx.strokeStyle=stroke;ctx.lineWidth=3;ctx.beginPath();
@@ -2843,7 +2844,6 @@ const resetMoveJoystick=setupJoystick("moveJoy");
     aim.addEventListener("pointerdown",e=>{
       if(controlMode!=="touch"||e.pointerType!=="touch"||aimJoyActive)return;
       aimJoyActive=true;aimPointerId=e.pointerId;e.preventDefault();
-      try{aim.setPointerCapture(e.pointerId)}catch{}
       applyAim(e.clientX,e.clientY);setFireHeld(true);
     },{passive:false});
     aim.addEventListener("pointermove",e=>{
@@ -2856,7 +2856,9 @@ const resetMoveJoystick=setupJoystick("moveJoy");
     };
     aim.addEventListener("pointerup",endAim,{passive:false});
     aim.addEventListener("pointercancel",endAim,{passive:false});
-    aim.addEventListener("lostpointercapture",resetAim);
+    document.addEventListener("pointermove",e=>{if(aimJoyActive&&e.pointerId===aimPointerId){e.preventDefault();applyAim(e.clientX,e.clientY);}},{passive:false});
+    document.addEventListener("pointerup",e=>{if(aimJoyActive&&e.pointerId===aimPointerId)resetAim();},{passive:false});
+    document.addEventListener("pointercancel",e=>{if(aimJoyActive&&e.pointerId===aimPointerId)resetAim();},{passive:false});
   }
 
   // Mouse: apunta con cursor y dispara con clic izquierdo.
