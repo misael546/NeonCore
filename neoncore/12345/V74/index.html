@@ -302,9 +302,9 @@ html.pc-controls #controlConfigBtn,html.touch-controls #controlConfigBtn{display
 html.pc-controls .aimJoy{display:none!important}html.touch-controls .aimJoy{display:block!important}
 </style><style id="neonItemsV65">
 .equipmentGrid{display:grid;grid-template-columns:repeat(3,1fr);gap:7px;margin:0 0 9px}.equipmentSlot{min-width:0;min-height:82px;border:1px solid #33415d;border-radius:12px;background:linear-gradient(180deg,#0d192b,#09111d);color:#fff;padding:7px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;pointer-events:auto}.equipmentSlot.filled{border-color:#39e7ff88;box-shadow:0 0 16px #39e7ff18,inset 0 0 14px #39e7ff0b}.equipmentLabel{font-size:8px;color:#71819a;font-weight:900;letter-spacing:1px}.equipmentIcon{height:31px;display:grid;place-items:center;font-size:24px}.equipmentIcon img{width:28px;height:28px;object-fit:contain;filter:drop-shadow(0 0 7px #39e7ff88)}.equipmentName{max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:#dffbff;font-size:8px;font-weight:900}.itemVisual{height:60px;display:grid;place-items:center;border:1px solid #26344e;border-radius:11px;background:#08111d;overflow:hidden;box-shadow:inset 0 0 24px #000}.itemVisual img{width:54px;height:54px;object-fit:contain;filter:drop-shadow(0 0 12px #39e7ff88)}.itemShopCard{cursor:pointer}.itemShopCard:disabled{cursor:not-allowed;opacity:.55}.itemEmptyMsg{grid-column:1/-1;padding:18px;text-align:center;border:1px dashed #33415d;border-radius:11px;color:#71819a;font-size:11px}.sellCard{border-color:#4b3b2c}.backpackIconImg{width:42px;height:42px;object-fit:contain}.inventorySlot .slotIcon img{width:27px;height:27px;object-fit:contain}.inventorySlot .slotName{min-height:18px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.inventorySlot .slotQty:empty{display:none}@media(max-width:700px){.equipmentSlot{min-height:74px}.equipmentIcon{font-size:21px}.itemVisual{height:52px}.itemVisual img{width:48px;height:48px}.shopUnifiedGrid{grid-template-columns:repeat(2,minmax(0,1fr))}}@media(max-width:430px){.equipmentSlot{min-height:70px;padding:5px}.equipmentName{font-size:7px}.shopUnifiedGrid{grid-template-columns:1fr}.inventoryGrid{grid-template-columns:repeat(4,minmax(0,1fr))}}
-</style><style id="neonV72TouchFix">#controls,.joy,#chatToggle,#controlConfigBtn,#proximityVoiceBtn,#chatBox button,#controlEditor button{pointer-events:auto;touch-action:manipulation}</style></head>
+</style><style id="neonV74TouchFix">#controls,.joy,#chatToggle,#controlConfigBtn,#proximityVoiceBtn,#chatBox button,#controlEditor button{pointer-events:auto;touch-action:manipulation}</style></head>
 <body>
-<canvas id="game"></canvas><div id="versionDisplay">V72</div><button id="audioToggle" type="button" aria-label="Activar o silenciar audio">🔊</button>
+<canvas id="game"></canvas><div id="versionDisplay">V74</div><button id="audioToggle" type="button" aria-label="Activar o silenciar audio">🔊</button>
 
 <div id="hud">
   <div class="panel" id="bars">
@@ -745,7 +745,7 @@ const INVENTORY_STACK_MAX=500;
 const MAX_INVENTORY_AMMO=INVENTORY_SLOTS*INVENTORY_STACK_MAX;
 const neonProjectiles=[];
 const meleeSlashes=[];
-function drawMeleeSlashes(){const now=performance.now();for(let i=meleeSlashes.length-1;i>=0;i--){const q=meleeSlashes[i],t=clamp((now-q.startAt)/Math.max(80,Number(q.duration)||260),0,1);ctx.save();ctx.translate(sx(q.x),sy(q.y));ctx.rotate(Number(q.angle)||0);ctx.globalCompositeOperation="lighter";if(swordSlashImgV72.complete&&swordSlashImgV72.naturalWidth){const frame=Math.min(8,Math.floor(t*9)),sw=64,sh=47,col=frame%3,row=Math.floor(frame/3);ctx.globalAlpha=.95*(1-t*.15);ctx.imageSmoothingEnabled=false;ctx.shadowColor="#ffe9a0";ctx.shadowBlur=14;ctx.drawImage(swordSlashImgV72,col*sw,row*sh,sw,sh,-70,-52,140,104);}else{const arc=Math.max(.5,Number(q.arc)||1.1),rr=Math.max(50,Number(q.radius)||48);ctx.globalAlpha=(1-t)*.8;ctx.strokeStyle="#f5d76e";ctx.lineWidth=8;ctx.beginPath();ctx.arc(0,0,rr,-arc*.5,arc*.5);ctx.stroke();}ctx.restore();if(t>=1)meleeSlashes.splice(i,1);}}
+function drawMeleeSlashes(){const now=performance.now();for(let i=meleeSlashes.length-1;i>=0;i--){const q=meleeSlashes[i],t=clamp((now-q.startAt)/Math.max(80,Number(q.duration)||260),0,1);ctx.save();ctx.translate(sx(q.x),sy(q.y));ctx.rotate(Number(q.angle)||0);ctx.globalCompositeOperation="lighter";if(swordSlashImgV74.complete&&swordSlashImgV74.naturalWidth){const frame=Math.min(8,Math.floor(t*9)),sw=64,sh=47,col=frame%3,row=Math.floor(frame/3);ctx.globalAlpha=.95*(1-t*.15);ctx.imageSmoothingEnabled=false;ctx.shadowColor="#ffe9a0";ctx.shadowBlur=14;ctx.drawImage(swordSlashImgV74,col*sw,row*sh,sw,sh,-70,-52,140,104);}else{const arc=Math.max(.5,Number(q.arc)||1.1),rr=Math.max(50,Number(q.radius)||48);ctx.globalAlpha=(1-t)*.8;ctx.strokeStyle="#f5d76e";ctx.lineWidth=8;ctx.beginPath();ctx.arc(0,0,rr,-arc*.5,arc*.5);ctx.stroke();}ctx.restore();if(t>=1)meleeSlashes.splice(i,1);}}
 function drawNeonProjectiles(){
   const now=performance.now();
   for(let i=neonProjectiles.length-1;i>=0;i--){
@@ -859,17 +859,17 @@ const PUBLIC_ROOM_CODE="12345";
 const GRID_SIZE=24;
 let gridTarget=null;
 let gridAttackTarget=null;
-const swordSkinsV72={
+const swordSkinsV74={
  sword_neo:"https://opengameart.org/sites/default/files/sword4_1.png",
  sword_pulse:"https://opengameart.org/sites/default/files/sword-3_0.png",
  sword_void:"https://opengameart.org/sites/default/files/sword2_8.png",
  sword_solar:"https://opengameart.org/sites/default/files/sword_39.png",
  sword_omega:"https://opengameart.org/sites/default/files/katana_2.png"
 };
-const swordSlashV72="https://opengameart.org/sites/default/files/pixel_art_sword_slash_sprites.png";
-const swordImgsV72={};
-Object.entries(swordSkinsV72).forEach(([id,url])=>{const im=new Image();im.src=url;swordImgsV72[id]=im;});
-const swordSlashImgV72=new Image();swordSlashImgV72.src=swordSlashV72;
+const swordSlashV74="https://opengameart.org/sites/default/files/pixel_art_sword_slash_sprites.png";
+const swordImgsV74={};
+Object.entries(swordSkinsV74).forEach(([id,url])=>{const im=new Image();im.src=url;swordImgsV74[id]=im;});
+const swordSlashImgV74=new Image();swordSlashImgV74.src=swordSlashV74;
 let accountToken="";
 let accountId="";
 let googleIdToken="";
@@ -900,7 +900,7 @@ let pcBindings={...pcBindDefaults};
 try{const savedPc=JSON.parse(localStorage.getItem("neon_core_pc_bindings")||"null");if(savedPc)pcBindings={...pcBindDefaults,...savedPc};}catch{}
 function savePcBindings(){try{localStorage.setItem("neon_core_pc_bindings",JSON.stringify(pcBindings));}catch{}}
 let controlMode="touch";
-// V72: movement is tap-to-cell on touch devices; legacy movement values stay neutral.
+// V74: movement is tap-to-cell on touch devices; legacy movement values stay neutral.
 moveX=0;moveY=0;
 let aimJoyActive=false,aimPointerId=null,aimX=0,aimY=0;
 function updateControlMode(){
@@ -1064,7 +1064,7 @@ function connectMultiplayer(roomMode="quick",roomCode=""){ const publicRoomAuto=
       if(multiplayerConnectTimer){clearTimeout(multiplayerConnectTimer);multiplayerConnectTimer=null;}
 
       setConnectionStatus("CONECTADO","Entrando a la sala…");
-      socket.send(JSON.stringify({type:"join",name:playerName||"",accountToken:accountToken,googleIdToken:googleIdToken,saveKey:"",color:"#39e7ff",room:roomMode==="join"?roomCode:"",createRoom:roomMode==="create",clientVersion:window.NEON_CORE_VERSION||"V72"}));
+      socket.send(JSON.stringify({type:"join",name:playerName||"",accountToken:accountToken,googleIdToken:googleIdToken,saveKey:"",color:"#39e7ff",room:roomMode==="join"?roomCode:"",createRoom:roomMode==="create",clientVersion:window.NEON_CORE_VERSION||"V74"}));
     });
     socket.addEventListener("error",()=>{
       if(multiplayerSocket!==socket)return;
@@ -1844,7 +1844,7 @@ function update(dt){
     const aimX=pointer.x-W/2,aimY=pointer.y-H/2;
     if(Math.hypot(aimX,aimY)>2)p.angle=Math.atan2(aimY,aimX);
   }
-  /* V72: no continuous attack; attacks happen after a grid target is reached. */
+  /* V74: no continuous attack; attacks happen after a grid target is reached. */
 
 
   for(const q of particles){
@@ -1940,7 +1940,7 @@ function drawSwordModel(id,r,v,shoot,angle,handSide=1,walkPhase=0,walkBlend=0){
   ctx.shadowBlur=0;ctx.restore();
 }
 function drawWeaponModel(id,r,v,shoot,angle,handSide=1,walkPhase=0,walkBlend=0){
-  const swordId=String(id||"sword_neo"),im=swordImgsV72[swordId]||swordImgsV72.sword_neo;
+  const swordId=String(id||"sword_neo"),im=swordImgsV74[swordId]||swordImgsV74.sword_neo;
   const a=Number(angle)||0,side=handSide<0?-1:1,now=performance.now(),swing=clamp(Number(shoot)||0,0,1);
   const swingAngle=a+side*(0.20+swing*0.95)-swing*0.18;
   const handX=Math.cos(a)*r*.38+side*r*.40,handY=Math.sin(a)*r*.38+Math.sin(now/180+walkPhase)*r*.025;
@@ -2319,7 +2319,7 @@ function renderItemShop(){
     const stock=itemShopStock[item.id],soldOut=stock!==undefined&&Number(stock)<=0;
     const owned=clientInventoryTotal(item.id)>0||p.weapon===item.id||equippedArmor===item.id||equippedBackpack===item.id;
     const isSword=String(item.id).startsWith("sword_");
-    const visual=isSword?'<img src="'+(swordSkinsV72[item.id]||"")+'" style="max-width:86px;max-height:52px;image-rendering:pixelated" alt="">':item.category==="backpack"?"🎒":"🛡️";
+    const visual=isSword?'<img src="'+(swordSkinsV74[item.id]||"")+'" style="max-width:86px;max-height:52px;image-rendering:pixelated" alt="">':item.category==="backpack"?"🎒":"🛡️";
     const extra=isSword?"⚔ MELEE + "+Number(item.power||0):(item.category==="backpack"?"+"+Number(item.slotsBonus||16)+" ESPACIOS":"🛡 DEFENSA "+Number(item.armorRating||0));
     return '<button type="button" class="shopWeaponCard itemShopCard '+(owned?"equipped":"")+'" data-item-buy="'+item.id+'" '+((soldOut||owned)?"disabled":"")+'><div class="itemVisual">'+visual+'</div><div class="weaponCardHead"><strong>'+item.name+'</strong><span>'+(isSword?"ESPADA":item.category==="backpack"?"MOCHILA":"ESPADADURA")+'</span></div><div class="weaponStats">'+extra+'</div><small>'+item.rarity+' · '+(isSword?"Daño base de espada + Melee":item.category==="backpack"?"INVENTARIO AMPLIADO":"Equipo permanente")+'</small><small>'+(soldOut?"AGOTADO":owned?"YA LO TIENES":itemCostText(item)+(stock!==undefined?" · x"+stock:""))+'</small><div class="cosmeticAction">'+(soldOut?"AGOTADO":owned?"YA EQUIPADO/EN INVENTARIO":"COMPRAR")+'</div></button>';
   }).join("");
@@ -2471,11 +2471,22 @@ function getDesertTerrainPattern(){
   desertTerrainPattern=ctx.createPattern(tile,"repeat");return desertTerrainPattern;
 }
 function drawDesertTerrain(){
-  const pattern=getDesertTerrainPattern();
-  const ox=((W/2-camera.x)%DESERT_TILE_SIZE+DESERT_TILE_SIZE)%DESERT_TILE_SIZE;
-  const oy=((H/2-camera.y)%DESERT_TILE_SIZE+DESERT_TILE_SIZE)%DESERT_TILE_SIZE;
-  ctx.save();ctx.imageSmoothingEnabled=false;ctx.fillStyle=pattern;
-  ctx.fillRect(-DESERT_TILE_SIZE+ox,-DESERT_TILE_SIZE+oy,W+DESERT_TILE_SIZE*2,H+DESERT_TILE_SIZE*2);
+  ctx.save();
+  ctx.imageSmoothingEnabled=false;
+  // Fondo sólido de respaldo: el mapa nunca puede quedar negro aunque falle el patrón.
+  ctx.fillStyle="#d9b06b";
+  ctx.fillRect(0,0,W,H);
+  try{
+    const pattern=getDesertTerrainPattern();
+    const ox=((W/2-camera.x)%DESERT_TILE_SIZE+DESERT_TILE_SIZE)%DESERT_TILE_SIZE;
+    const oy=((H/2-camera.y)%DESERT_TILE_SIZE+DESERT_TILE_SIZE)%DESERT_TILE_SIZE;
+    if(pattern){
+      ctx.fillStyle=pattern;
+      ctx.fillRect(-DESERT_TILE_SIZE+ox,-DESERT_TILE_SIZE+oy,W+DESERT_TILE_SIZE*2,H+DESERT_TILE_SIZE*2);
+    }
+  }catch(error){
+    console.warn("[NEON CORE] Patrón de terreno no disponible; usando fondo desértico sólido.",error);
+  }
   for(const d of desertDecor){
     const x=sx(d.x),y=sy(d.y);if(x<-42||x>W+42||y<-54||y>H+54)continue;
     if(d.kind==="cactus"){
@@ -2491,8 +2502,9 @@ function drawDesertTerrain(){
 
 function draw(){
   ctx.clearRect(0,0,W,H);
-  drawMeleeSlashes();
+  // El terreno se dibuja primero para que un efecto visual secundario no pueda dejar el mapa negro.
   drawDesertTerrain();
+  try{drawMeleeSlashes();}catch(error){console.warn("[NEON CORE] Efecto de espada omitido:",error);}
 
   // Zona segura visible: los enemigos no pueden entrar y los jugadores no reciben daño dentro.
   const zsx=sx(safeZone.x),zsy=sy(safeZone.y);
@@ -2516,7 +2528,7 @@ function draw(){
     ctx.fillStyle="#b58a55";ctx.globalAlpha=.28;ctx.fillRect(x,y,w.w*(w.hp/w.maxHp),4);ctx.globalAlpha=1;
   }
 
-  // V72: el bioma desértico reemplaza el antiguo campo de estrellas.
+  // V74: el bioma desértico reemplaza el antiguo campo de estrellas.
 
   for(const warning of bossWarnings){
     const remain=Math.max(0,(Number(warning.hitAt)||0)-Date.now());
@@ -2622,9 +2634,9 @@ function setupJoystick(id){
 const resetMoveJoystick=setupJoystick("moveJoy");
 try{const mj=document.getElementById("moveJoy");if(mj)mj.style.display="none";}catch{}
 
-// V72: restauración completa de controles táctiles y botones de interfaz.
+// V74: restauración completa de controles táctiles y botones de interfaz.
 // El joystick izquierdo mueve; el derecho apunta y dispara sin bloquear el izquierdo.
-(function installV72InputSystem(){
+(function installV74InputSystem(){
   const aim=document.getElementById("aimJoy");
   if(aim){
     const applyAim=(x,y)=>{
@@ -2781,7 +2793,7 @@ document.querySelectorAll("[data-utility-tab]").forEach(tab=>tab.addEventListene
 })();
 
 
-// V72: un solo puente táctil global para el joystick izquierdo.
+// V74: un solo puente táctil global para el joystick izquierdo.
 // No depende de Pointer Capture ni de que otro control reciba primero el evento.
 // Conserva el identifier del dedo para permitir mover mientras otro dedo apunta/dispara.
 (function installV64TouchMovement(){
@@ -2824,7 +2836,7 @@ document.querySelectorAll("[data-utility-tab]").forEach(tab=>tab.addEventListene
   window.__neonV64TouchMovement=true;
 })();
 
-// V72: acceso protegido por Google en cada entrada a la prueba.
+// V74: acceso protegido por Google en cada entrada a la prueba.
 (function bootGoogleProtectedEntry(){
   try{
     googleIdToken="";
@@ -3007,9 +3019,9 @@ requestAnimationFrame(frame);
 
   // Damage flash is updated by authoritative damage events; no polling loop is needed.
 
-  console.info("[NEON CORE] Combat Polish V72 activo: rango visual, muzzle flash, alerta de boss y aviso de munición.");
+  console.info("[NEON CORE] Combat Polish V74 activo: rango visual, muzzle flash, alerta de boss y aviso de munición.");
 })();
-</script><script id="neonV72Assets">
+</script><script id="neonV74Assets">
 window.__neonZombieSprite=new Image();window.__neonZombieSprite.src="https://lpc.opengameart.org/sites/default/files/zombie7_0.png";
 window.__neonSkeletonSprite=new Image();window.__neonSkeletonSprite.src="https://opengameart.org/sites/default/files/pixel_skeleton.png";
 window.__neonHumanSprite=new Image();
