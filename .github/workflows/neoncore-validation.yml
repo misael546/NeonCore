@@ -33,7 +33,7 @@ jobs:
           node - <<'NODE'
           const fs = require('fs');
           const release = JSON.parse(fs.readFileSync('release.json','utf8'));
-          const currentClient = String(release.clientPath || '').replace(/^\/NeonCore\//,'');
+          const currentClient = String(release.clientPath || '').replace(/^\/+/,'');
           const files = [currentClient, 'index.html', 'sessions/index.html'];
           let total = 0;
           for (const file of files) {
@@ -55,7 +55,7 @@ jobs:
           const root = fs.readFileSync('index.html','utf8');
           const roomLauncher = fs.readFileSync('neoncore/12345/index.html','utf8');
           const sessions = fs.readFileSync('sessions/index.html','utf8');
-          const clientPath = String(release.clientPath || '').replace(/^\/NeonCore\//,'');
+          const clientPath = String(release.clientPath || '').replace(/^\/+/,'');
           const client = fs.readFileSync(clientPath,'utf8');
           const server = fs.readFileSync('server/server.js','utf8');
           const version = String(release.version || release.clientVersion || release.releaseId || '').toUpperCase();
@@ -75,8 +75,11 @@ jobs:
             throw new Error('Invalid current client path: '+clientPath);
           }
           if (!sessions.includes('Neon Core · Sesiones') || !sessions.includes('const WS=')) throw new Error('Sessions page is not synchronized');
-          if (!client.includes('FIRST_SHOT_DELAY=180') || !client.includes('fireRate:650') || !client.includes('account_authenticated')) throw new Error('Client combat tuning is not synchronized');
-          if (!server.includes('WEAPON_FIRE_RATE = 650') || !server.includes('fireRate: 650') || !server.includes('account_authenticated')) throw new Error('Server combat tuning is not synchronized');
+          if (!client.includes('V82') || !client.includes('account_authenticated') || !client.includes('SPECIAL')) throw new Error('Client V82 mechanics are not synchronized');
+          if (!server.includes('MELEE_GRID_SIZE = 24') || !server.includes('SPECIAL_COOLDOWN_MS = 3000') || !server.includes('SPECIAL_ATTACK_FATIGUE = 20') || !server.includes('NEONMASTER')) throw new Error('Server V82 mechanics are not synchronized');
+          for (const legacy of ['V80','V81','Pistolero','ARMADURA','MUNICIÓN','neon_release','neon_force','neon_reload','buy_ammo']) {
+            if (client.includes(legacy) || server.includes(legacy)) throw new Error('Legacy trace found: '+legacy);
+          }
           const roomRoot = 'neoncore/12345';
           const expectedName = require('path').basename(require('path').dirname(clientPath));
           const actualDirs = fs.readdirSync(roomRoot,{withFileTypes:true}).filter(e=>e.isDirectory()).map(e=>e.name);
