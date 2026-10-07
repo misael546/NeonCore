@@ -23,7 +23,7 @@ test('Projects: DarkPixel Online abre el cliente sin sala ni versión en la URL'
   await expect(page.locator('#googleGate')).toBeVisible({timeout:15000});
 });
 
-test('DarkPixel Online: entrada V1 y Google Identity están presentes', async ({ page }) => {
+test('DarkPixel Online: entrada V2 y Google Identity están presentes', async ({ page }) => {
   await page.goto('https://misael546.github.io/NeonCore/'+GAME_PATH+'?ci=' + Date.now(), {waitUntil:'domcontentloaded', timeout:45000});
   await expect.poll(async()=>page.evaluate(()=>window.NEON_CORE_VERSION),{timeout:15000,intervals:[500,1000]}).toBe(String(RELEASE.version));
   await expect(page.locator('#googleGate')).toBeVisible({timeout:15000});
