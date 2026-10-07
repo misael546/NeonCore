@@ -2511,9 +2511,6 @@ startServerUpdateHeartbeat();
 
 const storageReady = storage.initStorage(RELEASE_ID, DATABASE_SCHEMA_VERSION).catch((error) => {
   console.error('[STORAGE INIT]', error?.stack || error);
-  if (storage.provider === 'firestore') {
-    setTimeout(() => process.exit(1), 0);
-  }
   return false;
 });
 
