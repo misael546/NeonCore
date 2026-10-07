@@ -1,4 +1,4 @@
-/* V85 · melee, cuadrícula, cansancio, skins y combate por objetivo */
+/* V1 · release inicial del proyecto */
 'use strict';
 
 const http = require('http');
