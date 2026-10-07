@@ -382,3 +382,15 @@ Cuando exista una instrucción nueva y explícita del usuario, aplicar la nueva 
 - Revisar que los centros de casilla usados por cliente y servidor sean idénticos.
 - Revisar que la vida sobre jugadores y mobs se actualice en tiempo real.
 - Revisar workflows de GitHub y comprobar que sus pruebas apunten a Belmo y a la V vigente, no al backend Render legado.
+
+
+## 26. Revisión obligatoria en CADA actualización
+- Antes de cerrar cualquier nueva versión V, revisar el juego completo: cliente, servidor, WebSocket, manifests/release.json, launchers, persistencia, workflows y archivos auxiliares.
+- Comprobar sintaxis del cliente y del servidor y corregir cualquier error encontrado antes de continuar.
+- Buscar y eliminar código roto, obsoleto, duplicado o huérfano, incluyendo funciones, variables, listeners, IDs, assets y referencias a versiones anteriores.
+- Comprobar que no existan rastros de versiones viejas, BUILD antiguos ni sistemas de actualización retirados.
+- Verificar que la versión vigente esté sincronizada en cliente, servidor, manifests, launchers, pruebas y workflows.
+- Verificar que solo exista la carpeta de la versión vigente dentro de la sala; al publicar una nueva V, eliminar las carpetas/assets de las versiones anteriores.
+- Ejecutar las pruebas automáticas, revisar el código y después realizar prueba real en PC y móvil cuando sea posible.
+- Si aparece un fallo, investigar las causas plausibles, corregirlo y repetir la revisión/pruebas antes de considerar terminada la actualización.
+- No avanzar a la siguiente versión dejando errores conocidos o código viejo sin justificar.
