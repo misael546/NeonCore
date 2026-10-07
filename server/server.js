@@ -1933,7 +1933,7 @@ const httpServer = http.createServer(async (req, res) => {
         releaseId: RELEASE_ID,
         clientVersion: String(UNIFIED_RELEASE_MANIFEST.clientVersion || RELEASE_ID),
         startedAt: SERVER_STARTED_AT,
-        storage: storage.enabled ? 'postgres' : 'memory',
+        storage: storage.enabled ? storage.provider : 'memory',
         databaseReleaseId: String(storage.releaseInfo?.releaseId || ''),
         databaseSchema: Number(storage.releaseInfo?.schemaVersion) || DATABASE_SCHEMA_VERSION,
         databaseUpdatedAt: Number(storage.releaseInfo?.updatedAt) || 0,
@@ -1947,7 +1947,7 @@ const httpServer = http.createServer(async (req, res) => {
           eliteTarget: ELITE_TARGET_COUNT,
           bossTarget: 1,
           bankEnabled: BANK_ENABLED,
-          storageConfigured: Boolean(process.env.DATABASE_URL),
+          storageConfigured: storage.provider === 'firestore' ? Boolean(process.env.FIREBASE_SERVICE_ACCOUNT_JSON || (process.env.FIREBASE_PROJECT_ID && process.env.FIREBASE_CLIENT_EMAIL && process.env.FIREBASE_PRIVATE_KEY)) : Boolean(process.env.DATABASE_URL),
           storageReady: storage.enabled
         }
       })
