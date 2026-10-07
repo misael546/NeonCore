@@ -12,10 +12,10 @@
 <div>Abriendo Neon Core…</div>
 <script>
 (function(){
-  var target="neoncore/12345/index.html";
-  var q=location.search||"";
-  if(q.indexOf("neon_cache=")<0) q+=(q?"&":"?")+"neon_cache=V83";
-  location.replace(target+q);
+  var target="neoncore/12345/V85/index.html";
+  var u=new URL(target,location.href);
+  u.searchParams.set("neon_cache","V85-"+Date.now());
+  location.replace(u.href);
 })();
 </script>
 </body>
