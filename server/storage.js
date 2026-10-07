@@ -404,5 +404,8 @@ module.exports = {
   },
   get releaseInfo() {
     return String(process.env.STORAGE_PROVIDER || '').trim().toLowerCase() === 'firebase' ? firestore.releaseInfo : { ...releaseInfo };
+  },
+  get provider() {
+    return String(process.env.STORAGE_PROVIDER || '').trim().toLowerCase() === 'firebase' ? 'firestore' : 'postgres';
   }
 };
