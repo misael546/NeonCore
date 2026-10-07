@@ -2,7 +2,7 @@ const { test, expect } = require('@playwright/test');
 const fs = require('fs');
 
 const RELEASE = JSON.parse(fs.readFileSync('release.json','utf8'));
-const GAME_PATH = String(RELEASE.clientPath || '').replace(/^\\/+/, '');
+const GAME_PATH = String(RELEASE.clientPath || '').replace(/^\/+/, '');
 
 test('portal principal: Projects abre el índice de proyectos', async ({ page }) => {
   await page.goto('https://misael546.github.io/NeonCore/?ci=' + Date.now(), {waitUntil:'domcontentloaded', timeout:45000});
