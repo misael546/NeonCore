@@ -40,7 +40,7 @@ jobs:
         run: |
           expected="$(python3 -c 'import json; print(json.load(open("release.json", encoding="utf-8"))["serverVersion"])')"
           for i in $(seq 1 36); do
-            if curl -fsSL "https://neoncore-da6f.onbelmo.uk/health?ci=$i" | grep -Fq "\"version\":\"$expected\""; then
+            if curl -fsSL "https://neon-core-multiplayer.onrender.com/health?ci=$i" | grep -Fq "\"version\":\"$expected\""; then
               echo "Belmo server is live: $expected"
               exit 0
             fi
