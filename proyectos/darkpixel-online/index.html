@@ -900,15 +900,14 @@ let reconnectActive=false,reconnectStartedAt=0,reconnectTimer=null,reconnectAtte
 let movementTelemetry={inputSince:0,lastX:p.x,lastY:p.y,lastReport:0};
 const MULTIPLAYER_SERVER="wss://neoncore-da6f.onbelmo.uk/ws";
 const SERVER_HEALTH_URL=MULTIPLAYER_SERVER.replace(/^wss:/,"https:").replace(/^ws:/,"http:").replace(/\/ws$/,"/health");
-let serverStatusTimer=null,serverVersion="",serverStartedAt=0;
+let serverStatusTimer=null,serverStartedAt=0;
 async function checkServerStatus(){
   try{
     const res=await fetch(SERVER_HEALTH_URL,{cache:"no-store"});
     if(!res.ok)throw new Error("health");
     const data=await res.json();
-    const version=String(data.version||"");
     const startedAt=Number(data.startedAt)||0;
-    if(serverVersion && (version!==serverVersion || startedAt!==serverStartedAt)){
+    if(serverStartedAt && startedAt && startedAt!==serverStartedAt){
       setConnectionStatus("SERVIDOR ACTUALIZADO","El servidor terminó una actualización. DarkPixel Online reconectará automáticamente.",true);
       if(!gameActive && !PUBLIC_ROOM_CODE)nameBox.style.display="none";
       if(PUBLIC_ROOM_CODE && playerName){
@@ -918,7 +917,6 @@ async function checkServerStatus(){
     }else if(!gameActive && currentRoom){
       setConnectionStatus("SERVIDOR DISPONIBLE","Servidor está listo. Conectando…",false);
     }
-    serverVersion=version;
     serverStartedAt=startedAt;
   }catch{
     if(!gameActive){
