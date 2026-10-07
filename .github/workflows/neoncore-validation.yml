@@ -76,8 +76,8 @@ jobs:
             throw new Error('Invalid current client path: '+clientPath);
           }
           if (!sessions.includes('Neon Core · Sesiones') || !sessions.includes('const WS=')) throw new Error('Sessions page is not synchronized');
-          if (!client.includes('V83') || !client.includes('account_authenticated') || !client.includes('SPECIAL')) throw new Error('Client V83 mechanics are not synchronized');
-          if (!server.includes('MELEE_GRID_SIZE = 24') || !server.includes('SPECIAL_COOLDOWN_MS = 3000') || !server.includes('SPECIAL_ATTACK_FATIGUE = 20') || !cosmetics.includes('NEONMASTER')) throw new Error('Server V83 mechanics are not synchronized');
+          if (!client.includes('V85') || !client.includes('account_authenticated') || !client.includes('SPECIAL')) throw new Error('Client V83 mechanics are not synchronized');
+          if (!server.includes('MELEE_GRID_SIZE = 24') || !server.includes('SPECIAL_COOLDOWN_MS = 3000') || !server.includes('SPECIAL_ATTACK_FATIGUE = 20') || !cosmetics.includes('NEONMASTER')) throw new Error('Server V85 mechanics are not synchronized');
           for (const legacy of ['V80','V81','Pistolero','MUNICIÓN','neon_release','neon_force','neon_reload','buy_ammo']) {
             if (client.includes(legacy) || server.includes(legacy) || cosmetics.includes(legacy)) throw new Error('Legacy trace found: '+legacy);
           }
@@ -85,6 +85,6 @@ jobs:
           const expectedName = require('path').basename(require('path').dirname(clientPath));
           const actualDirs = fs.readdirSync(roomRoot,{withFileTypes:true}).filter(e=>e.isDirectory()).map(e=>e.name);
           if (actualDirs.length !== 1 || actualDirs[0] !== expectedName) throw new Error('Room folders mismatch: '+JSON.stringify(actualDirs)+' expected '+expectedName);
-          if (!client.includes('DEFAULT_MELEE_SKIN') || !server.includes("backpack_basic")) throw new Error('V83 inventory/skin systems are not synchronized');
+          if (!client.includes('DEFAULT_MELEE_SKIN') || !server.includes("backpack_basic")) throw new Error('V85 inventory/skin systems are not synchronized');
           console.log('Current complete release synchronization: OK -> '+version);
           NODE
