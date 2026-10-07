@@ -22,7 +22,6 @@ let UNIFIED_RELEASE_MANIFEST = {
   releaseId: 'unknown',
   version: 'unknown',
   clientVersion: 'unknown',
-  serverVersion: 'unknown',
   databaseSchema: 1
 };
 
@@ -42,7 +41,6 @@ try {
 
 const RELEASE_ID = String(UNIFIED_RELEASE_MANIFEST.version || UNIFIED_RELEASE_MANIFEST.releaseId || 'unknown');
 const DATABASE_SCHEMA_VERSION = Math.max(3, Number(UNIFIED_RELEASE_MANIFEST.databaseSchema) || 3);
-const SERVER_VERSION = RELEASE_ID;
 
 const BASE_INVENTORY_SLOTS = 16;
 const BACKPACK_EXTRA_SLOTS = 16;
@@ -1904,7 +1902,6 @@ const httpServer = http.createServer(async (req, res) => {
     });
     return res.end(JSON.stringify({
       ok: true,
-      version: SERVER_VERSION,
       maxPlayers: MAX_PLAYERS,
       rooms: PUBLIC_ROOMS.map((code) => ({
         code,
@@ -1928,7 +1925,6 @@ const httpServer = http.createServer(async (req, res) => {
         players: clients.size,
         rooms: rooms.size,
         pvp: true,
-        version: SERVER_VERSION,
         releaseId: RELEASE_ID,
         clientVersion: String(UNIFIED_RELEASE_MANIFEST.clientVersion || RELEASE_ID),
         startedAt: SERVER_STARTED_AT,
@@ -2136,13 +2132,9 @@ wss.on('connection', async (ws) => {
         // que una pestaña antigua se actualice sola aunque GitHub Pages aún
         // tenga una copia en caché del HTML anterior.
         send(ws, {
-          type: 'server_update_notice',
-          serverVersion: SERVER_VERSION,
-          version: SERVER_VERSION,
           clientVersion: String(UNIFIED_RELEASE_MANIFEST.clientVersion || RELEASE_ID),
           releaseId: RELEASE_ID,
           serverStartedAt: SERVER_STARTED_AT,
-          message: SERVER_UPDATE_MESSAGE,
           required: true,
           clientPath: String(UNIFIED_RELEASE_MANIFEST.clientPath || '/proyectos/darkpixel-online/index.html')
         });
@@ -3011,57 +3003,6 @@ setInterval(() => {
   }
 }, ENEMY_SYNC_MS);
 
-function announceServerUpdate() {
-  const payload = {
-    type: 'server_update_notice',
-    serverVersion: SERVER_VERSION,
-    version: SERVER_VERSION,
-    clientVersion: String(UNIFIED_RELEASE_MANIFEST.clientVersion || RELEASE_ID),
-    releaseId: RELEASE_ID,
-    serverStartedAt: SERVER_STARTED_AT,
-    message: SERVER_UPDATE_MESSAGE,
-    required: true,
-    clientPath: String(UNIFIED_RELEASE_MANIFEST.clientPath || 'proyectos/darkpixel-online/index.html')
-  };
-  for (const p of clients.values()) {
-    send(p.ws, payload);
-  }
-}
-
-var serverUpdateHeartbeat = null;
-function startServerUpdateHeartbeat() {
-  if (serverUpdateHeartbeat) clearInterval(serverUpdateHeartbeat);
-  // Old clients may already be inside a room when a new version goes live.
-  // Keep announcing the current version so those clients can migrate without
-  // a manual refresh. Current clients ignore notices for their own version.
-  serverUpdateHeartbeat = setInterval(() => {
-    if (clients.size > 0) announceServerUpdate();
-  }, 30000);
-}
-
-async function gracefulShutdown(signal) {
-  // Avisar antes de persistir/cerrar para que los jugadores conectados sepan
-  // que el reinicio corresponde a una actualización del servidor.
-  announceServerUpdate();
-  await new Promise((resolve) => setTimeout(resolve, 350));
-
-  for (const p of clients.values()) {
-    await persistPlayer(p);
-  }
-  try {
-    await storage.closeStorage();
-  } catch {}
-  process.exit(0);
-}
-
-process.on('SIGTERM', () => {
-  void gracefulShutdown('SIGTERM');
-});
-
-process.on('SIGINT', () => {
-  void gracefulShutdown('SIGINT');
-});
-
 async function gracefulShutdown(signal) {
   await new Promise((resolve) => setTimeout(resolve, 350));
 
@@ -3108,7 +3049,7 @@ function runServerDiagnostics() {
   }
 
   console.log(
-    '[DIAGNOSTIC] PASS version=' + SERVER_VERSION +
+    '[DIAGNOSTIC] PASS release=' + RELEASE_ID +
     ' rooms=' + rooms.size +
     ' walls=' + WORLD_WALLS.length +
     ' swords=' + Object.keys(WEAPONS).length +
@@ -3135,7 +3076,7 @@ httpServer.listen(PORT, () => {
   console.log(
     'DarkPixel Online multiplayer server listening on ' +
       PORT +
-      ' · version ' +
-      SERVER_VERSION
+      ' · release ' +
+      RELEASE_ID
   );
 });
