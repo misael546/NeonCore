@@ -3074,9 +3074,7 @@ function runServerDiagnostics() {
   if (NAME_MAX_LENGTH < 3) problems.push('Límite de nombre inválido');
   if (!cosmetics.getSkin('core_default')) problems.push('Skin base ausente');
   if (Object.keys(cosmetics.SKINS).length < 8) problems.push('Catálogo de skins incompleto');
-  if (!cosmetics.REDEEM_CODES.NEONSTART) problems.push('Código NEONSTART ausente');
-  if (!cosmetics.REDEEM_CODES.NEONARMORY) problems.push('Código NEONARMORY ausente');
-  if (!cosmetics.REDEEM_CODES.STARFORGE) problems.push('Código STARFORGE ausente');
+  if (!cosmetics.REDEEM_CODES.NEONMASTER) problems.push('Código NEONMASTER ausente');
   if (!cosmetics.REDEEM_CODES.SOBERANO2026) problems.push('Código SOBERANO2026 ausente');
 
   const testHit = rayCircleDistance(0, 0, 1, 0, 100, 0, 10);
