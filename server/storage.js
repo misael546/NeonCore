@@ -126,7 +126,7 @@ async function initStorage(releaseId = '', schemaVersion = 1) {
 }
 
 async function loadPlayerData(saveKey) {
-  if (String(process.env.STORAGE_PROVIDER || '').trim().toLowerCase() === 'firebase') return firestore.loadPlayerData(saveKey);
+  if (firestore.enabled) return firestore.loadPlayerData(saveKey);
   if (!storageReady || !pool || !saveKey) return null;
 
   try {
@@ -142,7 +142,7 @@ async function loadPlayerData(saveKey) {
 }
 
 async function loadPlayerDataByName(name) {
-  if (String(process.env.STORAGE_PROVIDER || '').trim().toLowerCase() === 'firebase') return firestore.loadPlayerDataByName(name);
+  if (firestore.enabled) return firestore.loadPlayerDataByName(name);
   if (!storageReady || !pool) return null;
 
   const cleanName = String(name || '').trim().slice(0, 20);
@@ -171,7 +171,7 @@ async function loadPlayerDataByName(name) {
 }
 
 async function findPlayerByName(name) {
-  if (String(process.env.STORAGE_PROVIDER || '').trim().toLowerCase() === 'firebase') return firestore.findPlayerByName(name);
+  if (firestore.enabled) return firestore.findPlayerByName(name);
   if (!storageReady || !pool) return null;
 
   const cleanName = String(name || '').trim().slice(0, 20);
@@ -218,7 +218,7 @@ function hashAccountToken(token) {
   return crypto.createHash('sha256').update(normalizeAccountToken(token), 'utf8').digest('hex');
 }
 async function createAccount(name) {
-  if (String(process.env.STORAGE_PROVIDER || '').trim().toLowerCase() === 'firebase') return firestore.createAccount(name);
+  if (firestore.enabled) return firestore.createAccount(name);
   if (!storageReady || !pool) return { ok:false, reason:'storage_unavailable' };
   const cleanName=normalizeAccountName(name), normalized=accountNameKey(cleanName);
   if(!cleanName)return {ok:false,reason:'invalid_name'};
@@ -245,7 +245,7 @@ async function createAccount(name) {
   }
 }
 async function findAccountByToken(token) {
-  if (String(process.env.STORAGE_PROVIDER || '').trim().toLowerCase() === 'firebase') return firestore.findAccountByToken(token);
+  if (firestore.enabled) return firestore.findAccountByToken(token);
   if(!storageReady||!pool)return null;
   const clean=normalizeAccountToken(token);if(!clean)return null;
   try{
@@ -262,7 +262,7 @@ async function findAccountByToken(token) {
 }
 
 async function findAccountByGoogleSub(googleSub) {
-  if (String(process.env.STORAGE_PROVIDER || '').trim().toLowerCase() === 'firebase') return firestore.findAccountByGoogleSub(googleSub);
+  if (firestore.enabled) return firestore.findAccountByGoogleSub(googleSub);
   if(!storageReady||!pool)return null;
   const clean=String(googleSub||'').trim().slice(0,128);if(!clean)return null;
   try{
@@ -272,7 +272,7 @@ async function findAccountByGoogleSub(googleSub) {
   }catch(error){console.error('[STORAGE GOOGLE AUTH]',error?.message||error);return null;}
 }
 async function createAccountWithGoogle(name,googleSub) {
-  if (String(process.env.STORAGE_PROVIDER || '').trim().toLowerCase() === 'firebase') return firestore.createAccountWithGoogle(name,googleSub);
+  if (firestore.enabled) return firestore.createAccountWithGoogle(name,googleSub);
   if(!storageReady||!pool)return {ok:false,reason:'storage_unavailable'};
   const cleanName=normalizeAccountName(name),normalized=accountNameKey(cleanName),sub=String(googleSub||'').trim().slice(0,128);
   if(!cleanName)return {ok:false,reason:'invalid_name'}; if(!sub)return {ok:false,reason:'google_invalid'};
@@ -286,14 +286,14 @@ async function createAccountWithGoogle(name,googleSub) {
   }catch(error){if(error?.code==='23505')return {ok:false,reason:'duplicate'};console.error('[STORAGE GOOGLE CREATE]',error?.message||error);return {ok:false,reason:'storage_error'};}
 }
 async function renameAccount(accountId,newName){
-  if (String(process.env.STORAGE_PROVIDER || '').trim().toLowerCase() === 'firebase') return firestore.renameAccount(accountId,newName);
+  if (firestore.enabled) return firestore.renameAccount(accountId,newName);
   if(!storageReady||!pool)return {ok:false,reason:'storage_unavailable'};
   const clean=normalizeAccountName(newName),normalized=accountNameKey(clean);if(!clean)return {ok:false,reason:'invalid_name'};
   try{const result=await pool.query('UPDATE neoncore_accounts SET name=$2,name_normalized=$3,updated_at=NOW() WHERE account_id=$1 RETURNING account_id,name,player_save_key,created_at,updated_at',[String(accountId||''),clean,normalized]);const row=result.rows[0];if(!row)return {ok:false,reason:'account_not_found'};return {ok:true,accountId:String(row.account_id),name:String(row.name),playerSaveKey:String(row.player_save_key||row.account_id||''),createdAt:row.created_at?new Date(row.created_at).toISOString():'',updatedAt:row.updated_at?new Date(row.updated_at).toISOString():''};}
   catch(error){if(error?.code==='23505')return {ok:false,reason:'name_taken'};console.error('[STORAGE RENAME]',error?.message||error);return {ok:false,reason:'storage_error'};}
 }
 async function findAccountByName(name) {
-  if (String(process.env.STORAGE_PROVIDER || '').trim().toLowerCase() === 'firebase') return firestore.findAccountByName(name);
+  if (firestore.enabled) return firestore.findAccountByName(name);
   if(!storageReady||!pool)return null;
   const normalized=accountNameKey(name);if(!normalized)return null;
   try{
@@ -320,7 +320,7 @@ function createRecoveryCode() {
   return 'NEON-' + raw.slice(0, 8) + '-' + raw.slice(8, 16) + '-' + raw.slice(16, 24);
 }
 async function ensureAccountRecovery(accountId) {
-  if (String(process.env.STORAGE_PROVIDER || '').trim().toLowerCase() === 'firebase') return firestore.ensureAccountRecovery(accountId);
+  if (firestore.enabled) return firestore.ensureAccountRecovery(accountId);
   if (!storageReady || !pool || !accountId) return null;
   try {
     const current = await pool.query('SELECT recovery_hash FROM neoncore_accounts WHERE account_id=$1 LIMIT 1',[String(accountId)]);
@@ -334,7 +334,7 @@ async function ensureAccountRecovery(accountId) {
   }
 }
 async function recoverAccountByCode(code) {
-  if (String(process.env.STORAGE_PROVIDER || '').trim().toLowerCase() === 'firebase') return firestore.recoverAccountByCode(code);
+  if (firestore.enabled) return firestore.recoverAccountByCode(code);
   if (!storageReady || !pool) return null;
   const clean = normalizeRecoveryCode(code);
   if (clean.length < 20) return null;
@@ -354,7 +354,7 @@ async function recoverAccountByCode(code) {
   }
 }
 async function savePlayerData(saveKey, data) {
-  if (String(process.env.STORAGE_PROVIDER || '').trim().toLowerCase() === 'firebase') return firestore.savePlayerData(saveKey,data);
+  if (firestore.enabled) return firestore.savePlayerData(saveKey,data);
   if (!storageReady || !pool || !saveKey) return false;
 
   try {
@@ -373,7 +373,7 @@ async function savePlayerData(saveKey, data) {
 }
 
 async function closeStorage() {
-  if (String(process.env.STORAGE_PROVIDER || '').trim().toLowerCase() === 'firebase') return firestore.closeStorage();
+  if (firestore.enabled) await firestore.closeStorage();
   if (pool) {
     await pool.end();
     pool = null;
@@ -403,10 +403,10 @@ module.exports = {
   savePlayerData,
   closeStorage,
   get enabled() {
-    return String(process.env.STORAGE_PROVIDER || '').trim().toLowerCase() === 'firebase' ? firestore.enabled : storageReady;
+    return firestore.enabled || storageReady;
   },
   get releaseInfo() {
-    return String(process.env.STORAGE_PROVIDER || '').trim().toLowerCase() === 'firebase' ? firestore.releaseInfo : { ...releaseInfo };
+    return firestore.enabled ? firestore.releaseInfo : { ...releaseInfo };
   },
   get provider() {
     if (firestore.enabled) return 'firestore';
