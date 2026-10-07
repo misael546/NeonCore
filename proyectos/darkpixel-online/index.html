@@ -1090,16 +1090,6 @@ function connectMultiplayer(roomMode="quick",roomCode=""){ const publicRoomAuto=
           if(m.needsName){pendingNameSetup=true;}
           return;
         }
-        if(m.type==="server_update_notice"){
-          const targetRaw=String(m.clientVersion||m.version||m.version||"").trim().toUpperCase();
-          const currentRaw=String(window.NEON_CORE_VERSION||"V3").trim().toUpperCase();
-          const targetMatch=targetRaw.match(/^V([1-9][0-9]*)$/);
-          const currentMatch=currentRaw.match(/^V([1-9][0-9]*)$/);
-          const targetNumber=targetMatch?Number(targetMatch[1]):0;
-          const currentNumber=currentMatch?Number(currentMatch[1]):0;
-          if(targetNumber>currentNumber&&typeof window.__neonForceUpdate==="function"){window.__neonForceUpdate("V"+targetNumber);}
-          return;
-        }
         if(m.type==="room_joined"){
           if(reconnectActive){stopSmartReconnect();setConnectionStatus("RECONEXIÓN COMPLETA","Volviste a tu partida.",true);setTimeout(()=>setConnectionStatus("","",false),900);}
 
