@@ -52,7 +52,7 @@
 })();
 
 </script>
-<title>DarkPixel Online · V2</title>
+<title>DarkPixel Online · V3</title>
 <style>
 *{box-sizing:border-box}html,body{margin:0;width:100%;height:100%;overflow:hidden;background:#050811;color:#fff;font-family:Arial,sans-serif;touch-action:none}
 #game{display:block;width:100vw;height:100vh}
@@ -286,10 +286,10 @@ html.pc-controls #controlConfigBtn,html.touch-controls #controlConfigBtn{display
 </style></style><style id="neonItemsV65">
 .equipmentGrid{display:grid;grid-template-columns:repeat(3,1fr);gap:7px;margin:0 0 9px}.equipmentSlot{min-width:0;min-height:82px;border:1px solid #33415d;border-radius:12px;background:linear-gradient(180deg,#0d192b,#09111d);color:#fff;padding:7px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;pointer-events:auto}.equipmentSlot.filled{border-color:#39e7ff88;box-shadow:0 0 16px #39e7ff18,inset 0 0 14px #39e7ff0b}.equipmentLabel{font-size:8px;color:#71819a;font-weight:900;letter-spacing:1px}.equipmentIcon{height:31px;display:grid;place-items:center;font-size:24px}.equipmentIcon img{width:28px;height:28px;object-fit:contain;filter:drop-shadow(0 0 7px #39e7ff88)}.equipmentName{max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:#dffbff;font-size:8px;font-weight:900}.itemVisual{height:60px;display:grid;place-items:center;border:1px solid #26344e;border-radius:11px;background:#08111d;overflow:hidden;box-shadow:inset 0 0 24px #000}.itemVisual img{width:54px;height:54px;object-fit:contain;filter:drop-shadow(0 0 12px #39e7ff88)}.itemShopCard{cursor:pointer}.itemShopCard:disabled{cursor:not-allowed;opacity:.55}.itemEmptyMsg{grid-column:1/-1;padding:18px;text-align:center;border:1px dashed #33415d;border-radius:11px;color:#71819a;font-size:11px}.sellCard{border-color:#4b3b2c}.backpackIconImg{width:42px;height:42px;object-fit:contain}.inventorySlot .slotIcon img{width:27px;height:27px;object-fit:contain}.inventorySlot .slotName{min-height:18px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.inventorySlot .slotQty:empty{display:none}@media(max-width:700px){.equipmentSlot{min-height:74px}.equipmentIcon{font-size:21px}.itemVisual{height:52px}.itemVisual img{width:48px;height:48px}.shopUnifiedGrid{grid-template-columns:repeat(2,minmax(0,1fr))}}@media(max-width:430px){.equipmentSlot{min-height:70px;padding:5px}.equipmentName{font-size:7px}.shopUnifiedGrid{grid-template-columns:1fr}.inventoryGrid{grid-template-columns:repeat(4,minmax(0,1fr))}}
 </style><style id="neonV2TouchFix">#controls,.joy,#chatToggle,#controlConfigBtn,#chatBox button,#controlEditor button{pointer-events:auto;touch-action:manipulation}</style><script>
-/* NEONCORE V2 - ARRANQUE ROBUSTO */
+/* DARKPIXEL ONLINE V3 - ARRANQUE ROBUSTO */
 (function(){
-  window.NEON_CORE_VERSION="V2";
-  try{localStorage.setItem("neon_core_version","V2");}catch(_){}
+  window.NEON_CORE_VERSION="V3";
+  try{localStorage.setItem("neon_core_version","V3");}catch(_){}
 })();
 </script>\n</head>
 <body>
@@ -822,10 +822,10 @@ const ARMOR_CATALOG=[
 let cosmeticMerchantNpc={...merchantNpc};
 let ownedSkins=["core_default"],equippedSkin="core_default";
 
+const DEFAULT_MELEE_SKIN={id:"core_default",name:"SKIN MELEE BÁSICA",rarity:"Común",currency:"gold",price:0,skinStyleLevel:1,desc:"Skin melee básica predeterminada."};
 let ownedWeapons=["sword_neo"],equippedWeaponSkin="",ownedWeaponSkins=[];
 let weaponSkinCatalog=[],skinCatalog=[DEFAULT_MELEE_SKIN,...ARMOR_CATALOG];
 let cosmeticShopWasNear=false,cosmeticShopDismissedUntil=0;
-const DEFAULT_MELEE_SKIN={id:"core_default",name:"SKIN MELEE BÁSICA",rarity:"Común",currency:"gold",price:0,skinStyleLevel:1,desc:"Skin melee básica predeterminada."};
 let equippedBackpack="",inventoryCapacityClient=16,itemShopCatalog=[],itemShopStock={};
 let bullets=[],enemies=[],drops=[],particles=[],walls=[],hitTexts=[],bossProjectiles=[],bossWarnings=[];
 let inventorySlots=Array.from({length:INVENTORY_SLOTS},()=>null);
@@ -2807,7 +2807,7 @@ document.querySelectorAll("[data-utility-tab]").forEach(tab=>tab.addEventListene
 })();
 
 
-// V2: acceso protegido por Google/ en cada entrada a la prueba.
+// V3: acceso protegido por Google/ en cada entrada a la prueba.
 (function bootGoogleProtectedEntry(){
   try{
     googleIdToken="";
@@ -2845,7 +2845,7 @@ requestAnimationFrame(frame);
 
 
 <script>
-/* NEONCORE V2 - STARTUP FAILSAFE */
+/* DARKPIXEL ONLINE V3 - STARTUP FAILSAFE */
 (function(){
   var started=false;
   function showEntry(){
@@ -2863,11 +2863,11 @@ requestAnimationFrame(frame);
     }catch(_){}
   }
   window.addEventListener("error",function(e){
-    try{ console.error("[DARKPIXEL ONLINE][V2][STARTUP]",e.error||e.message||e); }catch(_){}
+    try{ console.error("[DARKPIXEL ONLINE][V3][STARTUP]",e.error||e.message||e); }catch(_){}
     setTimeout(showEntry,0);
   },true);
   window.addEventListener("unhandledrejection",function(e){
-    try{ console.error("[DARKPIXEL ONLINE][V2][PROMISE]",e.reason||e); }catch(_){}
+    try{ console.error("[DARKPIXEL ONLINE][V3][PROMISE]",e.reason||e); }catch(_){}
     setTimeout(showEntry,0);
   },true);
   if(document.readyState==="loading"){
