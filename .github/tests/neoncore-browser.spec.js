@@ -30,11 +30,15 @@ test('DarkPixel Online client: V1 marker and protected Google entry', async ({ p
   }));
   const networkDiag=await page.evaluate(async()=>{
     const resources=performance.getEntriesByType('resource').map(x=>x.name).filter(x=>/google|onbelmo/i.test(x));
-    let belmo={ok:false};
+    const belmo={};
     try{
-      const res=await fetch('https://neoncore-da6f.onbelmo.uk/auth/google/config?diag='+Date.now(),{cache:'no-store'});
-      belmo={ok:true,status:res.status,text:(await res.text()).slice(0,500)};
-    }catch(error){belmo={ok:false,error:String(error?.message||error)};}
+      const res=await fetch('https://neoncore-da6f.onbelmo.uk/auth/google/config',{cache:'no-store',signal:AbortSignal.timeout(8000)});
+      belmo.exactNoQuery={ok:true,status:res.status,text:(await res.text()).slice(0,500)};
+    }catch(error){belmo.exactNoQuery={ok:false,error:String(error?.message||error)};}
+    try{
+      const res=await fetch('https://neoncore-da6f.onbelmo.uk/auth/google/config?diag='+Date.now(),{cache:'no-store',signal:AbortSignal.timeout(8000)});
+      belmo.withQuery={ok:true,status:res.status,text:(await res.text()).slice(0,500)};
+    }catch(error){belmo.withQuery={ok:false,error:String(error?.message||error)};}
     return {
       resources,
       belmo,
