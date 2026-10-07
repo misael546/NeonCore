@@ -1,8 +1,8 @@
 {
   "game": "DarkPixel Online",
-  "version": "V2",
-  "releaseId": "V2",
-  "clientVersion": "V2",
+  "version": "V3",
+  "releaseId": "V3",
+  "clientVersion": "V3",
   "serverVersion": "V1",
   "databaseSchema": 3,
   "clientPath": "/proyectos/darkpixel-online/index.html"
