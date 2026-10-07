@@ -18,7 +18,7 @@ const MAX_PLAYERS = 16;
 const SAFE_ZONE = { x: 3012, y: 2220, r: 300 };
 
 let UNIFIED_RELEASE_MANIFEST = {
-  game: 'Neon Core',
+  game: 'DarkPixel Online',
   releaseId: 'unknown',
   version: 'unknown',
   clientVersion: 'unknown',
@@ -43,7 +43,7 @@ try {
 const RELEASE_ID = String(UNIFIED_RELEASE_MANIFEST.version || UNIFIED_RELEASE_MANIFEST.releaseId || 'unknown');
 const DATABASE_SCHEMA_VERSION = Math.max(3, Number(UNIFIED_RELEASE_MANIFEST.databaseSchema) || 3);
 const SERVER_VERSION = RELEASE_ID;
-const SERVER_UPDATE_MESSAGE = 'NUEVA ACTUALIZACIÓN DISPONIBLE. Neon Core volverá al menú para cargar la nueva versión.';
+const SERVER_UPDATE_MESSAGE = 'NUEVA ACTUALIZACIÓN DISPONIBLE. DarkPixel Online volverá al menú para cargar la nueva versión.';
 
 const BASE_INVENTORY_SLOTS = 16;
 const BACKPACK_EXTRA_SLOTS = 16;
@@ -1876,7 +1876,7 @@ const httpServer = http.createServer(async (req, res) => {
 
   if (pathname === '/client') {
     try {
-      const manifestClientPath = String(UNIFIED_RELEASE_MANIFEST.clientPath || '/NeonCore/neoncore/12345/V85/index.html').replace(/^\/NeonCore\//, '').replace(/^\/+/, '');
+      const manifestClientPath = String(UNIFIED_RELEASE_MANIFEST.clientPath || '/DarkPixel Online/neoncore/12345/V85/index.html').replace(/^\/DarkPixel Online\//, '').replace(/^\/+/, '');
       const clientPath = path.join(__dirname, '..', manifestClientPath);
       const html = fs.readFileSync(clientPath, 'utf8');
       res.writeHead(200, {
@@ -1893,7 +1893,7 @@ const httpServer = http.createServer(async (req, res) => {
         'Cache-Control': 'no-store',
         'Access-Control-Allow-Origin': '*'
       });
-      return res.end('Neon Core client temporarily unavailable.');
+      return res.end('DarkPixel Online client temporarily unavailable.');
     }
   }
 
@@ -1925,7 +1925,7 @@ const httpServer = http.createServer(async (req, res) => {
     return res.end(
       JSON.stringify({
         ok: true,
-        game: 'Neon Core',
+        game: 'DarkPixel Online',
         players: clients.size,
         rooms: rooms.size,
         pvp: true,
@@ -2001,7 +2001,7 @@ wss.on('connection', async (ws) => {
 
         const requestedName=normalizeAccountName(msg.name||'Jugador')||'Jugador';
         const googleIdToken=String(msg.googleIdToken||'').trim();
-        if(!googleIdToken){send(ws,{type:'room_error',reason:'google_required',message:'Debes iniciar sesión con Google para entrar a NeonCore.'});return;}
+        if(!googleIdToken){send(ws,{type:'room_error',reason:'google_required',message:'Debes iniciar sesión con Google para entrar a DarkPixel Online.'});return;}
         const googleAccount=await authenticateGoogleAccount(googleIdToken);
         if(!googleAccount?.ok){send(ws,{type:'room_error',reason:'google_invalid',message:googleAccount?.reason==='not_configured'?'Google aún no está configurado en el servidor.':'No se pudo validar tu cuenta de Google.'});return;}
         const legacySaveKey=String(msg.saveKey||'').replace(/[^a-zA-Z0-9_-]/g,'').slice(0,80);
@@ -2015,7 +2015,7 @@ wss.on('connection', async (ws) => {
         if(!account?.ok){
           const accountMessages={
             account_invalid:'La credencial de cuenta no es válida. No se creará otra cuenta automáticamente.',
-            name_reserved:'Ese nombre está reservado por Neon Core.',
+            name_reserved:'Ese nombre está reservado por DarkPixel Online.',
             name_taken:'Ese nombre ya está ocupado. Elige otro nombre.',
             storage_error:'No se pudo guardar la cuenta. Intenta de nuevo.'
           };
@@ -3114,7 +3114,7 @@ const websocketHeartbeat = setInterval(() => {
 
 httpServer.listen(PORT, () => {
   console.log(
-    'Neon Core multiplayer server listening on ' +
+    'DarkPixel Online multiplayer server listening on ' +
       PORT +
       ' · version ' +
       SERVER_VERSION
