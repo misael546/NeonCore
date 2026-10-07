@@ -1876,7 +1876,7 @@ const httpServer = http.createServer(async (req, res) => {
 
   if (pathname === '/client') {
     try {
-      const manifestClientPath = String(UNIFIED_RELEASE_MANIFEST.clientPath || '/DarkPixel Online/neoncore/12345/V85/index.html').replace(/^\/DarkPixel Online\//, '').replace(/^\/+/, '');
+      const manifestClientPath = String(UNIFIED_RELEASE_MANIFEST.clientPath || '/proyectos/darkpixel-online/index.html').replace(/^\/DarkPixel Online\//, '').replace(/^\/+/, '');
       const clientPath = path.join(__dirname, '..', manifestClientPath);
       const html = fs.readFileSync(clientPath, 'utf8');
       res.writeHead(200, {
@@ -2145,7 +2145,7 @@ wss.on('connection', async (ws) => {
           serverStartedAt: SERVER_STARTED_AT,
           message: SERVER_UPDATE_MESSAGE,
           required: true,
-          clientPath: String(UNIFIED_RELEASE_MANIFEST.clientPath || '/neoncore/12345/V85/index.html')
+          clientPath: String(UNIFIED_RELEASE_MANIFEST.clientPath || '/proyectos/darkpixel-online/index.html')
         });
 
         return;
@@ -2273,7 +2273,7 @@ wss.on('connection', async (ws) => {
 
         p.stateViolations = Math.max(0, p.stateViolations - 1);
         p.lastStateAt = now;
-        // V85: una cuenta Google sin nombre permanece dentro de la zona segura.
+        // V1: una cuenta Google sin nombre permanece dentro de la zona segura.
         if(!p.nameLocked && !String(p.name||'').trim()){
           const dx=finalX-SAFE_ZONE.x,dy=finalY-SAFE_ZONE.y,d=Math.hypot(dx,dy),limit=Math.max(0,SAFE_ZONE.r-18);
           if(d>limit){const k=limit/Math.max(d,0.0001);finalX=SAFE_ZONE.x+dx*k;finalY=SAFE_ZONE.y+dy*k;movementClamped=true;}
@@ -2504,7 +2504,7 @@ wss.on('connection', async (ws) => {
   });
 });
 
-// V85: servidor autoritativo de cuadrícula. Los enemigos regulares avanzan casilla por casilla y se detienen a una casilla del objetivo.
+// V1: servidor autoritativo de cuadrícula. Los enemigos regulares avanzan casilla por casilla y se detienen a una casilla del objetivo.
 setInterval(()=>{for(const [code,room] of rooms){if(!room||!room.size)continue;const enemies=roomEnemies.get(code)||[];const players=roomPlayers(room).filter(p=>p.alive&&!p.frozen);for(const e of enemies){if(e.kind==='boss'||e.dead)continue;let target=null,best=Infinity;for(const pl of players){if(inSafeZone(pl.x,pl.y,24))continue;const d=Math.hypot(pl.x-e.x,pl.y-e.y);if(d<=e.aggroRadius&&d<best){best=d;target=pl;}}if(target){const tcx=Math.round(target.x/MELEE_GRID_SIZE),tcy=Math.round(target.y/MELEE_GRID_SIZE),ecx=Math.round(e.x/MELEE_GRID_SIZE),ecy=Math.round(e.y/MELEE_GRID_SIZE);if(Math.abs(tcx-ecx)+Math.abs(tcy-ecy)<=1){e.x=egridCenter(cx);e.y=egridCenter(cy);e.vx=0;e.vy=0;} }}}},180);
 
 startServerUpdateHeartbeat();
@@ -3022,7 +3022,7 @@ function announceServerUpdate() {
     serverStartedAt: SERVER_STARTED_AT,
     message: SERVER_UPDATE_MESSAGE,
     required: true,
-    clientPath: String(UNIFIED_RELEASE_MANIFEST.clientPath || 'neoncore/12345/V85/index.html')
+    clientPath: String(UNIFIED_RELEASE_MANIFEST.clientPath || 'proyectos/darkpixel-online/index.html')
   };
   for (const p of clients.values()) {
     send(p.ws, payload);
