@@ -7,75 +7,16 @@
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
 <title>NEON CORE</title>
-<style>
-*{box-sizing:border-box}
-html,body{margin:0;width:100%;height:100%;overflow:hidden;background:#02050b;color:#fff;font-family:Arial,sans-serif}
-body{display:grid;place-items:center}
-.card{width:min(420px,92vw);padding:28px 22px;background:linear-gradient(180deg,#0b1425,#050b14);border:1px solid #39e7ff88;border-radius:20px;box-shadow:0 20px 80px #000;text-align:center}
-.spinner{width:38px;height:38px;margin:0 auto 16px;border:4px solid #24334b;border-top-color:#39e7ff;border-radius:50%;animation:spin .8s linear infinite}
-@keyframes spin{to{transform:rotate(360deg)}}
-h1{margin:0;color:#39e7ff;font-size:23px;letter-spacing:2px}
-p{margin:10px 0 0;color:#c8d3e5;font-size:13px;line-height:1.5}
-small{display:block;margin-top:10px;color:#71819a;font-size:10px}
-</style>
 </head>
-<body>
-<div class="card">
-  <div class="spinner"></div>
-  <h1>NEON CORE</h1>
-  <p id="status">Comprobando la versión…</p>
-  <small>GitHub · Base de datos · Cliente</small>
-</div>
+<body style="margin:0;background:#02050b;color:#fff;font-family:Arial,sans-serif;display:grid;place-items:center;min-height:100vh">
+<div>Abriendo Neon Core V85…</div>
 <script>
-(async function(){
-  const RAW="https://raw.githubusercontent.com/misael546/NeonCore/main/";
-  const fallbackPath="neoncore/12345/V83/index.html";
-  const nameKey="neon_core_player_name";
-  const versionKey="neon_core_version";
-  function status(t){const e=document.getElementById("status");if(e)e.textContent=t;}
-  function cb(u){return u+(u.includes("?")?"&":"?")+"t="+Date.now()+"-"+Math.random().toString(36).slice(2);}
-  async function get(u){const r=await fetch(cb(u),{cache:"no-store"});if(!r.ok)throw new Error(String(r.status));return r;}
-  function savedName(){
-    try{return String(new URL(location.href).searchParams.get("name")||localStorage.getItem(nameKey)||"").trim().slice(0,20);}
-    catch{return "";}
-  }
-  function goDirect(path,name,target){
-    const u=new URL("https://misael546.github.io/NeonCore/"+String(path).replace(/^\/+?/,""));
-    if(name)u.searchParams.set("name",name);
-    u.searchParams.set("neon_cache",String(Date.now()));
-    location.replace(u.toString());
-  }
-  try{
-    const manifest=await (await get(RAW+"release.json")).json();
-    const targetRaw=String(manifest.version||manifest.releaseId||manifest.clientVersion||manifest.serverVersion||"").trim().toUpperCase();
-    const match=targetRaw.match(/^V([1-9][0-9]*)$/);
-    const target=match ? "V"+Number(match[1]) : "";
-    const clientPath=String(manifest.clientPath||fallbackPath).replace(/^\/+?/,"");
-    if(!target)throw new Error("release inválida: se esperaba una versión V válida");
-
-    let installed="";
-    try{installed=String(localStorage.getItem(versionKey)||"").trim();}catch{}
-
-    // Si el cliente ya conoce exactamente la misma versión, NO se vuelve a instalar.
-    if(installed===target){
-      status(target+" ya está instalada. Entrando…");
-      goDirect(clientPath,savedName(),target);
-      return;
-    }
-
-    status("Verificando la versión "+target+"…");
-    const html=await (await get(RAW+clientPath)).text();
-    const m=html.match(/window\.NEON_CORE_VERSION\s*=\s*["']([^"']+)["']/);
-    if(!m||String(m[1]).trim()!==target)throw new Error("cliente desfasado");
-
-    try{localStorage.setItem(versionKey,target);}catch{}
-    status(target+" verificada. Entrando…");
-    goDirect(clientPath,savedName(),target);
-  }catch(e){
-    // No dejamos al jugador atrapado en el cargador.
-    status("Comprobación temporal no disponible. Entrando al cliente…");
-    setTimeout(()=>goDirect(fallbackPath,savedName(),""),700);
-  }
+(function(){
+  var u=new URL("V85/index.html",location.href);
+  var q=new URLSearchParams(location.search);
+  q.forEach(function(v,k){if(k!=="neon_cache")u.searchParams.set(k,v);});
+  u.searchParams.set("neon_cache","V85-"+Date.now());
+  location.replace(u.href);
 })();
 </script>
 </body>
