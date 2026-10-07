@@ -32,7 +32,7 @@
       .then(function(r){if(!r.ok)throw new Error("manifest "+r.status);return r.json();})
       .then(function(m){
         window.__NEON_RELEASE_MANIFEST=m||{};
-        var remoteRaw=String(m.version||m.releaseId||m.clientVersion||m.serverVersion||"").trim().toUpperCase();
+        var remoteRaw=String(m.version||m.releaseId||m.clientVersion||m.version||"").trim().toUpperCase();
         var currentRaw=String(v).trim().toUpperCase();
         var toVersion=function(raw){
           var match=raw.match(/^V([1-9][0-9]*)$/);
@@ -1093,7 +1093,7 @@ function connectMultiplayer(roomMode="quick",roomCode=""){ const publicRoomAuto=
           return;
         }
         if(m.type==="server_update_notice"){
-          const targetRaw=String(m.clientVersion||m.version||m.serverVersion||"").trim().toUpperCase();
+          const targetRaw=String(m.clientVersion||m.version||m.version||"").trim().toUpperCase();
           const currentRaw=String(window.NEON_CORE_VERSION||"V3").trim().toUpperCase();
           const targetMatch=targetRaw.match(/^V([1-9][0-9]*)$/);
           const currentMatch=currentRaw.match(/^V([1-9][0-9]*)$/);
