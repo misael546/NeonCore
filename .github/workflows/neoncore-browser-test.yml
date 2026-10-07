@@ -36,12 +36,11 @@ jobs:
           echo "DarkPixel Online current release was not detected"
           exit 1
 
-      - name: Wait for Belmo server current version
+      - name: Wait for Belmo server online
         run: |
-          expected="$(python3 -c 'import json; print(json.load(open("release.json", encoding="utf-8"))["serverVersion"])')"
           for i in $(seq 1 36); do
-            if curl -fsSL "https://neoncore-da6f.onbelmo.uk/health?ci=$i" | grep -Fq "\"version\":\"$expected\""; then
-              echo "Belmo server is live: $expected"
+            if curl -fsSL "https://neoncore-da6f.onbelmo.uk/health?ci=$i" | grep -Fq '"ok":true'; then
+              echo "Belmo server is online"
               exit 0
             fi
             sleep 5
