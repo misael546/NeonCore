@@ -48,7 +48,15 @@ function cleanAccountDoc(data) {
 function serviceAccountFromEnv() {
   const raw = String(process.env.FIREBASE_SERVICE_ACCOUNT_JSON || '').trim();
   if (raw) {
-    const parsed = JSON.parse(raw);
+    let source = raw;
+    // Belmo may contain a JS-wrapped service-account object instead of the
+    // raw downloaded JSON. Accept the common "var admin = {...};" wrapper.
+    if (!source.startsWith('{')) {
+      const first = source.indexOf('{');
+      const last = source.lastIndexOf('}');
+      if (first >= 0 && last > first) source = source.slice(first, last + 1).trim();
+    }
+    const parsed = JSON.parse(source);
     return {
       projectId: String(parsed.project_id || process.env.FIREBASE_PROJECT_ID || '').trim(),
       clientEmail: String(parsed.client_email || '').trim(),
