@@ -1,4 +1,4 @@
-name: Deploy Neon Core to GitHub Pages
+name: Deploy NeonCore portal and DarkPixel Online
 # Release-driven Pages deployment — no hardcoded version number
 
 on:

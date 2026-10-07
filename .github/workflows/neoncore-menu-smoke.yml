@@ -1,4 +1,4 @@
-name: Neon Core menu smoke test
+name: DarkPixel Online menu smoke test
 
 on:
   push:
@@ -25,12 +25,12 @@ jobs:
           for i in $(seq 1 30); do
             live="$(curl -fsSL "https://misael546.github.io/NeonCore/release.json?menuSmokeCI=$i" || true)"
             if grep -Fq "\"version\": \"$expected\"" <<<"$live"; then
-              echo "NeonCore current release is public: $expected"
+              echo "DarkPixel Online current release is public: $expected"
               exit 0
             fi
             sleep 5
           done
-          echo "NeonCore current release was not detected"
+          echo "DarkPixel Online current release was not detected"
           exit 1
       - name: Wait for Belmo current version
         run: |
