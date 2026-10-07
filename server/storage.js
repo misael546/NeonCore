@@ -15,8 +15,9 @@ let releaseInfo = {
 async function initStorage(releaseId = '', schemaVersion = 1) {
   if (String(process.env.STORAGE_PROVIDER || '').trim().toLowerCase() === 'firebase') {
     const ok = await firestore.initStorage(releaseId, schemaVersion);
-    if (!ok) throw new Error('FIREBASE_STORAGE_NOT_READY');
-    return true;
+    if (ok) return true;
+    console.error('[STORAGE] Firestore no pudo inicializarse; se conservará PostgreSQL como respaldo hasta corregir la conexión.');
+    if (!process.env.DATABASE_URL) return false;
   }
   if (storageReady) return true;
 
@@ -408,6 +409,8 @@ module.exports = {
     return String(process.env.STORAGE_PROVIDER || '').trim().toLowerCase() === 'firebase' ? firestore.releaseInfo : { ...releaseInfo };
   },
   get provider() {
-    return String(process.env.STORAGE_PROVIDER || '').trim().toLowerCase() === 'firebase' ? 'firestore' : 'postgres';
+    if (firestore.enabled) return 'firestore';
+    if (storageReady) return 'postgres';
+    return 'memory';
   }
 };
