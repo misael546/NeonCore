@@ -293,7 +293,7 @@ html.pc-controls #controlConfigBtn,html.touch-controls #controlConfigBtn{display
 })();
 </script>\n</head>
 <body>
-<canvas id="game"></canvas><div id="versionDisplay">V2</div><button id="audioToggle" type="button" aria-label="Activar o silenciar audio">🔊</button>
+<canvas id="game"></canvas><div id="versionDisplay">V3</div><button id="audioToggle" type="button" aria-label="Activar o silenciar audio">🔊</button>
 
 <div id="hud">
   <div class="panel" id="bars">
@@ -1042,7 +1042,7 @@ function connectMultiplayer(roomMode="quick",roomCode=""){ const publicRoomAuto=
       if(multiplayerConnectTimer){clearTimeout(multiplayerConnectTimer);multiplayerConnectTimer=null;}
 
       setConnectionStatus("CONECTADO","Entrando a la sala…");
-      socket.send(JSON.stringify({type:"join",name:playerName||"",accountToken:accountToken,googleIdToken:googleIdToken,saveKey:"",color:"#39e7ff",room:roomMode==="join"?roomCode:"",createRoom:roomMode==="create",clientVersion:window.NEON_CORE_VERSION||"V2"}));
+      socket.send(JSON.stringify({type:"join",name:playerName||"",accountToken:accountToken,googleIdToken:googleIdToken,saveKey:"",color:"#39e7ff",room:roomMode==="join"?roomCode:"",createRoom:roomMode==="create",clientVersion:window.NEON_CORE_VERSION||"V3"}));
     });
     socket.addEventListener("error",()=>{
       if(multiplayerSocket!==socket)return;
@@ -1093,8 +1093,13 @@ function connectMultiplayer(roomMode="quick",roomCode=""){ const publicRoomAuto=
           return;
         }
         if(m.type==="server_update_notice"){
-          const target=String(m.clientVersion||m.serverVersion||m.version||"").trim().toUpperCase();
-          if(target&&target!==String(window.NEON_CORE_VERSION||"")&&typeof window.__neonForceUpdate==="function"){window.__neonForceUpdate(target);}
+          const targetRaw=String(m.clientVersion||m.version||m.serverVersion||"").trim().toUpperCase();
+          const currentRaw=String(window.NEON_CORE_VERSION||"V3").trim().toUpperCase();
+          const targetMatch=targetRaw.match(/^V([1-9][0-9]*)$/);
+          const currentMatch=currentRaw.match(/^V([1-9][0-9]*)$/);
+          const targetNumber=targetMatch?Number(targetMatch[1]):0;
+          const currentNumber=currentMatch?Number(currentMatch[1]):0;
+          if(targetNumber>currentNumber&&typeof window.__neonForceUpdate==="function"){window.__neonForceUpdate("V"+targetNumber);}
           return;
         }
         if(m.type==="room_joined"){
