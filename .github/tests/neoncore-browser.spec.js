@@ -13,7 +13,7 @@ test('portal and Projects are stable', async ({ page }) => {
   await expect(page.locator('.card h2')).toContainText('DarkPixel Online');
 });
 
-test('DarkPixel Online client: V2 marker and protected Google entry', async ({ page }) => {
+test('DarkPixel Online client: V3 marker and protected Google entry', async ({ page }) => {
   await page.goto('https://misael546.github.io/NeonCore/'+GAME_PATH+'?ci=' + Date.now(), {waitUntil:'domcontentloaded', timeout:45000});
   await expect.poll(async()=>page.evaluate(()=>window.NEON_CORE_VERSION),{timeout:15000,intervals:[500,1000]}).toBe(CURRENT_VERSION);
   await expect(page.locator('#googleGate')).toBeVisible({timeout:15000});
