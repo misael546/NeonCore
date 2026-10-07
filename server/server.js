@@ -1,4 +1,4 @@
-/* V1 · release inicial del proyecto */
+/* DarkPixel Online backend */
 'use strict';
 
 const http = require('http');
@@ -43,7 +43,6 @@ try {
 const RELEASE_ID = String(UNIFIED_RELEASE_MANIFEST.version || UNIFIED_RELEASE_MANIFEST.releaseId || 'unknown');
 const DATABASE_SCHEMA_VERSION = Math.max(3, Number(UNIFIED_RELEASE_MANIFEST.databaseSchema) || 3);
 const SERVER_VERSION = RELEASE_ID;
-const SERVER_UPDATE_MESSAGE = 'NUEVA ACTUALIZACIÓN DISPONIBLE. DarkPixel Online volverá al menú para cargar la nueva versión.';
 
 const BASE_INVENTORY_SLOTS = 16;
 const BACKPACK_EXTRA_SLOTS = 16;
@@ -3052,6 +3051,28 @@ async function gracefulShutdown(signal) {
   try {
     await storage.closeStorage();
   } catch {}
+  process.exit(0);
+}
+
+process.on('SIGTERM', () => {
+  void gracefulShutdown('SIGTERM');
+});
+
+process.on('SIGINT', () => {
+  void gracefulShutdown('SIGINT');
+});
+
+async function gracefulShutdown(signal) {
+  await new Promise((resolve) => setTimeout(resolve, 350));
+
+  for (const p of clients.values()) {
+    await persistPlayer(p);
+  }
+
+  try {
+    await storage.closeStorage();
+  } catch {}
+
   process.exit(0);
 }
 
