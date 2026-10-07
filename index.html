@@ -2,36 +2,157 @@
 <html lang="es">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="viewport" content="width=device-width,initial-scale=1,user-scalable=no,viewport-fit=cover">
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
-<title>Neon Core</title>
+<script>
+(function(){
+  window.NEON_CORE_VERSION="MENU";
+  window.__NEON_CORE_OFFICIAL_ENTRY="/NeonCore/";
+})();
+</script>
+<title>Neon Core · Menú Principal</title>
 <style>
-*{box-sizing:border-box}html,body{margin:0;width:100%;height:100%;overflow:hidden;background:#02050b;color:#fff;font-family:Arial,sans-serif}
-body{display:grid;place-items:center;background:radial-gradient(circle at 50% 15%,#10233b 0,#050811 45%,#02040a 100%)}
-.card{width:min(440px,92vw);padding:30px 24px;border:1px solid #39e7ff66;border-radius:24px;background:rgba(5,10,20,.92);box-shadow:0 20px 80px #000;text-align:center}
-h1{margin:0;color:#39e7ff;font-size:42px;letter-spacing:5px;text-shadow:0 0 24px #39e7ff66}
-p{color:#8ea0b8;margin:10px 0 24px}
-button{width:100%;min-height:52px;border:1px solid #39e7ff;border-radius:12px;background:linear-gradient(135deg,#12344b,#1a5b74);color:#fff;font-weight:900;font-size:16px;letter-spacing:1px;cursor:pointer;box-shadow:0 0 20px #39e7ff22}
-small{display:block;margin-top:14px;color:#5f7088;font-size:10px;letter-spacing:1px}
+*{box-sizing:border-box}
+html,body{margin:0;width:100%;height:100%;overflow:hidden;background:#02050b;color:#fff;font-family:Arial,sans-serif}
+body{display:grid;place-items:center}
+.bg{position:fixed;inset:0;background:
+radial-gradient(circle at 50% 38%,rgba(15,54,78,.38),transparent 40%),
+linear-gradient(135deg,#02050b 0%,#07101d 48%,#02050b 100%)}
+.grid{position:absolute;inset:0;opacity:.22;background-image:
+linear-gradient(rgba(57,231,255,.05) 1px,transparent 1px),
+linear-gradient(90deg,rgba(57,231,255,.05) 1px,transparent 1px);
+background-size:38px 38px}
+.card{position:relative;z-index:2;width:min(560px,94vw);padding:30px 28px 24px;background:linear-gradient(180deg,rgba(10,20,35,.98),rgba(4,10,19,.99));border:1px solid #39e7ff66;border-radius:22px;box-shadow:0 25px 100px #000,0 0 45px #39e7ff18,inset 0 0 45px #39e7ff09}
+.eyebrow{text-align:center;color:#6d819d;font-size:10px;font-weight:900;letter-spacing:4px;margin-bottom:8px}
+h1{margin:0;text-align:center;font-size:42px;letter-spacing:7px;color:#e9fdff;text-shadow:0 0 10px #39e7ff,0 0 32px #39e7ff55}
+.sub{text-align:center;color:#8ea0b8;font-size:12px;letter-spacing:3px;font-weight:900;margin:8px 0 22px}
+label{display:block;color:#a9b8cc;font-size:10px;font-weight:900;letter-spacing:2px;margin:0 0 7px}
+input{width:100%;height:50px;padding:0 15px;background:#060e1a;border:1px solid #2a405c;border-radius:10px;font-size:16px;color:#fff;outline:none}
+input:focus{border-color:#39e7ff;box-shadow:0 0 0 2px #39e7ff18,0 0 22px #39e7ff12,inset 0 0 18px #0008}.nameField{position:relative;margin:0}.nameField input{padding-right:58px}.nameLock{position:absolute;right:11px;top:50%;transform:translateY(-50%);display:none;width:34px;height:34px;border:1px solid #33415d;border-radius:9px;background:#0a1220;color:#73839b;font-size:17px;place-items:center;pointer-events:none}.nameRestriction{display:none;margin:7px 0 0;text-align:center;color:#6f7f95;font-size:9px;font-weight:900;letter-spacing:1.5px}.nameField.locked input{color:#b9c4d4;border-color:#202f43;background:#080f1a;cursor:not-allowed}.nameField.locked .nameLock{display:grid}.nameField.locked+.nameRestriction{display:block}
+button{width:100%;height:52px;margin-top:12px;border:1px solid #39e7ff;border-radius:11px;background:linear-gradient(135deg,#0d3044,#15536a);color:#fff;font-size:15px;font-weight:900;letter-spacing:1px;box-shadow:0 0 22px #39e7ff18,0 8px 24px #000}
+button:active{transform:scale(.985)}
+button span{margin-right:7px}
+.msg{min-height:18px;margin:9px 0 0;text-align:center;color:#7f91aa;font-size:11px}
+.foot{display:flex;justify-content:center;gap:10px;margin-top:18px;color:#53627b;font-size:9px;letter-spacing:1.5px}
+@media(max-width:600px){.card{width:min(430px,94vw);padding:25px 18px 18px}h1{font-size:31px;letter-spacing:5px}.sub{font-size:10px}input{height:48px}button{height:50px}}
+#globalUpdate{position:fixed;inset:0;display:none;z-index:9999;place-items:center;background:rgba(1,4,10,.94);backdrop-filter:blur(8px);padding:20px;text-align:center}.globalUpdateCard{width:min(430px,92vw);padding:26px 20px;border:1px solid #39e7ff;border-radius:18px;background:#07111e;box-shadow:0 20px 70px #000}.globalUpdateCard strong{display:block;color:#39e7ff;font-size:18px}.globalUpdateCard span{display:block;margin-top:10px;color:#c8d3e5;font-size:12px}.globalUpdateCard b{display:grid;place-items:center;width:44px;height:44px;margin:14px auto 0;border:2px solid #39e7ff;border-radius:50%;color:#fff}
 </style>
 </head>
 <body>
-<main class="card">
-<h1>NEON CORE</h1>
-<p>Entra al mundo multijugador.</p>
-<button id="play">JUGAR</button>
-<small>V85</small>
+<div class="bg"></div>
+<div class="grid"></div>
+<div id="globalUpdate"><div class="globalUpdateCard"><strong>NUEVA ACTUALIZACIÓN DISPONIBLE</strong><span id="globalUpdateText">Recargando…</span><b id="globalUpdateCount">3</b></div></div><main class="card">
+  <div class="eyebrow">NEON CORE // ONLINE</div>
+  <h1>NEON CORE</h1>
+  <div class="sub">MENÚ PRINCIPAL</div>
+  <label for="name">NOMBRE DEL TANQUE</label>
+  <div class="nameField"><input id="name" maxlength="20" autocomplete="nickname" placeholder="Escribe tu nombre"><span id="nameLock" class="nameLock" aria-hidden="true">🔒</span></div>
+  <div id="nameRestriction" class="nameRestriction">NOMBRE RESTRINGIDO · CAMBIO BLOQUEADO</div>
+  <div id="msg" class="msg">Escribe tu nombre para entrar a la Sesión 1.</div>
+  <button id="play" type="button"><span>▶</span>JUGAR</button>
+  <button id="accountRecoveryOpen" type="button" style="margin-top:8px;background:#0d1727;border:1px solid #33415d;color:#9fb0c7">RECUPERAR CUENTA</button>
+  <div id="accountRecoveryPanel" style="display:none;margin-top:8px"><input id="accountRecoveryInput" maxlength="32" autocomplete="off" placeholder="CÓDIGO DE RECUPERACIÓN"><button id="accountRecoverySubmit" type="button" style="margin-top:8px">RECUPERAR CUENTA</button><div id="accountRecoveryMsg" class="msg"></div></div>
+  <div class="foot"><span>SESIÓN 1</span><span>•</span><span id="menuVersion">COMPROBANDO V…</span></div>
 </main>
 <script>
 (function(){
-  var play=document.getElementById("play");
-  play.addEventListener("click",function(){
-    var u=new URL("neoncore/12345/",location.href);
-    u.searchParams.set("neon_cache","V85-"+Date.now());
-    location.replace(u.href);
-  });
+  const recoveryOpen=document.getElementById("accountRecoveryOpen");
+  const recoveryPanel=document.getElementById("accountRecoveryPanel");
+  const recoveryInput=document.getElementById("accountRecoveryInput");
+  const recoverySubmit=document.getElementById("accountRecoverySubmit");
+  const recoveryMsg=document.getElementById("accountRecoveryMsg");
+  if(recoveryOpen)recoveryOpen.addEventListener("click",()=>{if(recoveryPanel)recoveryPanel.style.display=recoveryPanel.style.display==="block"?"none":"block";if(recoveryPanel?.style.display==="block")recoveryInput?.focus();});
+  if(recoveryInput)recoveryInput.addEventListener("input",()=>recoveryInput.value=recoveryInput.value.toUpperCase().replace(/[^A-Z0-9-]/g,"").slice(0,32));
+  async function recoverAccountFromCode(){
+    const code=String(recoveryInput?.value||"").trim();
+    if(code.length<20){if(recoveryMsg)recoveryMsg.textContent="Escribe un código válido.";return;}
+    if(recoverySubmit)recoverySubmit.disabled=true;
+    if(recoveryMsg)recoveryMsg.textContent="Recuperando cuenta…";
+    try{
+      const res=await fetch("https://neon-core-multiplayer.onrender.com/account/recover",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({code}),cache:"no-store"});
+      const data=await res.json().catch(()=>({}));
+      if(!res.ok||!data.ok)throw new Error(data.message||"No se pudo recuperar la cuenta.");
+      try{
+        localStorage.setItem("neon_core_account_token",String(data.accountToken||""));
+        localStorage.setItem("neon_core_account_id",String(data.accountId||""));
+        localStorage.setItem("neon_core_player_name",String(data.name||"Jugador").slice(0,20));
+        localStorage.setItem("neon_core_name_locked","1");
+        localStorage.removeItem("neon_core_save_key");
+      }catch{}
+      if(recoveryMsg)recoveryMsg.textContent="Cuenta recuperada. Entrando…";
+      launchLatest(String(data.name||"Jugador"));
+    }catch(error){if(recoveryMsg)recoveryMsg.textContent=error?.message||"No se pudo recuperar la cuenta.";}
+    finally{if(recoverySubmit)recoverySubmit.disabled=false;}
+  }
+  const input=document.getElementById("name");
+  const button=document.getElementById("play");
+  const msg=document.getElementById("msg");
+  const restriction=document.getElementById("nameRestriction");
+  const nameField=input.parentElement;
+  const key="neon_core_player_name";
+  const lockKey="neon_core_name_locked";
+  const menuVersion=document.getElementById("menuVersion");
+  async function launchLatest(n){
+    try{
+      const url="/NeonCore/release.json?neon_menu="+Date.now()+"-"+Math.random().toString(36).slice(2);
+      const res=await fetch(url,{cache:"no-store",headers:{"Cache-Control":"no-cache"}});
+      if(!res.ok)throw new Error("release "+res.status);
+      const manifest=await res.json();
+      const raw=String(manifest.version||manifest.releaseId||manifest.clientVersion||manifest.serverVersion||"").trim().toUpperCase();
+      const match=raw.match(/^V([1-9][0-9]*)$/);
+      const target=match ? "V"+Number(match[1]) : "";
+      const clientPath=String(manifest.clientPath||"").replace(/^\/+?/,"");
+      if(!target||!clientPath)throw new Error("release inválida");
+      if(menuVersion)menuVersion.textContent=target;
+      try{localStorage.setItem("neon_core_version",target);}catch{}
+      const finalUrl="/NeonCore/"+clientPath.replace(/^NeonCore\//,"")+"?name="+encodeURIComponent(n);
+      window.location.assign(finalUrl);
+    }catch(error){
+      msg.textContent="No se pudo comprobar la versión. Reintentando…";
+      setTimeout(()=>launchLatest(n),700);
+    }
+  }
+  (async()=>{
+    try{
+      const res=await fetch("/NeonCore/release.json?neon_menu_init="+Date.now(),{cache:"no-store",headers:{"Cache-Control":"no-cache"}});
+      const m=await res.json();
+      const raw=String(m.version||m.releaseId||m.clientVersion||m.serverVersion||"").trim().toUpperCase();
+      const match=raw.match(/^V([1-9][0-9]*)$/);
+      const target=match ? "V"+Number(match[1]) : "";
+      if(menuVersion&&target)menuVersion.textContent=target;
+    }catch{}
+  })();
+  function applyLock(){
+    let savedName="";
+    let locked=false;
+    try{
+      savedName=(localStorage.getItem(key)||"").slice(0,20);
+      locked=localStorage.getItem(lockKey)==="1" || !!savedName;
+    }catch{}
+    input.value=savedName;
+    input.readOnly=locked;
+    nameField.classList.toggle("locked",locked);
+    if(restriction)restriction.style.display=locked?"block":"none";
+    if(locked && savedName)msg.textContent="Tu nombre está restringido. Cambio de nombre: $1 USD.";
+  }
+  applyLock();
+  function enter(){
+    const n=String(input.value||"").trim().slice(0,20);
+    if(!n){msg.textContent="Escribe tu nombre para entrar.";input.focus();return;}
+    try{
+      localStorage.setItem(key,n);
+      localStorage.setItem(lockKey,"1");
+    }catch{}
+    input.readOnly=true;
+    nameField.classList.add("locked");
+    if(restriction)restriction.style.display="block";
+    msg.textContent="Comprobando la versión…";
+    launchLatest(n);
+  }
+  button.addEventListener("click",enter);
+  input.addEventListener("keydown",e=>{if(e.key==="Enter"){e.preventDefault();enter();}});
 })();
 </script>
 </body>
