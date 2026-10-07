@@ -14,7 +14,9 @@ let releaseInfo = {
 
 async function initStorage(releaseId = '', schemaVersion = 1) {
   if (String(process.env.STORAGE_PROVIDER || '').trim().toLowerCase() === 'firebase') {
-    return firestore.initStorage(releaseId, schemaVersion);
+    const ok = await firestore.initStorage(releaseId, schemaVersion);
+    if (!ok) throw new Error('FIREBASE_STORAGE_NOT_READY');
+    return true;
   }
   if (storageReady) return true;
 
