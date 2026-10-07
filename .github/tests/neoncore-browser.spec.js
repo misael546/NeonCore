@@ -18,6 +18,8 @@ test('DarkPixel Online client: V1 marker and protected Google entry', async ({ p
   await expect.poll(async()=>page.evaluate(()=>window.NEON_CORE_VERSION),{timeout:15000,intervals:[500,1000]}).toBe(CURRENT_VERSION);
   await expect(page.locator('#googleGate')).toBeVisible({timeout:15000});
   await expect(page.locator('#googleButton')).toBeVisible({timeout:15000});
+  await expect(page.locator('#googleButton iframe')).toHaveCount(1,{timeout:20000});
+  await expect(page.locator('#googleStatus')).toContainText('Inicia sesión para entrar a DarkPixel Online.',{timeout:20000});
   await expect(page.locator('#game')).toBeVisible({timeout:15000});
   await expect(page.locator('body')).toContainText('DARKPIXEL ONLINE');
   await expect(page.locator('body')).not.toContainText('NEON CORE');
