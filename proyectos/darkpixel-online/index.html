@@ -1048,7 +1048,7 @@ function connectMultiplayer(roomMode="quick",roomCode=""){ const publicRoomAuto=
       if(multiplayerSocket!==socket)return;
       if(multiplayerConnectTimer){clearTimeout(multiplayerConnectTimer);multiplayerConnectTimer=null;}
       multiplayerReady=false;
-      console.warn("[NEONCORE][WS] error",MULTIPLAYER_SERVER);
+      console.warn("[DARKPIXEL ONLINE][WS] error",MULTIPLAYER_SERVER);
       if(publicRoomAuto){
         setConnectionStatus("ERROR WEBSOCKET","No se pudo abrir la conexión segura con Belmo. Reintentando la sala 12345…",true);
         nameBox.style.display="none";
@@ -1061,7 +1061,7 @@ function connectMultiplayer(roomMode="quick",roomCode=""){ const publicRoomAuto=
       if(multiplayerSocket!==socket)return;
       if(multiplayerConnectTimer){clearTimeout(multiplayerConnectTimer);multiplayerConnectTimer=null;}
       multiplayerReady=false;
-      console.warn("[NEONCORE][WS] close",Number(event.code||0),String(event.reason||""));
+      console.warn("[DARKPIXEL ONLINE][WS] close",Number(event.code||0),String(event.reason||""));
       if(gameActive)return;
       if(publicRoomAuto){
         setConnectionStatus("CONEXIÓN CERRADA","Belmo cerró WebSocket ("+Number(event.code||0)+"). Reintentando automáticamente…",true);
@@ -2748,7 +2748,7 @@ document.querySelectorAll("[data-utility-tab]").forEach(tab=>tab.addEventListene
     if(gate)gate.style.display="flex";
     showGoogleGate();
     startServidorMonitor();
-  }catch(error){console.error("[NEONCORE][ENTRY]",error);}
+  }catch(error){console.error("[DARKPIXEL ONLINE][ENTRY]",error);}
 })();
 loadStats();
 function frame(now){
@@ -2795,11 +2795,11 @@ requestAnimationFrame(frame);
     }catch(_){}
   }
   window.addEventListener("error",function(e){
-    try{ console.error("[NEONCORE][V1][STARTUP]",e.error||e.message||e); }catch(_){}
+    try{ console.error("[DARKPIXEL ONLINE][V1][STARTUP]",e.error||e.message||e); }catch(_){}
     setTimeout(showEntry,0);
   },true);
   window.addEventListener("unhandledrejection",function(e){
-    try{ console.error("[NEONCORE][V1][PROMISE]",e.reason||e); }catch(_){}
+    try{ console.error("[DARKPIXEL ONLINE][V1][PROMISE]",e.reason||e); }catch(_){}
     setTimeout(showEntry,0);
   },true);
   if(document.readyState==="loading"){
