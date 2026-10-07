@@ -52,6 +52,7 @@ jobs:
           node - <<'NODE'
           const fs = require('fs');
           const release = JSON.parse(fs.readFileSync('release.json','utf8'));
+          const serverRelease = JSON.parse(fs.readFileSync('server/release.json','utf8'));
           const root = fs.readFileSync('index.html','utf8');
           const projects = fs.readFileSync('proyectos/index.html','utf8');
           const clientPath = String(release.clientPath || '').replace(/^\/+/,'');
@@ -59,14 +60,20 @@ jobs:
           const server = fs.readFileSync('server/server.js','utf8');
           const cosmetics = fs.readFileSync('server/cosmetics.js','utf8');
           const version = String(release.version || release.clientVersion || release.releaseId || '').toUpperCase();
+          const serverVersion = String(release.serverVersion || serverRelease.serverVersion || serverRelease.version || '').toUpperCase();
           const clientMarker = client.match(/\bvar\s+v\s*=\s*["']([^"']+)["']/)?.[1]
             || client.match(/window\.NEON_CORE_VERSION\s*=\s*["']([^"']+)["']/)?.[1] || '';
 
           if (!/^V([1-9][0-9]*)$/.test(version)) throw new Error('Invalid release version: '+version);
+          if (!/^V([1-9][0-9]*)$/.test(serverVersion)) throw new Error('Invalid server release version: '+serverVersion);
           if (clientMarker !== version) throw new Error('Client version mismatch: '+clientMarker+' vs '+version);
-          if (release.version !== version || release.releaseId !== version || release.clientVersion !== version || release.serverVersion !== version || Number(release.databaseSchema) !== 3) {
-            throw new Error('release.json is not internally synchronized');
+          if (release.version !== version || release.releaseId !== version || release.clientVersion !== version || Number(release.databaseSchema) !== 3) {
+            throw new Error('release.json client metadata is not internally synchronized');
           }
+          if (serverRelease.version !== serverVersion || serverRelease.releaseId !== serverVersion || serverRelease.serverVersion !== serverVersion || serverRelease.clientVersion !== serverVersion) {
+            throw new Error('server/release.json is not internally synchronized');
+          }
+          if (release.serverVersion !== serverVersion) throw new Error('release.json and server/release.json disagree on serverVersion');
           if (!root.includes('NEONCORE') || !root.includes('VIEW PROJECTS') || !projects.includes('DarkPixel Online')) {
             throw new Error('Main portal / Projects portal is not synchronized');
           }
