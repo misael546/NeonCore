@@ -18,8 +18,19 @@ test('DarkPixel Online client: V1 marker and protected Google entry', async ({ p
   await expect.poll(async()=>page.evaluate(()=>window.NEON_CORE_VERSION),{timeout:15000,intervals:[500,1000]}).toBe(CURRENT_VERSION);
   await expect(page.locator('#googleGate')).toBeVisible({timeout:15000});
   await expect(page.locator('#googleButton')).toBeVisible({timeout:15000});
-  await expect(page.locator('#googleButton iframe')).toHaveCount(1,{timeout:20000});
-  await expect(page.locator('#googleStatus')).toContainText('Inicia sesión para entrar a DarkPixel Online.',{timeout:20000});
+  await page.waitForTimeout(5000);
+  const googleDiag=await page.evaluate(()=>({
+    status:document.getElementById('googleStatus')?.textContent||'',
+    buttonHtml:document.getElementById('googleButton')?.innerHTML||'',
+    googlePresent:!!window.google,
+    googleAccounts:!!window.google?.accounts,
+    googleId:!!window.google?.accounts?.id,
+    clientId:window.googleClientId||'',
+    gate:document.getElementById('googleGate')?.style.display||''
+  }));
+  console.log('[GOOGLE-DIAGNOSTIC]',JSON.stringify(googleDiag));
+  await expect(page.locator('#googleButton iframe')).toHaveCount(1,{timeout:15000});
+  await expect(page.locator('#googleStatus')).toContainText('Inicia sesión para entrar a DarkPixel Online.',{timeout:15000});
   await expect(page.locator('#game')).toBeVisible({timeout:15000});
   await expect(page.locator('body')).toContainText('DARKPIXEL ONLINE');
   await expect(page.locator('body')).not.toContainText('NEON CORE');
