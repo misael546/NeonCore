@@ -27,6 +27,7 @@ jobs:
           node --check server/server.js
           node --check server/cosmetics.js
           node --check server/storage.js
+          node --check server/google-auth.js
 
       - name: Check client JavaScript syntax
         run: |
@@ -38,7 +39,7 @@ jobs:
           const targets = [
             release.clientPath.replace(/^\/+/, ''),
             'index.html',
-            'neoncore/index.html'
+            'proyectos/index.html'
           ];
 
           let total = 0;

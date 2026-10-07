@@ -36,7 +36,7 @@ jobs:
           targets = [
               Path(json.loads(Path("release.json").read_text(encoding="utf-8"))["clientPath"].lstrip("/")),
               Path("index.html"),
-              Path("neoncore/index.html"),
+              Path("proyectos/index.html"),
           ]
           for path in targets:
               html = path.read_text(encoding="utf-8")
@@ -64,20 +64,18 @@ jobs:
 
           import json
           root = Path("index.html").read_text(encoding="utf-8")
-          legacy = Path("neoncore/index.html").read_text(encoding="utf-8")
+          projects = Path("proyectos/index.html").read_text(encoding="utf-8")
           release = json.loads(Path("release.json").read_text(encoding="utf-8"))
           expected_release = str(release["version"])
 
           expected_path = str(release["clientPath"]).lstrip("/")
           assert "NEONCORE" in root
-          assert expected_release in root
           assert expected_path in root
-          assert "PUBLIC_ROOM_CODE" not in root
-          assert "20261003-167-darkscifi" not in root
-          assert "location.replace(target+q)" in legacy
+          assert "V1" not in root and "V2" not in root and "BUILD-" not in root
+          assert "DarkPixel Online" in projects
+          assert Path(expected_path).exists()
 
-          print("[PAGES] Official NeonCore portal verified.")
-          print("[PAGES] Legacy neoncore route redirects to official root.")
+          print("[PAGES] Official NeonCore portal and protected Projects entry verified.")
           PY
 
       - name: Setup Pages
@@ -105,11 +103,10 @@ jobs:
             html="$(curl -fsSL --retry 2 --retry-delay 2 "$url" || true)"
             client="$(curl -fsSL --retry 2 --retry-delay 2 "https://misael546.github.io/NeonCore/${expected_path}?livecheck=$(date +%s%N)" || true)"
             if grep -Fq 'NEONCORE' <<<"$html" \
-               && grep -Fq "$expected_release" <<<"$html" \
                && grep -Fq "$expected_path" <<<"$html" \
                && grep -Fq "var v=\"$expected_release\"" <<<"$client" \
                && ! grep -Fq 'PUBLIC_ROOM_CODE' <<<"$html" \
-               && ! grep -Fq '20261003-167-darkscifi' <<<"$html"; then
+               && ! grep -Fq 'BUILD-' <<<"$html"; then
               echo "[PAGES] LIVE ROOT VERIFIED: current standalone main menu is being served."
               exit 0
             fi

@@ -36,7 +36,7 @@ jobs:
         run: |
           expected="$(python3 -c 'import json; print(json.load(open("release.json", encoding="utf-8"))["serverVersion"])')"
           for i in $(seq 1 36); do
-            if curl -fsSL "https://neon-core-multiplayer.onrender.com/health?menuSmokeCI=$i" | grep -Fq "\"version\":\"$expected\""; then
+            if curl -fsSL "https://neoncore-da6f.onbelmo.uk/health?menuSmokeCI=$i" | grep -Fq "\"version\":\"$expected\""; then
               echo "Belmo server is live: $expected"
               exit 0
             fi
@@ -44,5 +44,9 @@ jobs:
           done
           echo "Belmo server was not detected"
           exit 1
+      - name: Verify Belmo Google configuration
+        run: |
+          cfg="$(curl -fsSL "https://neoncore-da6f.onbelmo.uk/auth/google/config?menuSmokeGoogleCI=1")"
+          node -e 'const c=JSON.parse(process.argv[1]); if(!c.ok || !String(c.clientId||"").trim()) { console.error("Belmo Google configuration is missing or invalid."); process.exit(1); } console.log("Belmo Google configuration: OK");' "$cfg"
       - name: Run menu smoke test
         run: npx playwright test .github/tests/neoncore-menu-smoke.spec.js --workers=1
