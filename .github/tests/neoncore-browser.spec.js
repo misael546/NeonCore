@@ -41,7 +41,18 @@ test('DarkPixel Online client: V1 marker and protected Google entry', async ({ p
       scripts:[...document.scripts].map(s=>s.src||'inline').filter(x=>/google|gsi|onbelmo/i.test(x))
     };
   });
-  console.log('[GOOGLE-DIAGNOSTIC]',JSON.stringify({google:googleDiag,network:networkDiag}));
+  const sourceDiag=await page.evaluate(()=>({
+    href:location.href,
+    title:document.title,
+    hasInitGoogle:document.documentElement.innerHTML.includes('function initGoogleLogin'),
+    hasGoogleConfig:document.documentElement.innerHTML.includes('/auth/google/config'),
+    hasBelmo:document.documentElement.innerHTML.includes('neoncore-da6f.onbelmo.uk'),
+    hasGoogleScript:document.documentElement.innerHTML.includes('accounts.google.com/gsi/client'),
+    hasCurrentSocket:document.documentElement.innerHTML.includes('wss://neoncore-da6f.onbelmo.uk/ws'),
+    versionMatch:(document.documentElement.innerHTML.match(/var v="([^"]+)"/)||[])[1]||'',
+    gateText:document.getElementById('googleGate')?.textContent||''
+  }));
+  console.log('[GOOGLE-DIAGNOSTIC]',JSON.stringify({google:googleDiag,network:networkDiag,source:sourceDiag}));
   await expect(page.locator('#googleButton iframe')).toHaveCount(1,{timeout:15000});
   await expect(page.locator('#googleStatus')).toContainText('Inicia sesión para entrar a DarkPixel Online.',{timeout:15000});
   await expect(page.locator('#game')).toBeVisible({timeout:15000});
