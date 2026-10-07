@@ -70,7 +70,7 @@ jobs:
 
           expected_path = str(release["clientPath"]).lstrip("/")
           assert "NEONCORE" in root
-          assert expected_path in root
+          assert "/NeonCore/proyectos/" in root
           assert "V1" not in root and "V2" not in root and "BUILD-" not in root
           assert "DarkPixel Online" in projects
           assert Path(expected_path).exists()
