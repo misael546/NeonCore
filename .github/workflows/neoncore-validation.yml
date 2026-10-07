@@ -34,7 +34,7 @@ jobs:
           const fs = require('fs');
           const release = JSON.parse(fs.readFileSync('release.json','utf8'));
           const currentClient = String(release.clientPath || '').replace(/^\/+/,'');
-          const files = [currentClient, 'index.html', 'sessions/index.html'];
+          const files = [currentClient, 'index.html', 'proyectos/index.html'];
           let total = 0;
           for (const file of files) {
             const html = fs.readFileSync(file, 'utf8');
@@ -53,8 +53,7 @@ jobs:
           const fs = require('fs');
           const release = JSON.parse(fs.readFileSync('release.json','utf8'));
           const root = fs.readFileSync('index.html','utf8');
-          const roomLauncher = fs.readFileSync('neoncore/12345/index.html','utf8');
-          const sessions = fs.readFileSync('sessions/index.html','utf8');
+          const projects = fs.readFileSync('proyectos/index.html','utf8');
           const clientPath = String(release.clientPath || '').replace(/^\/+/,'');
           const client = fs.readFileSync(clientPath,'utf8');
           const server = fs.readFileSync('server/server.js','utf8');
@@ -68,23 +67,29 @@ jobs:
           if (release.version !== version || release.releaseId !== version || release.clientVersion !== version || release.serverVersion !== version || Number(release.databaseSchema) !== 3) {
             throw new Error('release.json is not internally synchronized');
           }
-          if (!root.includes('NEON CORE') || !roomLauncher.includes('release.json') || !roomLauncher.includes('clientPath')) {
-            throw new Error('Main/room launcher is not synchronized with release.json');
+          if (!root.includes('NEONCORE') || !root.includes('VIEW PROJECTS') || !projects.includes('DarkPixel Online')) {
+            throw new Error('Main portal / Projects portal is not synchronized');
           }
-          const clientParts = clientPath.split('/');
-          if (clientParts.length !== 4 || clientParts[0] !== 'neoncore' || clientParts[1] !== '12345' || !/^V([1-9][0-9]*)$/.test(clientParts[2]) || clientParts[3] !== 'index.html') {
-            throw new Error('Invalid current client path: '+clientPath);
-          }
-          if (!sessions.includes('Neon Core · Sesiones') || !sessions.includes('const WS=')) throw new Error('Sessions page is not synchronized');
-          if (!client.includes('V85') || !client.includes('account_authenticated') || !client.includes('SPECIAL')) throw new Error('Client V83 mechanics are not synchronized');
-          if (!server.includes('MELEE_GRID_SIZE = 24') || !server.includes('SPECIAL_COOLDOWN_MS = 3000') || !server.includes('SPECIAL_ATTACK_FATIGUE = 20') || !cosmetics.includes('NEONMASTER')) throw new Error('Server V85 mechanics are not synchronized');
+          const expectedPath = 'proyectos/darkpixel-online/index.html';
+          if (clientPath !== expectedPath) throw new Error('Invalid current client path: '+clientPath);
+          if (!projects.includes('/NeonCore/proyectos/darkpixel-online/')) throw new Error('Projects entry does not target DarkPixel Online');
+          if (!client.includes('DARKPIXEL ONLINE') || !client.includes('account_authenticated') || !client.includes('SPECIAL')) throw new Error('DarkPixel Online client systems are not synchronized');
+          if (!server.includes('MELEE_GRID_SIZE = 24') || !server.includes('SPECIAL_COOLDOWN_MS = 3000') || !server.includes('SPECIAL_ATTACK_FATIGUE = 20') || !cosmetics.includes('NEONMASTER')) throw new Error('Server mechanics are not synchronized');
           for (const legacy of ['V80','V81','Pistolero','MUNICIÓN','neon_release','neon_force','neon_reload','buy_ammo']) {
             if (client.includes(legacy) || server.includes(legacy) || cosmetics.includes(legacy)) throw new Error('Legacy trace found: '+legacy);
           }
-          const roomRoot = 'neoncore/12345';
-          const expectedName = require('path').basename(require('path').dirname(clientPath));
-          const actualDirs = fs.readdirSync(roomRoot,{withFileTypes:true}).filter(e=>e.isDirectory()).map(e=>e.name);
-          if (actualDirs.length !== 1 || actualDirs[0] !== expectedName) throw new Error('Room folders mismatch: '+JSON.stringify(actualDirs)+' expected '+expectedName);
-          if (!client.includes('DEFAULT_MELEE_SKIN') || !server.includes("backpack_basic")) throw new Error('V85 inventory/skin systems are not synchronized');
+          const indexFiles=[];
+          function collectIndexFiles(dir){
+            for(const e of fs.readdirSync(dir,{withFileTypes:true})){
+              const full=require('path').join(dir,e.name);
+              if(e.isDirectory() && !['.git','node_modules'].includes(e.name)) collectIndexFiles(full);
+              else if(e.isFile() && e.name==='index.html') indexFiles.push(full.replaceAll(require('path').sep,'/'));
+            }
+          }
+          collectIndexFiles('.');
+          const expectedIndexes=['index.html','proyectos/index.html','proyectos/darkpixel-online/index.html'].sort();
+          const actualIndexes=indexFiles.filter(x=>!x.startsWith('.git/')).sort();
+          if(JSON.stringify(actualIndexes)!==JSON.stringify(expectedIndexes)) throw new Error('Index files mismatch: '+JSON.stringify(actualIndexes));
+          if (!client.includes('DEFAULT_MELEE_SKIN') || !server.includes("backpack_basic")) throw new Error('Inventory/skin systems are not synchronized');
           console.log('Current complete release synchronization: OK -> '+version);
           NODE
