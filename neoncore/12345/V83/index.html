@@ -2924,5 +2924,50 @@ sendMultiplayerState=function(dt){
   };
 })();
 </script>
+<!-- NEONCORE_V83_DIRECT_HOTFIX -->
+<script>
+(function(){
+  "use strict";
+  var mobileDevice=/Android|iPhone|iPad|iPod|Mobile/i.test(navigator.userAgent||"");
+  document.documentElement.classList.toggle("neon-pc-input",!mobileDevice);
+  if(!mobileDevice){
+    window.addEventListener("pointerdown",function(e){
+      if(e.pointerType!=="mouse") e.stopImmediatePropagation();
+    },true);
+    window.addEventListener("pointermove",function(e){
+      if(e.pointerType!=="mouse") e.stopImmediatePropagation();
+    },true);
+  }
+  function ensureDefaultMelee(){
+    try{
+      var basic=(typeof DEFAULT_MELEE_SKIN!=="undefined"&&DEFAULT_MELEE_SKIN)||"core_default";
+      if(typeof ownedSkins!=="undefined"){
+        if(!Array.isArray(ownedSkins))ownedSkins=[];
+        if(!ownedSkins.includes(basic))ownedSkins.unshift(basic);
+      }
+      if(typeof equippedSkin!=="undefined"&&!equippedSkin)equippedSkin=basic;
+      if(typeof p!=="undefined"&&p){
+        if(!p.equippedSkin)p.equippedSkin=basic;
+        if(!p.weapon)p.weapon="sword_neo";
+      }
+    }catch(_){}
+  }
+  setInterval(ensureDefaultMelee,500);
+  ensureDefaultMelee();
+  window.drawGridGuide=function(){
+    try{
+      var gs=Math.max(1,Number(GRID_SIZE)||64);
+      var left=Math.max(0,Math.floor((camera.x-W/2)/gs)-1)*gs;
+      var right=Math.min(world.w,Math.ceil((camera.x+W/2)/gs)+1)*gs;
+      var top=Math.max(0,Math.floor((camera.y-H/2)/gs)-1)*gs;
+      var bottom=Math.min(world.h,Math.ceil((camera.y+H/2)/gs)+1)*gs;
+      ctx.save();ctx.lineWidth=1;ctx.strokeStyle="rgba(57,231,255,.13)";ctx.beginPath();
+      for(var x=left;x<=right;x+=gs){var px=sx(x);ctx.moveTo(px,0);ctx.lineTo(px,H);}
+      for(var y=top;y<=bottom;y+=gs){var py=sy(y);ctx.moveTo(0,py);ctx.lineTo(W,py);}
+      ctx.stroke();ctx.restore();
+    }catch(_){}
+  };
+})();
+</script>
 </body>
 </html>
