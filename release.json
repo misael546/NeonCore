@@ -3,7 +3,7 @@
   "version": "V2",
   "releaseId": "V2",
   "clientVersion": "V2",
-  "serverVersion": "V2",
+  "serverVersion": "V1",
   "databaseSchema": 3,
   "clientPath": "/proyectos/darkpixel-online/index.html"
 }
