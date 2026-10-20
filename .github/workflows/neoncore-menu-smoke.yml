@@ -3,6 +3,8 @@ name: DarkPixel Online menu smoke test
 on:
   push:
     branches: [main]
+  pull_request:
+    branches: [main]
   workflow_dispatch:
 
 jobs:
@@ -32,17 +34,18 @@ jobs:
           done
           echo "DarkPixel Online current release was not detected"
           exit 1
-      - name: Wait for Belmo current version
+      - name: Wait for Belmo current release
         run: |
-          expected="$(python3 -c 'import json; print(json.load(open("release.json", encoding="utf-8"))["serverVersion"])')"
+          expected="$(python3 -c 'import json; print(json.load(open("release.json", encoding="utf-8"))["version"])')"
           for i in $(seq 1 36); do
-            if curl -fsSL "https://neoncore-da6f.onbelmo.uk/health?menuSmokeCI=$i" | grep -Fq "\"version\":\"$expected\""; then
+            health="$(curl -fsSL "https://neoncore-da6f.onbelmo.uk/health?menuSmokeCI=$i" || true)"
+            if node -e 'try { const h=JSON.parse(process.argv[1]); const version=String(h.clientVersion || h.releaseId || ""); if (h.ok && version === process.argv[2]) process.exit(0); } catch {} process.exit(1);' "$health" "$expected"; then
               echo "Belmo server is live: $expected"
               exit 0
             fi
             sleep 5
           done
-          echo "Belmo server was not detected"
+          echo "Belmo server or matching client release was not detected"
           exit 1
       - name: Verify Belmo Google configuration
         run: |
