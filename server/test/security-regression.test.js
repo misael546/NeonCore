@@ -161,7 +161,11 @@ test('server starts, refuses unauthenticated room entry, and fails closed withou
   assert.equal(health.storage, 'memory');
   assert.equal(health.diagnostics.storageReady, false);
   assert.equal(health.rooms, 2, 'unauthenticated room creation must not allocate additional rooms');
-  assert.equal(health.players, 1, 'unauthenticated sockets must not become room players');
+  const roomsResponse = await fetch('http://127.0.0.1:' + port + '/rooms');
+  assert.equal(roomsResponse.status, 200);
+  const roomList = await roomsResponse.json();
+  assert.equal(roomList.rooms.find((room) => room.code === '12345')?.players, 0,
+    'unauthenticated sockets must not be counted in public rooms');
 });
 
 test('retired server notifier and undefined enemy-grid identifiers stay removed', () => {
