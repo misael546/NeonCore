@@ -10,6 +10,8 @@ const WebSocket = require('ws');
 
 const serverPath = path.resolve(__dirname, '..', 'server.js');
 const serverSource = require('node:fs').readFileSync(serverPath, 'utf8');
+const clientPath = path.resolve(__dirname, '..', '..', 'proyectos', 'darkpixel-online', 'index.html');
+const clientSource = require('node:fs').readFileSync(clientPath, 'utf8');
 
 function delay(ms) {
   return new Promise((resolve) => setTimeout(resolve, ms));
@@ -185,4 +187,13 @@ test('recovery throttling ignores spoofed forwarding headers unless proxy is tru
   assert.match(serverSource, /TRUSTED_PROXY_IPS/);
   assert.match(serverSource, /if \(!TRUSTED_PROXY_IPS\.has\(remote\)\) return remote/);
   assert.match(serverSource, /recoveryRateLimitCleanup\.unref\(\)/);
+});
+
+test('recovery code can be submitted from login gate and the returned account token can sign in', () => {
+  assert.match(clientSource, /id="accountRecoveryOpen"/);
+  assert.match(clientSource, /async function recoverAccountWithCode\(\)/);
+  assert.match(clientSource, /fetch\(base\+"\/account\/recover"/);
+  assert.match(clientSource, /savedAccountLogin/);
+  assert.match(serverSource, /storage\.findAccountByToken\(accountToken\)/);
+  assert.match(serverSource, /accountTokenValid:!!account\.accountToken/);
 });
