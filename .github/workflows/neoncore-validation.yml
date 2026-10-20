@@ -23,6 +23,8 @@ jobs:
         run: npm install
       - name: Check server syntax
         run: node --check server.js
+      - name: Run server regression tests
+        run: npm test
       - name: Check storage syntax
         run: node --check storage.js
       - name: Check cosmetics syntax

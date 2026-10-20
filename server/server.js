@@ -10,6 +10,17 @@ const cosmetics = require('./cosmetics');
 const crypto = require('crypto');
 const { GOOGLE_CLIENT_ID, verifyGoogleCredential } = require('./google-auth');
 const memoryAccountsByGoogle = new Map();
+const ADMIN_ACCOUNT_IDS = new Set(
+  String(process.env.DARKPIXEL_ADMIN_ACCOUNT_IDS || '')
+    .split(',')
+    .map((id) => id.trim())
+    .filter(Boolean)
+);
+
+function isAuthorizedTestAdmin(player) {
+  return process.env.ENABLE_TEST_REDEEM_CODES === 'true' &&
+    ADMIN_ACCOUNT_IDS.has(String(player?.accountId || ''));
+}
 
 const PORT = Number(process.env.PORT || 10000);
 
@@ -168,14 +179,45 @@ async function authenticateGoogleAccount(idToken){
   const google=await verifyGoogleCredential(idToken);
   if(!google.ok)return google;
   const existing=await storage.findAccountByGoogleSub(google.sub);
-  if(existing)return {ok:true,created:false,...existing,googleSub:google.sub,email:google.email};
+  if(existing) {
+    const recovery = await storage.ensureAccountRecovery(existing.accountId);
+    return {
+      ok:true,
+      created:false,
+      ...existing,
+      recoveryCode:String(recovery?.recoveryCode || ''),
+      googleSub:google.sub,
+      email:google.email
+    };
+  }
   const mem=memoryAccountsByGoogle.get(google.sub);
   if(mem)return {ok:true,created:false,...mem,googleSub:google.sub,email:google.email};
   const tempName='Cuenta-'+google.sub.slice(-10).replace(/[^A-Za-z0-9]/g,'');
   if(storage.enabled){
     const created=await storage.createAccountWithGoogle(tempName,google.sub);
-    if(created?.ok)return {...created,googleSub:google.sub,email:google.email};
-    if(created?.reason==='duplicate'){const again=await storage.findAccountByGoogleSub(google.sub);if(again)return {ok:true,created:false,...again,googleSub:google.sub,email:google.email};}
+    if(created?.ok) {
+      const recovery = await storage.ensureAccountRecovery(created.accountId);
+      return {
+        ...created,
+        recoveryCode:String(recovery?.recoveryCode || ''),
+        googleSub:google.sub,
+        email:google.email
+      };
+    }
+    if(created?.reason==='duplicate') {
+      const again = await storage.findAccountByGoogleSub(google.sub);
+      if(again) {
+        const recovery = await storage.ensureAccountRecovery(again.accountId);
+        return {
+          ok:true,
+          created:false,
+          ...again,
+          recoveryCode:String(recovery?.recoveryCode || ''),
+          googleSub:google.sub,
+          email:google.email
+        };
+      }
+    }
     return created;
   }
   const accountToken=crypto.randomBytes(32).toString('base64url');
@@ -1236,6 +1278,14 @@ async function leaveRoom(ws) {
 async function joinRoom(ws, requestedCode, create = false) {
   const p = clients.get(ws);
   if (!p) return;
+  if (!p.joined || !p.accountId || !p.saveKey) {
+    send(ws, {
+      type: 'room_error',
+      reason: 'auth_required',
+      message: 'Debes autenticar tu cuenta antes de entrar a una sala.'
+    });
+    return;
+  }
 
   let code = String(requestedCode || '')
     .toUpperCase()
@@ -1575,6 +1625,10 @@ async function redeemCosmeticCode(ws, rawCode, fromServerChat=false) {
   const code = String(rawCode || '').trim().toUpperCase().replace(/[^A-Z0-9_-]/g, '').slice(0, 32);
   if (!code) return cosmeticShopError(ws, 'Escribe un código.');
 
+  if (code === 'NEONMASTER' && !isAuthorizedTestAdmin(p)) {
+    return cosmeticShopError(ws, 'El código maestro está desactivado fuera de las pruebas autorizadas.');
+  }
+
   const reward = cosmetics.REDEEM_CODES[code];
   if (!reward) return cosmeticShopError(ws, 'Código no válido.');
   if (reward.enabled === false) return cosmeticShopError(ws, 'Ese código está desactivado temporalmente.');
@@ -1825,6 +1879,7 @@ function createPlayer(ws) {
     googleSub: '',
     accountEmail: '',
     pendingGoogleAuth: false,
+    authInProgress: false,
     pendingRoomMode: 'join',
     pendingRoomCode: '12345',
     ws
@@ -1834,8 +1889,47 @@ function createPlayer(ws) {
 }
 
 const recoveryAttemptsByIp = new Map();
-function recoveryClientKey(req){const forwarded=String(req.headers?.['x-forwarded-for']||'').split(',')[0].trim();return forwarded||String(req.socket?.remoteAddress||'unknown').slice(0,80);}
-function recoveryAllowed(req){const key=recoveryClientKey(req),now=Date.now(),row=recoveryAttemptsByIp.get(key)||{start:now,count:0};if(now-row.start>10*60*1000){row.start=now;row.count=0;}row.count++;recoveryAttemptsByIp.set(key,row);return row.count<=12;}
+const TRUSTED_PROXY_IPS = new Set(
+  String(process.env.TRUSTED_PROXY_IPS || '')
+    .split(',')
+    .map((ip) => ip.trim())
+    .filter(Boolean)
+);
+
+function recoveryClientKey(req) {
+  const remote = String(req.socket?.remoteAddress || 'unknown').slice(0, 80);
+  if (!TRUSTED_PROXY_IPS.has(remote)) return remote;
+
+  // A trusted reverse proxy appends the address it observed. Do not trust
+  // caller-supplied X-Forwarded-For values from untrusted direct connections.
+  const forwarded = String(req.headers?.['x-forwarded-for'] || '')
+    .split(',')
+    .map((ip) => ip.trim())
+    .filter(Boolean);
+  return forwarded.length ? forwarded[forwarded.length - 1].slice(0, 80) : remote;
+}
+
+function recoveryAllowed(req) {
+  const key = recoveryClientKey(req);
+  const now = Date.now();
+  const row = recoveryAttemptsByIp.get(key) || { start: now, count: 0 };
+  if (now - row.start > 10 * 60 * 1000) {
+    row.start = now;
+    row.count = 0;
+  }
+  row.count++;
+  recoveryAttemptsByIp.set(key, row);
+  return row.count <= 12;
+}
+
+const recoveryRateLimitCleanup = setInterval(() => {
+  const cutoff = Date.now() - 10 * 60 * 1000;
+  for (const [key, row] of recoveryAttemptsByIp) {
+    if (!row || Number(row.start) < cutoff) recoveryAttemptsByIp.delete(key);
+  }
+}, 10 * 60 * 1000);
+recoveryRateLimitCleanup.unref();
+
 function readRequestBody(req,maxBytes=1024){return new Promise((resolve,reject)=>{let size=0,body='';req.on('data',chunk=>{size+=Buffer.byteLength(chunk);if(size>maxBytes){reject(new Error('payload_too_large'));try{req.destroy();}catch{};return;}body+=chunk.toString('utf8');});req.on('end',()=>resolve(body));req.on('error',reject);});}
 
 const httpServer = http.createServer(async (req, res) => {
@@ -1989,32 +2083,101 @@ wss.on('connection', async (ws) => {
       if (!p || !msg || typeof msg.type !== 'string') return;
 
       if (msg.type === 'join') {
-        if (p.joined) {
-          send(ws, { type: 'room_error', message: 'Esta conexión ya está vinculada a una partida.' });
+        if (p.joined || p.authInProgress) {
+          send(ws, { type: 'room_error', reason: 'auth_in_progress', message: 'Esta conexión ya está autenticada o está validando una cuenta.' });
+          return;
+        }
+        p.authInProgress = true;
+
+        if (!storage.enabled) {
+          p.authInProgress = false;
+          send(ws, {
+            type: 'room_error',
+            reason: 'storage_unavailable',
+            message: 'El guardado permanente no está disponible. No se puede iniciar una partida de forma segura.'
+          });
           return;
         }
 
         const requestedName=normalizeAccountName(msg.name||'Jugador')||'Jugador';
         const googleIdToken=String(msg.googleIdToken||'').trim();
-        if(!googleIdToken){send(ws,{type:'room_error',reason:'google_required',message:'Debes iniciar sesión con Google para entrar a DarkPixel Online.'});return;}
-        const googleAccount=await authenticateGoogleAccount(googleIdToken);
-        if(!googleAccount?.ok){send(ws,{type:'room_error',reason:'google_invalid',message:googleAccount?.reason==='not_configured'?'Google aún no está configurado en el servidor.':'No se pudo validar tu cuenta de Google.'});return;}
         const legacySaveKey=String(msg.saveKey||'').replace(/[^a-zA-Z0-9_-]/g,'').slice(0,80);
         const accountToken=sanitizeAccountToken(msg.accountToken);
-        let account;
-        try{account=googleAccount;account.accountToken=String(account.accountToken||'');}
-        catch(error){
-          console.error('[ACCOUNT AUTH]',error?.stack||error);
-          send(ws,{type:'room_error',reason:'account_error',message:'No se pudo validar la cuenta. Intenta de nuevo.'});return;
+        let account = null;
+
+        if (googleIdToken) {
+          const googleAccount = await authenticateGoogleAccount(googleIdToken);
+          if (!googleAccount?.ok) {
+            p.authInProgress = false;
+            send(ws,{
+              type:'room_error',
+              reason:'google_invalid',
+              message:googleAccount?.reason==='not_configured'
+                ?'Google aún no está configurado en el servidor.'
+                :'No se pudo validar tu cuenta de Google.'
+            });
+            return;
+          }
+          account = {
+            ...googleAccount,
+            accountToken:String(googleAccount.accountToken || '')
+          };
+
+          // Keep a previously saved bearer token only when it belongs to the
+          // same Google account; otherwise the client clears its stale token.
+          if (accountToken) {
+            const tokenOwner = await storage.findAccountByToken(accountToken);
+            if (tokenOwner && String(tokenOwner.accountId) === String(account.accountId)) {
+              account.accountToken = accountToken;
+            }
+          }
+        } else if (accountToken) {
+          // A recovery token is a bearer credential for the account it names.
+          // This lets players recover access even when Google sign-in is lost.
+          const tokenAccount = await storage.findAccountByToken(accountToken);
+          if (!tokenAccount) {
+            p.authInProgress = false;
+            send(ws,{
+              type:'room_error',
+              reason:'account_invalid',
+              message:'El token guardado ya no es válido. Inicia sesión con Google o recupera tu cuenta con el código de recuperación.'
+            });
+            return;
+          }
+          const recovery = await storage.ensureAccountRecovery(tokenAccount.accountId);
+          account = {
+            ok:true,
+            created:false,
+            ...tokenAccount,
+            accountToken,
+            recoveryCode:String(recovery?.recoveryCode || ''),
+            googleSub:'',
+            email:''
+          };
+        } else {
+          p.authInProgress = false;
+          send(ws,{
+            type:'room_error',
+            reason:'google_required',
+            message:'Inicia sesión con Google o usa el token/código de recuperación de tu cuenta.'
+          });
+          return;
         }
-        if(!account?.ok){
-          const accountMessages={
+
+        if (!account?.ok) {
+          const accountMessages = {
             account_invalid:'La credencial de cuenta no es válida. No se creará otra cuenta automáticamente.',
             name_reserved:'Ese nombre está reservado por DarkPixel Online.',
             name_taken:'Ese nombre ya está ocupado. Elige otro nombre.',
             storage_error:'No se pudo guardar la cuenta. Intenta de nuevo.'
           };
-          send(ws,{type:'room_error',reason:account.reason||'account_error',message:accountMessages[account.reason]||'No se pudo crear o validar la cuenta.'});return;
+          p.authInProgress = false;
+          send(ws,{
+            type:'room_error',
+            reason:account.reason || 'account_error',
+            message:accountMessages[account.reason] || 'No se pudo crear o validar la cuenta.'
+          });
+          return;
         }
         p.accountId=String(account.accountId||'').slice(0,96);
         p.googleSub=String(account.googleSub||'').slice(0,128);
@@ -2099,7 +2262,7 @@ wss.on('connection', async (ws) => {
         applyCombatStats(p);
         p.joined = true;
 
-        send(ws,{type:'account_authenticated',accountId:p.accountId,name:p.name||'',nameLocked:!!p.nameLocked,created:!!account.created,accountToken:String(account.accountToken||''),recoveryCode:'',googleEmail:p.accountEmail,needsName:!p.name||/^Cuenta-/.test(String(p.name))});
+        send(ws,{type:'account_authenticated',accountId:p.accountId,name:p.name||'',nameLocked:!!p.nameLocked,created:!!account.created,accountToken:String(account.accountToken||''),accountTokenValid:!!account.accountToken,recoveryCode:String(account.recoveryCode||''),googleEmail:p.accountEmail,needsName:!p.name||/^Cuenta-/.test(String(p.name))});
         if(!saved){p.pendingGoogleAuth=true;p.pendingRoomMode=msg.createRoom?'create':(msg.room?'join':'quick');p.pendingRoomCode=String(msg.room||'12345').slice(0,5);}
 
 
@@ -2139,6 +2302,7 @@ wss.on('connection', async (ws) => {
           clientPath: String(UNIFIED_RELEASE_MANIFEST.clientPath || '/proyectos/darkpixel-online/index.html')
         });
 
+        p.authInProgress = false;
         return;
       }
 
@@ -2175,6 +2339,10 @@ wss.on('connection', async (ws) => {
         // Server chat command: the permanent master test code is intentionally usable here.
         const commandMatch=text.match(/^\/code\s+([A-Z0-9_-]+)$/i);
         if(commandMatch){
+          p.lastChatAt = now;
+          if (!isAuthorizedTestAdmin(p)) {
+            return cosmeticShopError(ws, 'Los códigos por chat están reservados al modo de pruebas autorizado.');
+          }
           await redeemCosmeticCode(ws,commandMatch[1],true);
           return;
         }
@@ -2467,6 +2635,8 @@ wss.on('connection', async (ws) => {
       }
     } catch (error) {
       console.error('[WS MESSAGE]', error?.stack || error);
+      const activePlayer = clients.get(ws);
+      if (activePlayer) activePlayer.authInProgress = false;
       try {
         send(ws, {
           type: 'server_error',
@@ -2496,9 +2666,43 @@ wss.on('connection', async (ws) => {
 });
 
 // V1: servidor autoritativo de cuadrícula. Los enemigos regulares avanzan casilla por casilla y se detienen a una casilla del objetivo.
-setInterval(()=>{for(const [code,room] of rooms){if(!room||!room.size)continue;const enemies=roomEnemies.get(code)||[];const players=roomPlayers(room).filter(p=>p.alive&&!p.frozen);for(const e of enemies){if(e.kind==='boss'||e.dead)continue;let target=null,best=Infinity;for(const pl of players){if(inSafeZone(pl.x,pl.y,24))continue;const d=Math.hypot(pl.x-e.x,pl.y-e.y);if(d<=e.aggroRadius&&d<best){best=d;target=pl;}}if(target){const tcx=Math.round(target.x/MELEE_GRID_SIZE),tcy=Math.round(target.y/MELEE_GRID_SIZE),ecx=Math.round(e.x/MELEE_GRID_SIZE),ecy=Math.round(e.y/MELEE_GRID_SIZE);if(Math.abs(tcx-ecx)+Math.abs(tcy-ecy)<=1){e.x=egridCenter(cx);e.y=egridCenter(cy);e.vx=0;e.vy=0;} }}}},180);
+setInterval(() => {
+  for (const [code, room] of rooms) {
+    if (!room || room.size === 0) continue;
+    const enemies = roomEnemies.get(code) || [];
+    const players = roomPlayers(room).filter((player) => player.alive && !player.frozen);
+    for (const enemy of enemies) {
+      if (!enemy || enemy.kind === 'boss' || enemy.dead) continue;
+      let target = null;
+      let best = Infinity;
+      for (const player of players) {
+        if (inSafeZone(player.x, player.y, 24)) continue;
+        const distance = Math.hypot(player.x - enemy.x, player.y - enemy.y);
+        if (distance <= enemy.aggroRadius && distance < best) {
+          best = distance;
+          target = player;
+        }
+      }
+      if (!target) continue;
 
-startServerUpdateHeartbeat();
+      // Use the same floor-based cells as the movement and melee systems.
+      const targetCellX = gridCell(target.x);
+      const targetCellY = gridCell(target.y);
+      const enemyCellX = gridCell(enemy.x);
+      const enemyCellY = gridCell(enemy.y);
+      if (Math.abs(targetCellX - enemyCellX) + Math.abs(targetCellY - enemyCellY) <= 1) {
+        const centerX = gridCenter(enemyCellX);
+        const centerY = gridCenter(enemyCellY);
+        if (!collidesWithWall(centerX, centerY, enemy.r, ensureRoomWalls(code))) {
+          enemy.x = centerX;
+          enemy.y = centerY;
+        }
+        enemy.vx = 0;
+        enemy.vy = 0;
+      }
+    }
+  }
+}, 180);
 
 const storageReady = storage.initStorage(RELEASE_ID, DATABASE_SCHEMA_VERSION).catch((error) => {
   console.error('[STORAGE INIT]', error?.stack || error);

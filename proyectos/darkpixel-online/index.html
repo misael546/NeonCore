@@ -357,9 +357,16 @@ html.pc-controls #controlConfigBtn,html.touch-controls #controlConfigBtn{display
 <div id="googleGate" style="position:fixed;inset:0;background:#02050bf2;display:none;align-items:center;justify-content:center;padding:20px;z-index:30000">
   <div style="width:min(420px,100%);padding:28px 22px;background:linear-gradient(180deg,#0b1425,#050b14);border:1px solid #39e7ff88;border-radius:20px;box-shadow:0 20px 80px #000;text-align:center">
     <div style="font-size:38px;margin-bottom:8px">◉</div><h1 style="margin:0;color:#39e7ff;letter-spacing:2px;font-size:26px">DARKPIXEL ONLINE</h1>
-    <p style="color:#c8d3e5;font-size:13px;line-height:1.5">Tu cuenta de Google será la identidad permanente de tu jugador.</p>
+    <p style="color:#c8d3e5;font-size:13px;line-height:1.5">Entra con Google, con una cuenta guardada o recupera el acceso mediante tu código.</p>
     <div id="googleStatus" style="min-height:20px;color:#8ea0b8;font-size:11px;margin:12px 0"></div>
     <div id="googleButton" style="display:flex;justify-content:center;min-height:44px"></div>
+    <button id="savedAccountLogin" type="button" style="display:none;width:100%;min-height:42px;margin-top:8px;border:1px solid #39e7ff66;border-radius:10px;background:#0d1727;color:#dffbff;font-weight:bold">ENTRAR CON CUENTA GUARDADA</button>
+    <button id="accountRecoveryOpen" type="button" style="width:100%;min-height:42px;margin-top:8px;border:1px solid #33415d;border-radius:10px;background:#0d1727;color:#9fb0c7;font-weight:bold">RECUPERAR CUENTA</button>
+    <div id="accountRecoveryPanel" style="display:none;margin-top:8px;text-align:left">
+      <input id="accountRecoveryInput" maxlength="32" autocomplete="off" autocapitalize="characters" spellcheck="false" placeholder="CÓDIGO · NEON-XXXXXXXX-XXXXXXXX-XXXXXXXX" style="width:100%;padding:12px;border:1px solid #33415d;border-radius:9px;background:#111a2d;color:#fff;font-size:14px;outline:none">
+      <button id="accountRecoverySubmit" type="button" style="width:100%;min-height:42px;margin-top:8px;border:0;border-radius:9px;background:#183d58;color:#fff;font-weight:bold">RECUPERAR CUENTA</button>
+      <div id="accountRecoveryMsg" role="status" aria-live="polite" style="font-size:11px;color:#9fb0c7;min-height:18px;margin-top:7px"></div>
+    </div>
   </div>
 </div>
 <div id="nameBox">
@@ -374,12 +381,6 @@ html.pc-controls #controlConfigBtn,html.touch-controls #controlConfigBtn{display
         <div id="roomActions"><button type="button" id="createRoom">CREAR SALA PRIVADA</button><button type="button" id="joinRoom">UNIRME A PRIVADA</button></div>
         <input id="roomCodeInput" maxlength="4" autocomplete="off" placeholder="CÓDIGO DE SALA · EJ. N7K4">
       </div>
-      <button id="accountRecoveryOpen" type="button" style="margin-top:8px;background:#0d1727;border:1px solid #33415d;color:#9fb0c7">RECUPERAR CUENTA</button>
-      <div id="accountRecoveryPanel" style="display:none;margin-top:8px">
-        <input id="accountRecoveryInput" maxlength="32" autocomplete="off" placeholder="CÓDIGO · NEON-XXXXXXXX-XXXXXXXX-XXXXXXXX">
-        <button id="accountRecoverySubmit" type="button" style="margin-top:8px">RECUPERAR CUENTA</button>
-        <div id="accountRecoveryMsg" style="font-size:11px;color:#7f91aa;min-height:18px;margin-top:7px"></div>
-      </div>
       <div id="nameMsg"></div>
     </div>
   </form>
@@ -387,8 +388,8 @@ html.pc-controls #controlConfigBtn,html.touch-controls #controlConfigBtn{display
 
 <div id="accountRecoveryNotice" style="display:none;position:fixed;inset:0;background:#000b;align-items:center;justify-content:center;padding:20px;z-index:120">
   <div style="width:min(430px,100%);background:#0b1020;border:1px solid #39e7ff;border-radius:18px;padding:22px;box-shadow:0 20px 80px #000;text-align:center">
-    <h2 style="margin:0;color:#39e7ff;letter-spacing:1.5px">CUENTA CREADA</h2>
-    <p style="color:#b8c6d8;font-size:12px;line-height:1.5">Guarda este código. Te permitirá recuperar tu cuenta si borras los datos del navegador.</p>
+    <h2 style="margin:0;color:#39e7ff;letter-spacing:1.5px">CÓDIGO DE RECUPERACIÓN</h2>
+    <p style="color:#b8c6d8;font-size:12px;line-height:1.5">Guarda este código fuera del navegador. Te permitirá recuperar el acceso si pierdes tu sesión.</p>
     <div id="accountRecoveryCode" style="margin:16px 0;padding:14px;border:1px solid #39e7ff66;border-radius:12px;background:#06101a;color:#fff;font-size:18px;font-weight:900;letter-spacing:2px;word-break:break-all">—</div>
     <button id="accountRecoveryCopy" type="button" style="width:100%;min-height:44px;border:0;border-radius:10px;background:#183d58;color:#fff;font-weight:bold">COPIAR CÓDIGO</button>
     <button id="accountRecoveryClose" type="button" style="width:100%;min-height:44px;border:1px solid #33415d;border-radius:10px;margin-top:8px;background:#0d1727;color:#fff;font-weight:bold">YA LO GUARDÉ</button>
@@ -1084,9 +1085,22 @@ function connectMultiplayer(roomMode="quick",roomCode=""){ const publicRoomAuto=
         if(m.type==="name_result"){if(m.ok){pendingNameSetup=false;playerName=String(m.name||"").slice(0,20);username.value=playerName;saveName(playerName);document.getElementById("controlEditor").style.display="none";document.getElementById("controlClose").style.display="grid";document.getElementById("changeNameBtn").textContent="CAMBIAR POR 1,000 💎";showToast("Nombre creado gratis: "+playerName);}else{const msg=document.getElementById("renameMsg");if(msg)msg.textContent=m.message||"No se pudo guardar el nombre.";};return;}
         if(m.type==="rename_result"){const msg=String(m.message||"");if(m.ok){pendingNameSetup=false;playerName=String(m.name||"").slice(0,20);username.value=playerName;saveName(playerName);showToast(m.free?"Nombre creado gratis: "+playerName:"Nombre cambiado por 1,000 💎");}else showToast(msg||"No se pudo cambiar el nombre.");return;}
         if(m.type==="account_authenticated"){
-          if(m.accountId){accountId=String(m.accountId).slice(0,96);try{localStorage.setItem("neon_core_account_id",accountId);}catch{}}
-          if(m.accountToken){accountToken=String(m.accountToken).slice(0,128);try{localStorage.setItem("neon_core_account_token",accountToken);}catch{}}
-          if(m.name){playerName=String(m.name).slice(0,20);username.value=playerName;try{localStorage.setItem("neon_core_player_name",playerName);localStorage.setItem("neon_core_name_locked","1")}catch{}}          if(m.recoveryCode){showAccountRecoveryCode(String(m.recoveryCode));}
+          if(m.accountId){
+            const nextAccountId=String(m.accountId).slice(0,96);
+            if((accountId&&accountId!==nextAccountId)||m.accountTokenValid===false){
+              accountToken="";
+              try{localStorage.removeItem("neon_core_account_token");}catch{}
+            }
+            accountId=nextAccountId;
+            try{localStorage.setItem("neon_core_account_id",accountId);}catch{}
+          }
+          if(m.accountToken){
+            accountToken=String(m.accountToken).slice(0,128);
+            try{localStorage.setItem("neon_core_account_token",accountToken);}catch{}
+          }
+          updateSavedAccountButton();
+          if(m.name){playerName=String(m.name).slice(0,20);username.value=playerName;try{localStorage.setItem("neon_core_player_name",playerName);localStorage.setItem("neon_core_name_locked","1")}catch{}}
+          if(m.recoveryCode){showAccountRecoveryCode(String(m.recoveryCode));}
           if(m.needsName){pendingNameSetup=true;}
           return;
         }
@@ -1516,10 +1530,36 @@ function connectMultiplayer(roomMode="quick",roomCode=""){ const publicRoomAuto=
 
 
 const googleGate=document.getElementById("googleGate"),googleStatus=document.getElementById("googleStatus"),googleButton=document.getElementById("googleButton");
+const savedAccountLogin=document.getElementById("savedAccountLogin");
+const accountRecoveryOpen=document.getElementById("accountRecoveryOpen");
+const accountRecoveryPanel=document.getElementById("accountRecoveryPanel");
+const accountRecoveryInput=document.getElementById("accountRecoveryInput");
+const accountRecoverySubmit=document.getElementById("accountRecoverySubmit");
+const accountRecoveryMsg=document.getElementById("accountRecoveryMsg");
+const accountRecoveryNotice=document.getElementById("accountRecoveryNotice");
+const accountRecoveryCode=document.getElementById("accountRecoveryCode");
+const accountRecoveryCopy=document.getElementById("accountRecoveryCopy");
+const accountRecoveryClose=document.getElementById("accountRecoveryClose");
 let googleLoginReady=false;
 let googleInitPromise=null;
 let googleScriptPromise=null;
+function updateSavedAccountButton(){
+  if(savedAccountLogin)savedAccountLogin.style.display=accountToken?"block":"none";
+}
+function setAccountRecoveryMessage(message,isError=false){
+  if(!accountRecoveryMsg)return;
+  accountRecoveryMsg.textContent=String(message||"");
+  accountRecoveryMsg.style.color=isError?"#ff8b8b":"#9fb0c7";
+}
+function showAccountRecoveryCode(rawCode){
+  const code=String(rawCode||"").trim();
+  if(!code||!accountRecoveryNotice||!accountRecoveryCode)return;
+  accountRecoveryCode.textContent=code;
+  if(accountRecoveryCopy)accountRecoveryCopy.textContent="COPIAR CÓDIGO";
+  accountRecoveryNotice.style.display="flex";
+}
 function showGoogleGate(){
+  updateSavedAccountButton();
   if(googleGate)googleGate.style.display="flex";
   if(!googleInitPromise){
     googleInitPromise=initGoogleLogin().finally(()=>{googleInitPromise=null;});
@@ -1611,6 +1651,121 @@ function handleGoogleCredential(response){
   setTimeout(()=>connectMultiplayer("join",PUBLIC_ROOM_CODE),80);
 }
 window.handleGoogleCredential=handleGoogleCredential;
+
+async function recoverAccountWithCode(){
+  const code=String(accountRecoveryInput?.value||"").trim().toUpperCase();
+  if(!code){
+    setAccountRecoveryMessage("Escribe tu código de recuperación.",true);
+    accountRecoveryInput?.focus();
+    return;
+  }
+  if(accountRecoverySubmit)accountRecoverySubmit.disabled=true;
+  if(accountRecoverySubmit)accountRecoverySubmit.textContent="VALIDANDO…";
+  const base=MULTIPLAYER_SERVER.replace(/^wss:/,"https:").replace(/^ws:/,"http:").replace(/\/ws$/,"");
+  const controller=new AbortController();
+  const timeout=setTimeout(()=>controller.abort(),10000);
+  try{
+    const response=await fetch(base+"/account/recover",{
+      method:"POST",
+      cache:"no-store",
+      headers:{"Content-Type":"application/json","Accept":"application/json"},
+      body:JSON.stringify({code}),
+      signal:controller.signal
+    });
+    const result=await response.json().catch(()=>({}));
+    if(!response.ok||!result.ok||!String(result.accountToken||"")){
+      setAccountRecoveryMessage(
+        String(result.message|| (response.status===429
+          ?"Demasiados intentos. Intenta de nuevo más tarde."
+          :"El código no es válido o no se pudo recuperar la cuenta.")),
+        true
+      );
+      return;
+    }
+
+    accountToken=String(result.accountToken).slice(0,128);
+    accountId=String(result.accountId||"").slice(0,96);
+    playerName=String(result.name||"").slice(0,20);
+    googleIdToken="";
+    try{
+      localStorage.setItem("neon_core_account_token",accountToken);
+      localStorage.setItem("neon_core_account_id",accountId);
+      if(playerName){
+        localStorage.setItem("neon_core_player_name",playerName);
+        localStorage.setItem("neon_core_name_locked","1");
+      }
+      sessionStorage.removeItem("neon_core_google_id_token");
+    }catch{}
+    if(username)username.value=playerName;
+    if(accountRecoveryPanel)accountRecoveryPanel.style.display="none";
+    if(accountRecoveryInput)accountRecoveryInput.value="";
+    setAccountRecoveryMessage("Cuenta recuperada. Conectando…");
+    updateSavedAccountButton();
+    if(googleStatus)googleStatus.textContent="Cuenta recuperada. Conectando al servidor…";
+    if(googleGate)googleGate.style.display="none";
+    setTimeout(()=>connectMultiplayer("join",PUBLIC_ROOM_CODE),80);
+  }catch(error){
+    setAccountRecoveryMessage(
+      error?.name==="AbortError"
+        ?"El servidor tardó demasiado. Intenta de nuevo."
+        :"No se pudo conectar con el servicio de recuperación.",
+      true
+    );
+  }finally{
+    clearTimeout(timeout);
+    if(accountRecoverySubmit){
+      accountRecoverySubmit.disabled=false;
+      accountRecoverySubmit.textContent="RECUPERAR CUENTA";
+    }
+  }
+}
+
+if(savedAccountLogin)savedAccountLogin.addEventListener("click",()=>{
+  if(!accountToken){
+    updateSavedAccountButton();
+    setAccountRecoveryMessage("No hay una cuenta guardada en este navegador.",true);
+    if(accountRecoveryPanel)accountRecoveryPanel.style.display="block";
+    return;
+  }
+  googleIdToken="";
+  try{sessionStorage.removeItem("neon_core_google_id_token");}catch{}
+  playerName=loadName();
+  if(username)username.value=playerName;
+  if(googleGate)googleGate.style.display="none";
+  if(googleStatus)googleStatus.textContent="Validando tu cuenta guardada…";
+  setTimeout(()=>connectMultiplayer("join",PUBLIC_ROOM_CODE),80);
+});
+if(accountRecoveryOpen)accountRecoveryOpen.addEventListener("click",()=>{
+  if(!accountRecoveryPanel)return;
+  const open=accountRecoveryPanel.style.display!=="block";
+  accountRecoveryPanel.style.display=open?"block":"none";
+  setAccountRecoveryMessage("");
+  if(open)accountRecoveryInput?.focus();
+});
+if(accountRecoverySubmit)accountRecoverySubmit.addEventListener("click",recoverAccountWithCode);
+if(accountRecoveryInput)accountRecoveryInput.addEventListener("keydown",(event)=>{
+  if(event.key==="Enter"){
+    event.preventDefault();
+    recoverAccountWithCode();
+  }
+});
+if(accountRecoveryClose)accountRecoveryClose.addEventListener("click",()=>{
+  if(accountRecoveryNotice)accountRecoveryNotice.style.display="none";
+});
+if(accountRecoveryNotice)accountRecoveryNotice.addEventListener("click",(event)=>{
+  if(event.target===accountRecoveryNotice)accountRecoveryNotice.style.display="none";
+});
+if(accountRecoveryCopy)accountRecoveryCopy.addEventListener("click",async()=>{
+  const code=String(accountRecoveryCode?.textContent||"").trim();
+  if(!code||code==="—")return;
+  try{
+    await navigator.clipboard.writeText(code);
+    accountRecoveryCopy.textContent="COPIADO";
+  }catch{
+    setAccountRecoveryMessage("No se pudo copiar automáticamente. Selecciona el código y cópialo manualmente.");
+  }
+});
+updateSavedAccountButton();
 
 function rand(a,b){return a+Math.random()*(b-a)}
 function dist(a,b){return Math.hypot(a.x-b.x,a.y-b.y)}

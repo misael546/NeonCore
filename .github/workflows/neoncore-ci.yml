@@ -29,6 +29,10 @@ jobs:
           node --check server/storage.js
           node --check server/google-auth.js
 
+      - name: Run server regression tests
+        working-directory: server
+        run: npm test
+
       - name: Check client JavaScript syntax
         run: |
           node <<'NODE'
