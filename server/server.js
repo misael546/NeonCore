@@ -2101,35 +2101,83 @@ wss.on('connection', async (ws) => {
 
         const requestedName=normalizeAccountName(msg.name||'Jugador')||'Jugador';
         const googleIdToken=String(msg.googleIdToken||'').trim();
-        if(!googleIdToken){
-          p.authInProgress = false;
-          send(ws,{type:'room_error',reason:'google_required',message:'Debes iniciar sesión con Google para entrar a DarkPixel Online.'});
-          return;
-        }
-        const googleAccount=await authenticateGoogleAccount(googleIdToken);
-        if(!googleAccount?.ok){
-          p.authInProgress = false;
-          send(ws,{type:'room_error',reason:'google_invalid',message:googleAccount?.reason==='not_configured'?'Google aún no está configurado en el servidor.':'No se pudo validar tu cuenta de Google.'});
-          return;
-        }
         const legacySaveKey=String(msg.saveKey||'').replace(/[^a-zA-Z0-9_-]/g,'').slice(0,80);
         const accountToken=sanitizeAccountToken(msg.accountToken);
-        let account;
-        try{account=googleAccount;account.accountToken=String(account.accountToken||'');}
-        catch(error){
-          console.error('[ACCOUNT AUTH]',error?.stack||error);
+        let account = null;
+
+        if (googleIdToken) {
+          const googleAccount = await authenticateGoogleAccount(googleIdToken);
+          if (!googleAccount?.ok) {
+            p.authInProgress = false;
+            send(ws,{
+              type:'room_error',
+              reason:'google_invalid',
+              message:googleAccount?.reason==='not_configured'
+                ?'Google aún no está configurado en el servidor.'
+                :'No se pudo validar tu cuenta de Google.'
+            });
+            return;
+          }
+          account = {
+            ...googleAccount,
+            accountToken:String(googleAccount.accountToken || '')
+          };
+
+          // Keep a previously saved bearer token only when it belongs to the
+          // same Google account; otherwise the client clears its stale token.
+          if (accountToken) {
+            const tokenOwner = await storage.findAccountByToken(accountToken);
+            if (tokenOwner && String(tokenOwner.accountId) === String(account.accountId)) {
+              account.accountToken = accountToken;
+            }
+          }
+        } else if (accountToken) {
+          // A recovery token is a bearer credential for the account it names.
+          // This lets players recover access even when Google sign-in is lost.
+          const tokenAccount = await storage.findAccountByToken(accountToken);
+          if (!tokenAccount) {
+            p.authInProgress = false;
+            send(ws,{
+              type:'room_error',
+              reason:'account_invalid',
+              message:'El token guardado ya no es válido. Inicia sesión con Google o recupera tu cuenta con el código de recuperación.'
+            });
+            return;
+          }
+          const recovery = await storage.ensureAccountRecovery(tokenAccount.accountId);
+          account = {
+            ok:true,
+            created:false,
+            ...tokenAccount,
+            accountToken,
+            recoveryCode:String(recovery?.recoveryCode || ''),
+            googleSub:'',
+            email:''
+          };
+        } else {
           p.authInProgress = false;
-          send(ws,{type:'room_error',reason:'account_error',message:'No se pudo validar la cuenta. Intenta de nuevo.'});return;
+          send(ws,{
+            type:'room_error',
+            reason:'google_required',
+            message:'Inicia sesión con Google o usa el token/código de recuperación de tu cuenta.'
+          });
+          return;
         }
-        if(!account?.ok){
-          const accountMessages={
+
+        if (!account?.ok) {
+          const accountMessages = {
             account_invalid:'La credencial de cuenta no es válida. No se creará otra cuenta automáticamente.',
             name_reserved:'Ese nombre está reservado por DarkPixel Online.',
             name_taken:'Ese nombre ya está ocupado. Elige otro nombre.',
             storage_error:'No se pudo guardar la cuenta. Intenta de nuevo.'
           };
           p.authInProgress = false;
-          send(ws,{type:'room_error',reason:account.reason||'account_error',message:accountMessages[account.reason]||'No se pudo crear o validar la cuenta.'});return;
+          send(ws,{
+            type:'room_error',
+            reason:account.reason || 'account_error',
+            message:accountMessages[account.reason] || 'No se pudo crear o validar la cuenta.'
+          });
+          return;
         }
         p.accountId=String(account.accountId||'').slice(0,96);
         p.googleSub=String(account.googleSub||'').slice(0,128);
@@ -2214,7 +2262,7 @@ wss.on('connection', async (ws) => {
         applyCombatStats(p);
         p.joined = true;
 
-        send(ws,{type:'account_authenticated',accountId:p.accountId,name:p.name||'',nameLocked:!!p.nameLocked,created:!!account.created,accountToken:String(account.accountToken||''),recoveryCode:String(account.recoveryCode||''),googleEmail:p.accountEmail,needsName:!p.name||/^Cuenta-/.test(String(p.name))});
+        send(ws,{type:'account_authenticated',accountId:p.accountId,name:p.name||'',nameLocked:!!p.nameLocked,created:!!account.created,accountToken:String(account.accountToken||''),accountTokenValid:!!account.accountToken,recoveryCode:String(account.recoveryCode||''),googleEmail:p.accountEmail,needsName:!p.name||/^Cuenta-/.test(String(p.name))});
         if(!saved){p.pendingGoogleAuth=true;p.pendingRoomMode=msg.createRoom?'create':(msg.room?'join':'quick');p.pendingRoomCode=String(msg.room||'12345').slice(0,5);}
 
 
