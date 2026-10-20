@@ -12,6 +12,8 @@ const serverPath = path.resolve(__dirname, '..', 'server.js');
 const serverSource = require('node:fs').readFileSync(serverPath, 'utf8');
 const clientPath = path.resolve(__dirname, '..', '..', 'proyectos', 'darkpixel-online', 'index.html');
 const clientSource = require('node:fs').readFileSync(clientPath, 'utf8');
+const menuWorkflowPath = path.resolve(__dirname, '..', '..', '.github', 'workflows', 'neoncore-menu-smoke.yml');
+const menuWorkflowSource = require('node:fs').readFileSync(menuWorkflowPath, 'utf8');
 
 function delay(ms) {
   return new Promise((resolve) => setTimeout(resolve, ms));
@@ -196,4 +198,9 @@ test('recovery code can be submitted from login gate and the returned account to
   assert.match(clientSource, /savedAccountLogin/);
   assert.match(serverSource, /storage\.findAccountByToken\(accountToken\)/);
   assert.match(serverSource, /accountTokenValid:!!account\.accountToken/);
+});
+
+test('menu smoke version gate uses release fields that still exist', () => {
+  assert.doesNotMatch(menuWorkflowSource, /\["serverVersion"\]/);
+  assert.match(menuWorkflowSource, /h\.clientVersion\s*\|\|\s*h\.releaseId/);
 });
