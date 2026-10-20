@@ -1879,6 +1879,7 @@ function createPlayer(ws) {
     googleSub: '',
     accountEmail: '',
     pendingGoogleAuth: false,
+    authInProgress: false,
     pendingRoomMode: 'join',
     pendingRoomCode: '12345',
     ws
@@ -2082,12 +2083,14 @@ wss.on('connection', async (ws) => {
       if (!p || !msg || typeof msg.type !== 'string') return;
 
       if (msg.type === 'join') {
-        if (p.joined) {
-          send(ws, { type: 'room_error', message: 'Esta conexión ya está vinculada a una partida.' });
+        if (p.joined || p.authInProgress) {
+          send(ws, { type: 'room_error', reason: 'auth_in_progress', message: 'Esta conexión ya está autenticada o está validando una cuenta.' });
           return;
         }
+        p.authInProgress = true;
 
         if (!storage.enabled) {
+          p.authInProgress = false;
           send(ws, {
             type: 'room_error',
             reason: 'storage_unavailable',
@@ -2098,15 +2101,24 @@ wss.on('connection', async (ws) => {
 
         const requestedName=normalizeAccountName(msg.name||'Jugador')||'Jugador';
         const googleIdToken=String(msg.googleIdToken||'').trim();
-        if(!googleIdToken){send(ws,{type:'room_error',reason:'google_required',message:'Debes iniciar sesión con Google para entrar a DarkPixel Online.'});return;}
+        if(!googleIdToken){
+          p.authInProgress = false;
+          send(ws,{type:'room_error',reason:'google_required',message:'Debes iniciar sesión con Google para entrar a DarkPixel Online.'});
+          return;
+        }
         const googleAccount=await authenticateGoogleAccount(googleIdToken);
-        if(!googleAccount?.ok){send(ws,{type:'room_error',reason:'google_invalid',message:googleAccount?.reason==='not_configured'?'Google aún no está configurado en el servidor.':'No se pudo validar tu cuenta de Google.'});return;}
+        if(!googleAccount?.ok){
+          p.authInProgress = false;
+          send(ws,{type:'room_error',reason:'google_invalid',message:googleAccount?.reason==='not_configured'?'Google aún no está configurado en el servidor.':'No se pudo validar tu cuenta de Google.'});
+          return;
+        }
         const legacySaveKey=String(msg.saveKey||'').replace(/[^a-zA-Z0-9_-]/g,'').slice(0,80);
         const accountToken=sanitizeAccountToken(msg.accountToken);
         let account;
         try{account=googleAccount;account.accountToken=String(account.accountToken||'');}
         catch(error){
           console.error('[ACCOUNT AUTH]',error?.stack||error);
+          p.authInProgress = false;
           send(ws,{type:'room_error',reason:'account_error',message:'No se pudo validar la cuenta. Intenta de nuevo.'});return;
         }
         if(!account?.ok){
@@ -2116,6 +2128,7 @@ wss.on('connection', async (ws) => {
             name_taken:'Ese nombre ya está ocupado. Elige otro nombre.',
             storage_error:'No se pudo guardar la cuenta. Intenta de nuevo.'
           };
+          p.authInProgress = false;
           send(ws,{type:'room_error',reason:account.reason||'account_error',message:accountMessages[account.reason]||'No se pudo crear o validar la cuenta.'});return;
         }
         p.accountId=String(account.accountId||'').slice(0,96);
@@ -2241,6 +2254,7 @@ wss.on('connection', async (ws) => {
           clientPath: String(UNIFIED_RELEASE_MANIFEST.clientPath || '/proyectos/darkpixel-online/index.html')
         });
 
+        p.authInProgress = false;
         return;
       }
 
@@ -2573,6 +2587,8 @@ wss.on('connection', async (ws) => {
       }
     } catch (error) {
       console.error('[WS MESSAGE]', error?.stack || error);
+      const activePlayer = clients.get(ws);
+      if (activePlayer) activePlayer.authInProgress = false;
       try {
         send(ws, {
           type: 'server_error',
