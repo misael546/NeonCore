@@ -1,26 +1,5 @@
 <!doctype html>
-<html lang="es">
-<head>
-<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>NeonCore · Projects</title>
+<html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="theme-color" content="#080b12"><meta name="description" content="Proyectos de software de NeonCore."><title>Projects — NeonCore</title>
 <style>
-*{box-sizing:border-box}html,body{margin:0;min-height:100%;font-family:Inter,Arial,sans-serif;background:#080b10;color:#e8edf3}
-.top{height:72px;border-bottom:1px solid #202733;display:flex;align-items:center;justify-content:space-between;padding:0 7vw}.logo{font-weight:800;letter-spacing:2px}.logo span{color:#62d9ff}.back{color:#7f8b9b;background:none;border:0;cursor:pointer;font-size:11px}.wrap{max-width:1120px;margin:auto;padding:75px 7vw}.eyebrow{font-size:11px;letter-spacing:3px;color:#62d9ff;font-weight:700}.title{font-size:48px;margin:14px 0 8px;letter-spacing:-2px}.intro{color:#7f8b9b;max-width:650px;line-height:1.7;font-size:14px}.grid{display:grid;grid-template-columns:repeat(2,1fr);gap:16px;margin-top:50px}.card{border:1px solid #242c38;background:#0b1017;border-radius:9px;padding:28px}.card:hover{border-color:#405064}.code{color:#62d9ff;font-size:10px;letter-spacing:2px}.card h2{margin:12px 0 7px;font-size:23px}.card p{color:#7f8b9b;line-height:1.6;font-size:13px}.meta{display:flex;gap:18px;margin-top:22px;color:#657184;font-size:10px;letter-spacing:1px}.open{margin-top:25px;width:100%;padding:13px;border:1px solid #354050;background:#121821;color:#edf4fa;border-radius:6px;font-weight:700;cursor:pointer}.open:hover{background:#18212c}@media(max-width:700px){.grid{grid-template-columns:1fr}.title{font-size:38px}}
-</style>
-</head>
-<body>
-<header class="top"><div class="logo">NEON<span>CORE</span></div><button class="back" id="back">← MAIN PORTAL</button></header>
-<main class="wrap">
-<div class="eyebrow">SOFTWARE PROJECTS</div>
-<div class="title">Projects</div>
-<p class="intro">A controlled workspace for software products currently under development. Select a project to access its active environment.</p>
-<section class="grid">
-<article class="card"><div class="code">PROJECT 01</div><h2>DarkPixel Online</h2><p>Online multiplayer software project with realtime services, authentication, persistence and a dedicated development environment.</p><div class="meta"><span>WEB</span><span>REALTIME</span><span>ACTIVE</span></div><button class="open" id="open">OPEN PROJECT</button></article>
-</section>
-</main>
-<script>
-document.getElementById("back").onclick=()=>location.href="/NeonCore/";
-document.getElementById("open").onclick=()=>location.href="/NeonCore/proyectos/darkpixel-online/";
-</script>
-</body>
-</html>
+:root{color-scheme:dark;--bg:#080b12;--line:#202b3a;--muted:#9aa8ba;--cyan:#63e3ff;--white:#f3f7fc}*{box-sizing:border-box}body{margin:0;background:radial-gradient(ellipse at 75% 5%,#12304444,transparent 35%),var(--bg);color:var(--white);font-family:Inter,system-ui,Arial,sans-serif}a{color:inherit;text-decoration:none}.shell{width:min(1050px,calc(100% - 48px));margin:auto}.top{height:76px;border-bottom:1px solid #ffffff12;display:flex;align-items:center;justify-content:space-between}.brand{font-weight:900;letter-spacing:2.5px}.brand span{color:var(--cyan)}.back{font-size:11px;color:var(--muted);letter-spacing:1px}.back:hover{color:var(--cyan)}main{padding:90px 0 110px}.tag{font-size:11px;font-weight:800;letter-spacing:3px;color:var(--cyan)}h1{font-size:clamp(42px,7vw,70px);letter-spacing:-.06em;margin:16px 0}.intro{max-width:650px;color:var(--muted);line-height:1.8}.grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:18px;margin-top:48px}.card{padding:30px;border:1px solid #293648;border-radius:9px;background:linear-gradient(145deg,#111b29,#0b111b);display:flex;flex-direction:column;min-height:300px;transition:.2s}.card:hover{border-color:#4a7185;transform:translateY(-3px)}.number{font-size:10px;color:var(--cyan);letter-spacing:2px}.card h2{font-size:27px;margin:17px 0 8px}.card p{color:var(--muted);font-size:14px;line-height:1.75;margin:0 0 25px}.meta{color:#8b9aaf;font-size:10px;letter-spacing:1.5px;margin-top:auto;margin-bottom:20px}.open{display:inline-flex;align-items:center;justify-content:center;min-height:46px;border:1px solid var(--cyan);background:var(--cyan);color:#071018;border-radius:5px;font-size:11px;font-weight:900;letter-spacing:1px;padding:0 18px;width:max-content}.open:hover{filter:brightness(1.1)}footer{border-top:1px solid var(--line);padding:26px 0 40px;color:#738196;font-size:10px;letter-spacing:1.4px}@media(max-width:650px){.shell{width:calc(100% - 36px)}.top{height:66px}main{padding:70px 0}.grid{grid-template-columns:1fr}.card{min-height:275px}}
+</style></head><body><header class="top shell"><a class="brand" href="../">NEON<span>CORE</span></a><a class="back" href="../">← MAIN PORTAL</a></header><main class="shell"><div class="tag">NEONCORE / PORTFOLIO</div><h1>Projects</h1><p class="intro">Explore the software products currently being developed inside NeonCore. Each project has its own environment and release lifecycle.</p><section class="grid" aria-label="Project list"><article class="card"><div class="number">PROJECT 01</div><h2>DarkPixel Online</h2><p>A browser-based multiplayer game project with realtime gameplay and online services. Visit its dedicated page to open the current client.</p><div class="meta">WEB · MULTIPLAYER · IN DEVELOPMENT</div><a class="open" href="./darkpixel-online/">OPEN PROJECT ↗</a></article></section></main><footer class="shell">NEONCORE · SOFTWARE DEVELOPMENT</footer></body></html>
