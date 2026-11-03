@@ -1,40 +1,22 @@
 <!doctype html>
 <html lang="es">
 <head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1">
-<meta name="color-scheme" content="dark">
-<title>NeonCore · Software</title>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#080b12"><meta name="description" content="NeonCore — desarrollo de software y proyectos digitales.">
+<title>NeonCore — Software & Systems</title>
 <style>
-*{box-sizing:border-box}html,body{margin:0;min-height:100%;font-family:Inter,Arial,sans-serif;background:#080b10;color:#e8edf3}
-body{overflow-x:hidden}.top{height:72px;border-bottom:1px solid #202733;display:flex;align-items:center;justify-content:space-between;padding:0 7vw;background:#080b10eF;position:relative;z-index:2}
-.logo{font-weight:800;letter-spacing:2px}.logo span{color:#62d9ff}.nav{display:flex;gap:28px;font-size:12px;color:#8491a3;letter-spacing:.5px}.nav b{color:#e8edf3;font-weight:600}
-.hero{max-width:1120px;margin:0 auto;padding:105px 7vw 70px;position:relative}.eyebrow{font-size:11px;letter-spacing:3px;color:#62d9ff;font-weight:700}.hero h1{font-size:clamp(42px,7vw,78px);line-height:.98;max-width:850px;margin:20px 0;color:#f5f7fa;letter-spacing:-3px}.hero h1 span{color:#8995a5}.hero p{max-width:650px;color:#8792a1;font-size:16px;line-height:1.7;margin:0}.actions{display:flex;gap:12px;margin-top:35px}.btn{padding:14px 22px;border:1px solid #303946;background:#11161e;color:#eef3f8;border-radius:7px;font-size:12px;font-weight:700;letter-spacing:.8px;cursor:pointer}.btn.primary{background:#e9f7ff;color:#071019;border-color:#e9f7ff}.btn:hover{transform:translateY(-1px)}
-.line{height:1px;background:#202733;max-width:1120px;margin:auto}.stats{max-width:1120px;margin:auto;padding:38px 7vw;display:grid;grid-template-columns:repeat(3,1fr);gap:1px;background:#202733}.stat{background:#080b10;padding:18px}.stat strong{display:block;font-size:24px}.stat small{color:#697586;font-size:10px;letter-spacing:1.5px}
-footer{max-width:1120px;margin:auto;padding:28px 7vw 50px;color:#4f5a69;font-size:10px;letter-spacing:1px}
-@media(max-width:700px){.nav{display:none}.hero{padding-top:70px}.hero h1{letter-spacing:-2px}.stats{grid-template-columns:1fr}.actions{flex-direction:column}}
+:root{color-scheme:dark;--bg:#080b12;--panel:#0e1420;--line:#202b3a;--muted:#9aa8ba;--cyan:#63e3ff;--white:#f3f7fc}
+*{box-sizing:border-box}html{scroll-behavior:smooth}body{margin:0;background:radial-gradient(ellipse at 80% 8%,#12304455,transparent 36%),var(--bg);color:var(--white);font-family:Inter,ui-sans-serif,system-ui,Arial,sans-serif}a{color:inherit;text-decoration:none}.shell{width:min(1120px,calc(100% - 48px));margin:auto}.top{height:76px;border-bottom:1px solid #ffffff12;display:flex;align-items:center;justify-content:space-between}.brand{font-weight:900;letter-spacing:2.5px;font-size:17px}.brand span{color:var(--cyan)}nav{display:flex;gap:30px;color:#aab6c6;font-size:12px;letter-spacing:1px}nav a:hover,.textlink:hover{color:var(--cyan)}.hero{padding:clamp(82px,13vw,150px) 0 100px;max-width:920px}.tag{color:var(--cyan);font-size:11px;font-weight:800;letter-spacing:3px}.hero h1{font-size:clamp(46px,8vw,88px);line-height:.99;letter-spacing:-.065em;margin:22px 0}.hero h1 span{color:#8493a8}.lead{max-width:670px;color:var(--muted);font-size:17px;line-height:1.8}.actions{display:flex;gap:13px;flex-wrap:wrap;margin-top:34px}.btn{display:inline-flex;align-items:center;justify-content:center;min-height:48px;padding:0 22px;border:1px solid #354457;border-radius:6px;font-size:11px;font-weight:800;letter-spacing:1px;transition:.2s}.btn.primary{background:var(--cyan);border-color:var(--cyan);color:#071018}.btn:hover{transform:translateY(-2px);border-color:var(--cyan)}.section{border-top:1px solid var(--line);padding:65px 0}.sectionhead{display:flex;justify-content:space-between;align-items:end;gap:24px;margin-bottom:26px}.section h2{font-size:clamp(28px,4vw,42px);letter-spacing:-1.5px;margin:10px 0}.muted{color:var(--muted);line-height:1.7}.project{display:grid;grid-template-columns:1.3fr .7fr;gap:30px;padding:30px;border:1px solid #293648;background:linear-gradient(120deg,#101b29,#0b111b);border-radius:10px}.project h3{font-size:28px;margin:12px 0}.project p{color:var(--muted);line-height:1.75;max-width:620px}.projectaside{border-left:1px solid #2b394a;padding-left:26px;display:flex;flex-direction:column;justify-content:space-between;gap:24px}.meta{color:#8b9aaf;font-size:10px;letter-spacing:1.5px;line-height:2}.foot{border-top:1px solid var(--line);padding:26px 0 40px;color:#738196;font-size:10px;letter-spacing:1.4px;display:flex;justify-content:space-between;gap:15px;flex-wrap:wrap}
+@media(max-width:680px){.shell{width:min(100% - 36px,1120px)}.top{height:66px}nav{gap:14px;font-size:10px}nav a:nth-child(2){display:none}.hero{padding:82px 0 76px}.lead{font-size:15px}.project{grid-template-columns:1fr;padding:23px}.projectaside{border-left:0;border-top:1px solid #2b394a;padding:20px 0 0}.sectionhead{display:block}.foot{font-size:9px}}
 </style>
 </head>
 <body>
-<header class="top"><div class="logo">NEON<span>CORE</span></div><nav class="nav"><b>SOFTWARE</b><span>PRODUCTS</span><span>ENGINEERING</span><span>PROJECTS</span></nav></header>
-<main>
-<section class="hero">
-<div class="eyebrow">SOFTWARE DEVELOPMENT</div>
-<h1>We build software.<br><span>We solve systems.</span></h1>
-<p>NeonCore is a software development environment focused on building, testing and operating digital products. This portal is the central entry point for our projects and engineering work.</p>
-<div class="actions"><button class="btn primary" id="projects">VIEW PROJECTS</button><button class="btn" id="about">ENGINEERING</button></div>
-</section>
-<div class="line"></div>
-<section class="stats">
-<div class="stat"><strong>01</strong><small>ACTIVE PROJECT</small></div>
-<div class="stat"><strong>WEB</strong><small>PLATFORM</small></div>
-<div class="stat"><strong>ONLINE</strong><small>DEVELOPMENT ENVIRONMENT</small></div>
-</section>
+<header class="top shell"><a class="brand" href="./">NEON<span>CORE</span></a><nav aria-label="Navegación principal"><a href="#about">ABOUT</a><a href="#projects">PROJECTS</a><a href="#contact">CONTACT</a></nav></header>
+<main class="shell">
+<section class="hero" id="about"><div class="tag">INDEPENDENT SOFTWARE DEVELOPMENT</div><h1>We build software.<br><span>We solve systems.</span></h1><p class="lead">NeonCore is an independent software development environment focused on building, testing and improving digital products. Explore the projects currently in development.</p><div class="actions"><a class="btn primary" href="./proyectos/">EXPLORE PROJECTS ↗</a><a class="btn" href="#about">ABOUT NEONCORE</a></div></section>
+<section class="section" id="projects"><div class="sectionhead"><div><div class="tag">SELECTED WORK</div><h2>Projects in progress</h2></div><span class="muted">01 — Current project</span></div><article class="project"><div><div class="tag">ONLINE GAME · WEB</div><h3>DarkPixel Online</h3><p>A multiplayer online game project with a browser client and realtime server infrastructure. Open the project page to access the current web client.</p><a class="btn primary" href="./proyectos/darkpixel-online/">OPEN PROJECT ↗</a></div><aside class="projectaside"><div class="meta">PROJECT 01<br>STATUS · IN DEVELOPMENT<br>PLATFORM · WEB</div><div class="meta">A NEONCORE PROJECT</div></aside></article></section>
+<section class="section" id="contact"><div class="tag">NEONCORE</div><h2>Built through iteration.</h2><p class="muted">Software, systems and digital experiments — developed and refined one project at a time.</p></section>
 </main>
-<footer>NEONCORE SOFTWARE · DEVELOPMENT PORTAL</footer>
-<script>
-document.getElementById("projects").onclick=()=>location.href="/NeonCore/proyectos/";
-document.getElementById("about").onclick=()=>alert("Software engineering, product development and system architecture.");
-</script>
-</body>
-</html>
+<footer class="shell foot"><span>NEONCORE · SOFTWARE DEVELOPMENT</span><span>© <span id="year"></span> NEONCORE</span></footer>
+<script>document.getElementById("year").textContent=new Date().getFullYear();</script>
+</body></html>
